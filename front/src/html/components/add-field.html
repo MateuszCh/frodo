@@ -1,0 +1,83 @@
+<div layout="row"
+     layout-align="start start"
+     class="m-b-2 bg-col-w p-a-2 box-shadow-inset">
+    <md-button class="md-warn md-raised m-a-0 m-r-2"
+               hide-xs
+               aria-label="delete field"
+               ng-click="vm.remove()">Delete</md-button>
+    <div flex="grow"
+         layout="column">
+        <div layout="row">
+            <md-input-container flex="grow">
+                <label>Title</label>
+                <input name="{{vm.repeat ? vm.repeat + vm.order + '.title' : vm.order + '.title'}}"
+                       type="text"
+                       ng-model="vm.fieldModel.title"
+                       required>
+                <div ng-messages="vm.form[vm.repeat ? vm.repeat + vm.order + '.title' : vm.order + '.title'].$error">
+                    <div ng-message="required">This is required.</div>
+                </div>
+            </md-input-container>
+            <div hide-gt-xs>
+                <md-button class="md-fab md-warn"
+                           aria-label="delete field"
+                           ng-click="vm.remove()">Delete</md-button>
+            </div>
+        </div>
+        <md-input-container>
+            <label>Id</label>
+            <input name="{{vm.repeat ? vm.repeat + vm.order + '.id' : vm.order + '.id'}}"
+                   type="text"
+                   ng-change="vm.formatIdString()"
+                   ng-model="vm.fieldModel.id"
+                   required>
+            <div ng-messages="vm.form[vm.repeat ? vm.repeat + vm.order + '.id' : vm.order + '.id'].$error">
+                <div ng-message="required">This is required.</div>
+            </div>
+        </md-input-container>
+        <md-input-container>
+            <label>Select type</label>
+            <md-select ng-model="vm.fieldModel.type" required name="{{vm.repeat ? vm.repeat + vm.order + '.type' : vm.order + '.type'}}">
+                <md-option ng-value="field.type"
+                           ng-repeat="field in vm.fields track by field.type">
+                    <span ng-bind="::field.name"></span>
+                </md-option>
+            </md-select>
+            <div ng-messages="vm.form[vm.repeat ? vm.repeat + vm.order + '.type' : vm.order + '.type'].$error">
+                <div ng-message="required">This is required.</div>
+            </div>
+        </md-input-container>
+        <div ng-if="vm.fieldModel.type === 'select'"
+             layout="column">
+            <md-input-container>
+                <label for="selectOptions">Options (please enter options separated by semicolons)</label>
+                <input id="selectOptions"
+                       name="{{vm.repeat ? vm.repeat + vm.order + '.selectOptions' : vm.order + '.selectOptions'}}"
+                       type="text"
+                       required
+                       ng-model="vm.fieldModel.selectOptions">
+                <div ng-messages="vm.form[vm.repeat ? vm.repeat + vm.order + '.selectOptions' : vm.order + '.selectOptions'].$error">
+                    <div ng-message="required">This is required.</div>
+                </div>
+            </md-input-container>
+        </div>
+        <div ng-show="vm.fieldModel.type === 'repeater'"
+             layout="column"
+             layout-align="start">
+            <div class="repeaterFields">
+                <add-field ng-repeat="i in vm.repeaterFieldsNumber track by $index"
+                           edit="true"
+                           form="vm.form"
+                           model="vm.fieldModel.repeaterFields"
+                           repeat="{{vm.repeat ? vm.repeat + vm.order : vm.order}}"
+                           order="$index"></add-field>
+            </div>
+            <div class="right">
+                <md-button class="md-primary md-raised"
+                           aria-label="add repeater"
+                           ng-click="vm.addRepeaterField()">Add new repeater field</md-button>
+            </div>
+
+        </div>
+    </div>
+</div>

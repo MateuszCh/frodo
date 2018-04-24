@@ -1,0 +1,45 @@
+.md-button.busy {
+  color: transparent !important;
+}
+
+.menudemoBasicUsage .md-menu-demo {
+  padding: 24px; }
+
+.menudemoBasicUsage .menu-demo-container {
+  min-height: 200px; }
+
+input[type=number]::-webkit-inner-spin-button,
+input[type=number]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+md-backdrop {
+  position: fixed;
+}
+
+.files-dialog {
+  max-height: 100vh;
+  max-width: 100vw;
+  height: 95vh;
+  width: 95vw;
+  position: relative;
+}
+
+.close {
+  position: absolute;
+  top:12px;
+  right:12px;
+  cursor: pointer;
+}
+
+button.md-primary.md-fab,
+button.md-primary.md-raised{
+  color: white !important;
+  &.busy {
+    color: transparent !important;
+    span {
+      color: transparent !important;
+    }
+  }
+}

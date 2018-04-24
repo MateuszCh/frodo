@@ -1,0 +1,119 @@
+@for $i from $padding-min through $padding-max {
+  @each $name, $value in $position-map {
+    .p-#{$name}-#{$i} {
+      padding-#{$value} : #{$i / 2}em !important;
+    }
+
+    @each $sizeName, $sizeValue in $size-map {
+      .p-#{$name}-#{$i}-#{$sizeName} {
+        .#{$sizeValue} & {
+          @extend .p-#{$name}-#{$i};
+        }
+      }
+    }
+  }
+  .p-a-#{$i} {
+    padding: #{$i / 2}em !important;
+  }
+
+  @each $sizeName, $sizeValue in $size-map {
+    .p-a-#{$i}-#{$sizeName} {
+      .#{$sizeValue} & {
+        @extend .p-a-#{$i}
+      }
+    }
+  }
+}
+
+@for $i from $margin-min through $margin-max {
+  @each $name, $value in $position-map {
+    .m-#{$name}-#{$i} {
+      margin-#{$value} : #{$i / 2}em !important;
+    }
+
+    @each $sizeName, $sizeValue in $size-map {
+      .m-#{$name}-#{$i}-#{$sizeName} {
+        .#{$sizeValue} & {
+          @extend .m-#{$name}-#{$i};
+        }
+      }
+    }
+  }
+  .m-a-#{$i} {
+    margin: #{$i / 2}em;
+  }
+
+  @each $sizeName, $sizeValue in $size-map {
+    .m-a-#{$i}-#{$sizeName} {
+      .#{$sizeValue} & {
+        @extend .m-a-#{$i};
+      }
+    }
+  }
+}
+
+@for $i from $position-min through $position-max {
+  @each $name, $value in $position-map {
+    .#{$value}-#{$i} {
+      #{$value} : #{$i / 2}em !important;
+    }
+  }
+}
+
+@for $i from $z-index-min through $z-index-max {
+  .z-#{$i} {
+    z-index: #{$i};
+  }
+}
+
+.fill {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.fill-90 {
+  position: absolute;
+  top: 5%;
+  right: 5%;
+  left: 5%;
+  bottom: 5%;
+  width: 90%;
+  height: 90%;
+}
+
+.vh-100 {
+  height: 100vh;
+}
+
+@each $name, $value in $size-map {
+  .fill-#{$name} {
+    .#{$value} & {
+      @extend .fill;
+    }
+  }
+
+  .vh-100-#{$name} {
+    .#{$value} & {
+      @extend .vh-100;
+    }
+  }
+}
+
+@each $name in $positions {
+  .pos-#{$name} {
+    position: #{$name} !important;
+  }
+
+  @each $sizeName, $valueName in $size-map {
+    .pos-#{$name}-#{$sizeName} {
+      .#{$valueName} & {
+        @extend .pos-#{$name};
+      }
+    }
+  }
+}

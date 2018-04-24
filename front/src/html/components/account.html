@@ -1,0 +1,61 @@
+<section class="p-a-3 p-a-1-m p-a-1-s p-t-8-s p-t-8-m vh-100-l vh-100-x fill-s fill-m pos-relative"
+         layout="row"
+         layout-align="center center">
+    <div ng-form="password"
+         layout="column"
+         flex-xl="20"
+         flex-lg="25"
+         flex-sm="50"
+         flex-xs="80"
+         class="bg-col-1-20">
+        <meta ng-init="vm.setForm(password)">
+        <h3 class="center font-2 fs-5 m-b-2">Change Password</h3>
+        <md-input-container>
+            <label for="password">Password</label>
+            <input type="password"
+                   id="password"
+                   required
+                   ng-enter="vm.changePassword()"
+                   name="password"
+                   ng-model="vm.data.password">
+            <div ng-messages="vm.form.password.$error">
+                <div ng-message="required">This is required</div>
+            </div>
+        </md-input-container>
+        <md-input-container>
+            <label for="newPassword">New password</label>
+            <input type="password"
+                   id="newPassword"
+                   name="newPassword"
+                   ng-enter="vm.changePassword()"
+                   required
+                   ng-model="vm.data.newPassword">
+            <div ng-messages="vm.form.newPassword.$error">
+                <div ng-message="required">This is required</div>
+            </div>
+        </md-input-container>
+        <md-input-container>
+            <label for="newPasswordConfirmation">New password confirmation</label>
+            <input type="password"
+                   id="newPasswordConfirmation"
+                   name="newPasswordConfirmation"
+                   ng-enter="vm.changePassword()"
+                   required
+                   ng-model="vm.data.newPasswordConfirmation">
+            <div ng-messages="vm.form.newPasswordConfirmation.$error">
+                <div ng-message="required">This is required</div>
+            </div>
+        </md-input-container>
+        <md-button ng-click="vm.changePassword($event)"
+                   ng-class="{'busy' : vm.passwordStatus}"
+                   class="md-primary md-raised m-a-0 overflow-visible pos-relative">
+            <span class="col-w">Login</span>
+            <span ng-bind="vm.errorMessage"
+                  ng-if="vm.errorMessage"
+                  class="pos-absolute bottom--6 left-0 right-0 col-e"></span>
+            <span ng-bind="vm.successMessage"
+                  ng-if="vm.successMessage"
+                  class="pos-absolute bottom--6 left-0 right-0 col-6"></span>
+        </md-button>
+    </div>
+</section>

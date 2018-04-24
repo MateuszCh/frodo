@@ -1,0 +1,9 @@
+.idea/
+front/node_modules/
+front/package-lock.json
+front/public/
+node_modules/
+uploads/*
+node_modules/
+package-lock.json
+config.json

@@ -1,0 +1,415 @@
+<section class="p-a-3 p-a-1-m p-a-1-s p-t-8-s p-t-8-m vh-100-l vh-100-x fill-s fill-m"
+         layout="column">
+    <div layout-gt-xs="row"
+         flex-gt-sm="15"
+         flex-sm="10"
+         layout-align-gt-xs="center center">
+        <h2 class="font-2 fs-6 center"
+            flex="grow">
+            <span class="font-2"
+                  ng-bind="::vm.listing.title"></span>
+            <span class="font-2 fs-1"
+                  ng-bind="'(' + vm.listing.count + ')'"></span>
+        </h2>
+        <div layout-xs="row"
+             layout-wrap
+             layout-align-xs="center center">
+            <md-button class="md-primary"
+                       ng-class="{'md-fab' : !vm.$mdMedia('xs'), 'md-raised' : vm.$mdMedia('xs')}"
+                       ng-click="vm.listing.add()">
+                <span class="col-w">Add</span>
+                <md-tooltip hide-xs
+                            hide-sm
+                            md-direction="bottom">Add new {{::vm.listing.title}}</md-tooltip>
+            </md-button>
+            <md-button class="md-primary"
+                       ng-class="{'md-fab' : !vm.$mdMedia('xs'), 'md-raised' : vm.$mdMedia('xs')}"
+                       ng-if="vm.listing.type === 'posts'"
+                       ng-click="vm.listing.postTypeEdit()">
+                <span class="col-w">Edit</span>
+                <md-tooltip hide-xs
+                            hide-sm
+                            md-direction="bottom">Edit {{::vm.listing.title}}</md-tooltip>
+            </md-button>
+            <md-button class="md-primary"
+                       ngf-select
+                       ng-click="vm.listing.importClickEvent = $event"
+                       ngf-change="vm.listing.importPosts($event)"
+                       ngf-accept="'.json'"
+                       ngf-pattern="'.json'"
+                       ng-class="{'md-fab' : !vm.$mdMedia('xs'), 'md-raised' : vm.$mdMedia('xs'), 'busy' : vm.listing.importStatus}">
+                <span class="col-w">Import</span>
+                <md-tooltip hide-xs
+                            hide-sm
+                            md-direction="bottom">Import from JSON</md-tooltip>
+            </md-button>
+            <md-button class="md-primary"
+                       ng-class="{'md-fab' : !vm.$mdMedia('xs'), 'md-raised' : vm.$mdMedia('xs'), 'busy' : vm.listing.exportStatus}"
+                       ng-if="vm.listing.models.length"
+                       ng-click="vm.listing.exportPosts($event)">
+                <span class="col-w">Export</span>
+                <md-tooltip hide-xs
+                            hide-sm
+                            md-direction="bottom">Export to JSON</md-tooltip>
+            </md-button>
+            <md-menu md-position-mode="target-right target"
+                     ng-if="vm.listing.models.length">
+                <md-button
+                        class=" md-primary"
+                        ng-class="{'md-fab' : !vm.$mdMedia('xs'), 'md-raised' : vm.$mdMedia('xs')}"
+                        aria-label="Sort by"
+                        ng-click="$mdMenu.open()">
+                    <md-icon md-svg-icon="sort"></md-icon>
+                    <md-tooltip hide-xs hide-sm md-direction="bottom">Sort By</md-tooltip>
+                </md-button>
+                <md-menu-content width="4">
+                    <md-menu-item ng-repeat="sort in vm.listing.sort.types">
+                        <md-button ng-click="vm.listing.sort.sortBy(sort.varName)"
+                                   class="transition"
+                                   ng-class="{'bg-col-1 col-w' : vm.listing.sort.currentType == sort.varName}">
+                            {{sort.name}}
+                        </md-button>
+                    </md-menu-item>
+                </md-menu-content>
+            </md-menu>
+            <md-button hide-gt-md
+                       ng-click="vm.openFilters()"
+                       ng-class="{'md-fab' : !vm.$mdMedia('xs'), 'md-raised' : vm.$mdMedia('xs')}"
+                       class="md-primary"
+                       ng-if="vm.listing.type === 'posts'">
+                <span class="col-w">Filters</span>
+            </md-button>
+        </div>
+    </div>
+
+    <div layout-xs="column"
+         layout-gt-xs="row"
+         flex-gt-sm="85"
+         flex-sm="90"
+         class="m-t-2-s m-t-2-m m-t-4-l m-t-4-x overflow-auto">
+        <div flex-sm="100"
+             flex-md="70"
+             class="overflow-auto"
+             id="scroll"
+             listing-load="80"
+             listing-load-function="vm.incrementLimit"
+             flex-gt-md="65">
+            <p class="center"
+               ng-if="!vm.listing.models.length">There are no&nbsp;<span ng-bind="::vm.listing.title || vm.model.data.title.toLowerCase()"></span>&nbsp;yet</p>
+            <p class="center"
+               ng-if="(vm.listing.models | listingFilter: vm.listing.filters : vm.listing.type).length === 0 && vm.listing.models.length">There are no <span ng-bind="::vm.listing.title.toLowerCase() || vm.model.data.title.toLowerCase()"></span> matching your selection</p>
+            <md-list class="p-r-2 p-l-2 p-r-3-s p-l-3-s">
+                <md-list-item layout="row"
+                              ng-repeat="model in vm.listing.models | listingFilter : vm.listing.filters : vm.listing.type | orderBy: vm.listing.sort.currentType | limitTo: vm.limit track by model._id"
+                              class="md-button md-raised"
+                              ng-class="{'m-b-2' : !$last}">
+                    <div layout="row" layout-align="center center" flex="100" ng-if="vm.listing.lastRemoved !== model">
+                        <a flex="80"
+                           ui-sref="{{vm.listing.postEdit}}"
+                           layout="row"
+                           layout-align="left center"
+                           ng-bind="::model.title"></a>
+                        <md-button class="md-raised md-warn"
+                                   flex="20"
+                                   ng-click="vm.listing.removeDialog($event, model)"
+                                   ng-class="{'busy' : vm.listing.removeStatus.busy == model._id && !vm.listing.removeStatus.status}">Delete</md-button>
+                    </div>
+                    <div ng-if="vm.listing.lastRemoved === model"
+                         flex="100"
+                         layout
+                         layout-align="center center">
+                        <p ng-class="vm.listing.removeStatus.status == 200 ? 'col-6' : 'col-4'"
+                           ng-bind="vm.listing.removeStatus.result"
+                           ng-if="vm.listing.removeStatus.result"></p>
+                    </div>
+
+                </md-list-item>
+            </md-list>
+        </div>
+        <div class="p-r-2 p-b-2 p-l-2 overflow-auto"
+             flex="auto"
+             hide-xs
+             hide-sm>
+            <h2 class="font-2 center fs-4" ng-if="vm.listing.models.length">filters</h2>
+            <div ng-repeat="filterType in vm.listing.filters"
+                 ng-if="vm.listing.models.length"
+                 ng-switch="::filterType.type"
+                 layout-wrap>
+                <md-input-container class="md-block m-b-0"
+                                    flex-gt-sm
+                                    ng-switch-when="text"
+                                    flex="100">
+                    <label for="textFilter">Search</label>
+                    <input id="textFilter" ng-model="vm.listing.filters.textFilter.value">
+                </md-input-container>
+                <div ng-repeat="field in ::filterType.fields track by field.id"
+                     ng-switch-when="checkbox"
+                     flex="100"
+                     class="box-shadow-inset m-b-2 p-a-2">
+                    <p class="p-b-1"
+                       ng-bind="field.title"></p>
+                    <md-radio-group ng-model="field.value"
+                                    layout="row"
+                                    layout-wrap="">
+                        <md-radio-button ng-value="true"
+                                         class="md-primary m-r-8">True</md-radio-button>
+                        <md-radio-button ng-value="false"
+                                         class="md-primary m-r-8">False</md-radio-button>
+                        <md-radio-button ng-value="'all'"
+                                         class="md-primary m-r-8">All</md-radio-button>
+                    </md-radio-group>
+                </div>
+                <div ng-repeat="field in ::filterType.fields track by field.id"
+                     ng-switch-when="select"
+                     flex="100"
+                     layout="row"
+                     layout-wrap
+                     class="box-shadow-inset m-b-2 p-a-2">
+                    <md-input-container class="block"
+                                        flex="100">
+                        <label ng-bind="'Select ' + field.title"></label>
+                        <md-select ng-model="field.values"
+                                   multiple>
+                            <md-option ng-value="option"
+                                       ng-repeat="option in ::field.options">{{option}}</md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+                <div ng-repeat="field in ::filterType.fields track by field.id"
+                     ng-switch-when="catalogue"
+                     flex="100"
+                     layout="row"
+                     layout-wrap
+                     class="box-shadow-inset m-b-2 p-a-2">
+                    <md-input-container class="block"
+                                        flex="100">
+                        <label ng-bind="'Select ' + field.title"></label>
+                        <md-select ng-model="field.values"
+                                   multiple>
+                            <md-option ng-value="catalogue"
+                                       ng-repeat="catalogue in ::field.options">
+                                <span ng-bind="catalogue"></span>
+                            </md-option>
+                        </md-select>
+                    </md-input-container>
+                </div>
+                <div ng-switch-when="number" ng-repeat="field in ::filterType.fields track by field.id"
+                     class="box-shadow-inset m-b-2 p-a-2">
+                    <p ng-bind="field.title"></p>
+                    <div layout="row">
+                        <md-slider-container flex="80"
+                                             layout="row">
+                            <md-slider min="{{field.range[0]}}"
+                                       step="0.1"
+                                       max="{{field.maxValue || field.range[1]}}"
+                                       ng-model="field.minValue"></md-slider>
+                        </md-slider-container>
+
+                        <md-input-container flex="20">
+                            <label>Minimum</label>
+                            <input type="number"
+                                   ng-min="{{field.range[0]}}" ng-max="{{field.maxValue || field.range[1]}}"
+                                   class="center"
+                                   flex="100"
+                                   ng-model="field.minValue">
+                        </md-input-container>
+                    </div>
+                    <div layout="row">
+                        <md-slider-container flex="80"
+                                             layout="row">
+                            <md-slider max="{{field.range[1]}}"
+                                       step="0.1"
+                                       min="{{field.minValue || field.range[0]}}"
+                                       ng-model="field.maxValue"></md-slider>
+                        </md-slider-container>
+
+                        <md-input-container flex="20">
+                            <label>Maximum</label>
+                            <input type="number"
+                                   class="center"
+                                   ng-min="{{field.minValue || field.range[0]}}"
+                                   ng-max="{{field.range[1]}}"
+                                   flex="100"
+                                   ng-model="field.maxValue">
+                        </md-input-container>
+                    </div>
+                </div>
+                <div ng-switch-when="date"
+                     ng-repeat="field in ::filterType.fields track by field.id"
+                     class="box-shadow-inset m-b-2 p-a-2">
+                    <p ng-bind="field.title"></p>
+                    <div layout="row" class="m-t-2"
+                         layout-wrap
+                         layout-align="start center">
+                        <md-input-container class="m-b-0">
+                            <label>From</label>
+                            <md-datepicker ng-model="field.minValue"
+                                           onkeydown="return false;"
+                                           md-open-on-focus
+                                           md-min-date="field.range[0]"
+                                           md-max-date="field.maxValue || field.range[1]"></md-datepicker>
+                        </md-input-container>
+                        <md-input-container class="m-b-0">
+                            <label>To</label>
+                            <md-datepicker ng-model="field.maxValue"
+                                           onkeydown="return false;"
+                                           md-open-on-focus
+                                           md-max-date="field.range[1]"
+                                           md-min-date="field.minValue || field.range[0]"></md-datepicker>
+                        </md-input-container>
+                    </div>
+                </div>
+            </div>
+            <div layout="row"
+                 layout-align="center end"
+                 ng-if="vm.listing.models.length && vm.listing.type === 'posts'">
+                <md-button class="md-raised md-primary m-a-0 p-r-2 p-l-2"
+                           ng-click="vm.listing.resetFilters(vm.listing.filters, vm.listing.type)">Reset Filters</md-button>
+            </div>
+        </div>
+    </div>
+</section>
+<md-sidenav md-component-id="filters"
+            class="md-sidenav-right pos-fixed"
+            hide-gt-sm
+            md-whiteframe="4">
+    <div class="p-a-2">
+        <p flex="100"
+           class="center"
+           ng-if="!vm.listing.models.length">There are no <span ng-bind="vm.listing.title"></span> to filter</p>
+        <h2 class="font-2 center fs-4"
+            ng-if="vm.listing.models.length">filters</h2>
+        <div ng-repeat="filterType in vm.listing.filters"
+             ng-if="vm.listing.models.length"
+             ng-switch="::filterType.type"
+             layout-wrap>
+            <md-input-container class="md-block m-b-0"
+                                flex-gt-sm
+                                ng-switch-when="text"
+                                flex="100">
+                <label for="textFilterSidenav">Search</label>
+                <input id="textFilterSidenav"
+                       ng-model="vm.listing.filters.textFilter.value">
+            </md-input-container>
+            <div ng-repeat="field in ::filterType.fields track by field.id"
+                 class="p-t-1 p-b-1"
+                 ng-switch-when="checkbox"
+                 flex="100">
+                <p class="p-b-1" ng-bind="field.title"></p>
+                <md-radio-group ng-model="field.value"
+                                layout="row"
+                                layout-wrap>
+                    <md-radio-button ng-value="true"
+                                     class="md-primary m-r-8">True</md-radio-button>
+                    <md-radio-button ng-value="false"
+                                     class="md-primary m-r-8">False</md-radio-button>
+                    <md-radio-button ng-value="'all'"
+                                     class="md-primary m-r-8">All</md-radio-button>
+                </md-radio-group>
+            </div>
+            <div ng-repeat="field in ::filterType.fields track by field.id"
+                 ng-switch-when="select"
+                 flex="100"
+                 layout="row"
+                 layout-wrap>
+                <md-input-container class="block"
+                                    flex="100">
+                    <label ng-bind="'Select ' + field.title"></label>
+                    <md-select ng-model="field.values"
+                               multiple>
+                        <md-option ng-value="option"
+                                   ng-repeat="option in ::field.options">
+                            <span ng-bind="option"></span>
+                        </md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
+            <div ng-repeat="field in ::filterType.fields track by field.id"
+                 ng-switch-when="catalogue"
+                 flex="100"
+                 layout="row"
+                 layout-wrap>
+                <md-input-container class="block" flex="100">
+                    <label ng-bind="'Select ' + field.title"></label>
+                    <md-select ng-model="field.values"
+                               multiple>
+                        <md-option ng-value="catalogue"
+                                   ng-repeat="catalogue in ::field.options">
+                            <span ng-bind="catalogue"></span>
+                        </md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
+            <div ng-switch-when="number"
+                 ng-repeat="field in ::filterType.fields track by field.id">
+                <p ng-bind="field.title"></p>
+                <div layout="row">
+                    <md-slider-container flex="80"
+                                         layout="row">
+                        <md-slider min="{{field.range[0]}}"
+                                   max="{{field.maxValue || field.range[1]}}"
+                                   ng-model="field.minValue"></md-slider>
+                    </md-slider-container>
+
+                    <md-input-container flex="20">
+                        <label>Minimum</label>
+                        <input type="number" ng-min="{{field.range[0]}}"
+                               ng-max="{{field.maxValue || field.range[1]}}"
+                               class="center"
+                               flex="100"
+                               ng-model="field.minValue">
+                    </md-input-container>
+                </div>
+                <div layout="row">
+                    <md-slider-container flex="80"
+                                         layout="row">
+                        <md-slider max="{{field.range[1]}}"
+                                   min="{{field.minValue || field.range[0]}}"
+                                   ng-model="field.maxValue"></md-slider>
+                    </md-slider-container>
+
+                    <md-input-container flex="20">
+                        <label>Maximum</label>
+                        <input type="number"
+                               class="center"
+                               ng-min="{{field.minValue || field.range[0]}}"
+                               ng-max="{{field.range[1]}}"
+                               flex="100"
+                               ng-model="field.maxValue">
+                    </md-input-container>
+                </div>
+            </div>
+            <div ng-switch-when="date"
+                 ng-repeat="field in ::filterType.fields track by field.id">
+                <p ng-bind="field.title"></p>
+                <div layout="row"
+                     layout-wrap
+                     class="m-t-2"
+                     layout-align="start center">
+                    <md-input-container class="m-b-0">
+                        <label>From</label>
+                        <md-datepicker ng-model="field.minValue"
+                                       onkeydown="return false;"
+                                       md-open-on-focus
+                                       md-min-date="field.range[0]"
+                                       md-max-date="field.maxValue || field.range[1]"></md-datepicker>
+                    </md-input-container>
+                    <md-input-container class="m-b-0">
+                        <label>To</label>
+                        <md-datepicker ng-model="field.maxValue"
+                                       onkeydown="return false;"
+                                       md-open-on-focus
+                                       md-max-date="field.range[1]"
+                                       md-min-date="field.minValue || field.range[0]"></md-datepicker>
+                    </md-input-container>
+                </div>
+            </div>
+        </div>
+        <div layout="row"
+             layout-align="center end"
+             ng-if="vm.listing.models.length && vm.listing.type === 'posts'" >
+            <md-button class="md-raised md-primary m-a-0 p-r-2 p-l-2"
+                       ng-click="vm.listing.resetFilters(vm.listing.filters, vm.listing.type)">Reset Filters</md-button>
+        </div>
+    </div>
+</md-sidenav>

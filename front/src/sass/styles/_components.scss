@@ -1,0 +1,64 @@
+// sidenav menu
+.sidenav {
+  width: 20%;
+  .size-m & {
+    width: 50%;
+  }
+}
+
+// scroll to top button
+.scroll {
+  transform: scale(0);
+  &.scrolled {
+    transform: scale(1);
+  }
+}
+
+// main content
+.page {
+  .size-l &,
+  .size-x & {
+    padding-left: 20%;
+  }
+  &--login {
+    padding-left: 0 !important;
+  }
+}
+
+// scrollbars
+::-webkit-scrollbar {
+  width: .5rem;
+  background-color: #ebebeb;
+}
+::-webkit-scrollbar-track {
+  background-color: #ebebeb;
+}
+::-webkit-scrollbar-thumb {
+  background-color: lighten(map-get($colors-map, 1), 0%);
+}
+
+// buttons busy state
+.busy {
+  color: transparent;
+  &:after,
+  &:before {
+    content: "";
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    top: calc(50% - 10px);
+    left: calc(50% - 10px);
+    border-radius: 50%;
+    background-color: white;
+    opacity: 0.6;
+    animation: sk-bounce 2.0s infinite ease-in-out;
+  }
+  &:before {
+    animation-delay: -1.0s;
+  }
+}
+
+// current file borde
+.current-file {
+  border: 5px solid map-get($colors-map, 1);
+}

@@ -1,0 +1,70 @@
+$colors-map: (
+		w: white,
+		b: #2d2c2c,
+		t: transparent,
+		e: red,
+		border: rgba(0,0,0,0.12),
+		1: #FF9800,
+		2: #0F1830,
+		3: #007089,
+		4: #29001E,
+		5: #9B1D20,
+		6: #93AA3E,
+		7: #ff5722,
+		8: #ebebeb,
+		9: #444
+);
+
+$size-map: (
+        s: 'size-s',
+        m: 'size-m',
+        l: 'size-l',
+        x: 'size-x',
+        xl: 'size-xl'
+);
+
+$position-map: (
+		l: 'left',
+		r: 'right',
+		b: 'bottom',
+		t: 'top'
+);
+
+$fonts-map: (
+		1: "'Oswald', sans-serif",
+		2: "'Unica One', cursive",
+		3: "'Pacifico', cursive"
+);
+
+$body-fs-map: (
+	s: 16px,
+	m: 16px,
+	l: 16px,
+	x: 16px,
+	xl: 16px
+);
+
+$ratio-map: (
+  "1-1": 1/1,
+  "2-1": 1/2,
+  "16-9": 9/16
+);
+
+$padding-max: 8;
+$padding-min: 0;
+$margin-max: 8;
+$margin-min: -2;
+$position-max: 8;
+$position-min: -8;
+$font-size-max: 8;
+$font-size-min: 0;
+$z-index-max: 30;
+$z-index-min: 0;
+
+$text-positions: left, right, center;
+$positions: absolute, fixed, relative;
+
+$font-weight-map: (
+	regular: 400,
+	bold: bold
+)

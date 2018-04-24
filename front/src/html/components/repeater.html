@@ -1,0 +1,13 @@
+<div ng-repeat="row in vm.model track by $index"
+     class="repeater">
+    <field ng-repeat="field in vm.repeaterFields"
+           ng-class="{'not-last' : !$last}"
+           field="field"
+           model="vm.model[$parent.$index]"></field>
+
+    <md-button class="md-warn m-a-0 m-t-2 md-raised"
+               ng-click="vm.removeRow($index)">Delete row</md-button>
+</div>
+
+<md-button class="md-primary md-raised m-a-0"
+           ng-click="vm.addRow()">Add new row</md-button>

@@ -1,0 +1,19 @@
+.b-b {
+  border-bottom: 1px solid map-get($colors-map, border);
+}
+
+.b-t {
+  border-top: 1px solid map-get($colors-map, border);
+}
+
+.b-l {
+  border-left: 1px solid map-get($colors-map, border);
+}
+
+.b-r {
+  border-right: 1px solid map-get($colors-map, border);
+}
+
+.b-a {
+  border: 1px solid map-get($colors-map, border);
+}
