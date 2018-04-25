@@ -11,7 +11,7 @@
 <ui-view id="page"
          ng-class="{'page--login' : vm.login}"
          class="fade page p-t-8-s p-t-8-m"
-         md-swipe-right="vm.openSidenav()"
+         md-swipe-right="vm.login ? null : vm.openSidenav()"
          md-swipe-left="vm.$mdMedia('max-width: 960px') ? vm.openFilters() : null">
     <error ng-if="!$resolve"></error>
 </ui-view>

@@ -4,7 +4,11 @@
         userService.user()
             .then(function(response){
                 var user = response.data;
-                userService.setUser(user.username, user.id, 1);
+                if(user){
+                    userService.setUser(user.username, user.id, 1)
+                } else {
+                    userService.setUser();
+                }
             })
             .catch(function(err){
                 console.log(err);
