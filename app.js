@@ -81,7 +81,7 @@ app.use(passport.session());
 
 routes(app);
 
-app.use('/uploads', express.static(`${__dirname}/uploads`));
+app.use('/uploads', express.static(`${__dirname}/${config.uploadsPath}`));
 
 app.use('/export', express.static(__dirname));
 
