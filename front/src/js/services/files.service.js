@@ -31,6 +31,14 @@
             return requestService.send('/api/file', 'PUT', data);
         }
 
+        function exportFiles(){
+            return requestService.send('/api/exportFiles', 'GET');
+        }
+
+        function importFiles(data){
+            return requestService.send('/api/importFiles', 'POST', data);
+        }
+
         function upload(files, filesData){
             return Upload.upload({
                 url: '/api/file',
@@ -54,7 +62,9 @@
             upload: upload,
             edit: edit,
             remove: remove,
-            deleteExportFile: deleteExportFile
+            deleteExportFile: deleteExportFile,
+            exportFiles: exportFiles,
+            importFiles: importFiles
         }
     }]);
 })();

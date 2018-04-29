@@ -15,8 +15,7 @@
         vm.scroll = scroll;
 
         var scrollEl;
-
-
+        
         var throttledOnScroll = tools.throttle(onScroll, 100);
 
         function onInit(){

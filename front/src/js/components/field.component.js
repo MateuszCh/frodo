@@ -30,7 +30,7 @@
                 fullscreen: true,
                 clickOutsideToClose: true
             }).then(function(answer){
-                if(answer) vm.model[vm.field.id] = answer;
+                if(answer) vm.model[vm.field.id] = answer.src;
             }, function(){})
         }
 

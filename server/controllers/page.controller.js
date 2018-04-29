@@ -84,7 +84,7 @@ module.exports = {
                     }
                 }), null, 4);
 
-                fs.writeFile(`${__dirname}/../pages.json`, formattedPages, err =>{
+                fs.writeFile(`${__dirname}/../../pages.json`, formattedPages, err =>{
                     if(err) next();
                     res.send("/export/pages.json");
                 })

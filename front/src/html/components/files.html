@@ -1,11 +1,41 @@
 <section ng-class="{'p-t-8-s p-t-8-m p-a-3 p-a-1-m p-a-1-s fill-s fill-m vh-100-l vh-100-x' : !vm.isPopup}"
          layout="column">
-    <h2 class="font-2 fs-6 center"
-        ng-if="!vm.isPopup">
-        <span class="font-2">Files</span>
-        <span class="font-2 fs-1"
-              ng-bind="'(' + vm.allFiles.length + ')'"></span>
-    </h2>
+    <div layout-gt-xs="row"
+         flex-gt-sm="15"
+         flex-sm="10"
+         ng-if="!vm.isPopup"
+         layout-align-gt-xs="center center">
+        <h2 class="font-2 fs-6 center"
+            flex="grow">
+            <span class="font-2">Files</span>
+            <span class="font-2 fs-1"
+                  ng-bind="'(' + vm.allFiles.length + ')'"></span>
+        </h2>
+        <div layout="row"
+             layout-align-xs="center center">
+            <md-button class="md-primary"
+                       ngf-select
+                       ng-click="vm.importClickEvent = $event"
+                       ngf-change="vm.importFiles($event)"
+                       ngf-accept="'.json'"
+                       ngf-pattern="'.json'"
+                       ng-class="{'md-fab' : !vm.$mdMedia('xs'), 'md-raised' : vm.$mdMedia('xs'), 'busy' : vm.importStatus}">
+                <span class="col-w">Import</span>
+                <md-tooltip hide-xs
+                            hide-sm
+                            md-direction="bottom">Import from JSON</md-tooltip>
+            </md-button>
+            <md-button class="md-primary"
+                       ng-class="{'md-fab' : !vm.$mdMedia('xs'), 'md-raised' : vm.$mdMedia('xs'), 'busy' : vm.exportStatus}"
+                       ng-if="vm.allFiles.length"
+                       ng-click="vm.exportFiles($event)">
+                <span class="col-w">Export</span>
+                <md-tooltip hide-xs
+                            hide-sm
+                            md-direction="bottom">Export to JSON</md-tooltip>
+            </md-button>
+        </div>
+    </div>
     <div ng-class="{'pos-relative' : !vm.isPopup}"
          flex="grow">
         <!-- select tab -->

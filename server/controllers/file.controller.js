@@ -139,9 +139,70 @@ module.exports = {
     },
     deleteExportFile(req, res, next){
         const filename = req.params.filename;
-        fs.unlink(`${__dirname}/../${filename}.json`, err =>{
+        fs.unlink(`${__dirname}/../../${filename}.json`, err =>{
             if(err) next();
             res.send('export file removed');
         })
+    },
+    importFiles(req, res, next){
+        const correctFiles = req.body.files.filter(file => {
+            return file.filename;
+        });
+
+        if(correctFiles.length){
+            Counter.findOne({})
+                .then(counter => {
+                    const filesModels = [];
+                    const properties = ['title', 'description', 'author', 'date', 'place', 'type', 'size', 'catalogue', 'created'];
+                    correctFiles.forEach((file, i) => {
+                        const model = {
+                            filename : file.filename
+                        };
+                        properties.forEach(prop => {
+                            if(file[prop]) model[prop] = file[prop];
+                        });
+                        model.id = counter.counter + i;
+                        filesModels.push(model);
+                    });
+
+                    File.create(filesModels)
+                        .then(files => {
+                            Counter.update(counter, {$inc: {counter: filesModels.length}})
+                                .then(() => {
+                                    console.log("Counter incremented");
+                                    File.find({})
+                                        .then(files => res.send(files))
+                                        .catch(next);
+                                })
+                                .catch(next);
+                        })
+                        .catch(next);
+                })
+                .catch(next);
+        } else {
+            res.status(422).send({error: "There is no valid file to import"});
+        }
+    },
+    exportFiles(req, res, next){
+        File.find({})
+            .then(files => {
+                const formattedFiles = JSON.stringify(files.map(file => {
+                    const properties = ['title', 'description', 'author', 'date', 'place', 'type', 'size', 'catalogue', 'created'];
+                    const newFile = {
+                        filename : file.filename
+                    };
+
+                    properties.forEach(prop => {
+                       if(file[prop]) newFile[prop] = file[prop];
+                    });
+
+                    return newFile
+                }), null, 4);
+                fs.writeFile(`${__dirname}/../../files.json`, formattedFiles, err => {
+                    if(err) next();
+                    res.send("/export/files.json");
+                })
+            })
+            .catch(next);
     }
 };

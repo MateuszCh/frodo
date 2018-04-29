@@ -9,9 +9,9 @@
         controller: FilesController
     });
 
-    FilesController.$inject = ['$scope', 'filesService', '$rootScope', '$mdDialog', 'tools', '$mdMedia', '$mdSidenav'];
+    FilesController.$inject = ['$scope', 'filesService', '$rootScope', '$mdDialog', 'tools', '$mdMedia', '$mdSidenav', '$timeout'];
 
-    function FilesController($scope, filesService, $rootScope, $mdDialog, tools, $mdMedia, $mdSidenav) {
+    function FilesController($scope, filesService, $rootScope, $mdDialog, tools, $mdMedia, $mdSidenav, $timeout) {
         var vm = this;
         vm.$onInit = onInit;
         vm.$mdMedia = $mdMedia;
@@ -26,6 +26,8 @@
         vm.existingFilesIndex = existingFilesIndex;
         vm.incrementLimit = incrementLimit;
         vm.openEdit = openEdit;
+        vm.importFiles = importFiles;
+        vm.exportFiles = exportFiles;
         vm.activeView = 'choose';
         vm.catalogues = [];
         vm.data = [];
@@ -34,6 +36,7 @@
         vm.limit = 80;
         var increment = 40;
         vm.search = {text: '', catalogues: []};
+        var exportTimeout;
 
         function onInit(){
             if(!vm.allFiles){
@@ -205,6 +208,72 @@
 
         function openEdit(){
             $mdSidenav('editFiles').open();
+        }
+
+        function importFiles(e){
+            var reader = new FileReader();
+            var oldLength = vm.allFiles.length;
+            reader.onload = function(e){
+                var files = JSON.parse(e.target.result);
+
+                if(files.length){
+                    var data = {
+                        files: files
+                    };
+                    vm.importStatus = true;
+                    filesService.importFiles(data)
+                        .then(function(response){
+                            vm.importStatus = false;
+                            var added = response.data.length - oldLength;
+                            vm.allFiles = response.data;
+                            tools.infoDialog(added + ' files' + (added > 1 ? ' were' : ' was') + ' successfully imported', vm.importClickEvent);
+                        })
+                        .catch(function(error){
+                            vm.importStatus = false;
+                            tools.infoDialog(error.data.error, vm.importClickEvent);
+                        })
+                } else {
+                    tools.infoDialog("There is no correct files to import", e);
+                }
+            };
+
+            if(e.target.files && e.target.files[0]){
+                var error = e.target.files[0].$error;
+                if(error){
+                    if(error === 'pattern'){
+                        tools.infoDialog("Wrong file format!", vm.importClickEvent);
+                    }
+                } else {
+                    reader.readAsText(e.target.files[0]);
+                }
+            }
+        }
+
+        function exportFiles(e){
+            $timeout.cancel(exportTimeout);
+            vm.exportStatus = true;
+            filesService.exportFiles()
+                .then(function(response){
+                    vm.exportStatus = false;
+                    var file = document.createElement("a");
+                    file.setAttribute('href', response.data);
+                    file.setAttribute('download', '');
+                    file.click();
+                    exportTimeout = $timeout(function(){
+                        filesService.deleteExportFile('files')
+                            .then(function(response){
+                                console.log(response);
+                            })
+                            .catch(function(error){
+                                console.log(error);
+                            })
+                    }, 10000);
+                })
+                .catch(function(error){
+                    vm.exportStatus = false;
+                    tools.infoDialog("There was error exporting", e);
+                })
+
         }
 
     }

@@ -162,7 +162,7 @@ module.exports = {
                 const filename = isComponent ? 'components' : 'postTypes';
 
 
-                fs.writeFile(`${__dirname}/../${filename}.json`, formattedPostTypes, err =>{
+                fs.writeFile(`${__dirname}/../../${filename}.json`, formattedPostTypes, err =>{
                    if(err) next();
                    res.send(`/export/${filename}.json`);
                 });

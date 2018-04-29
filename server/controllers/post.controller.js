@@ -97,7 +97,7 @@ module.exports = {
                         data: post.data
                     }
                 }), null, 4);
-                fs.writeFile(`${__dirname}/../${postType}.json`, formattedPosts, err => {
+                fs.writeFile(`${__dirname}/../../${postType}.json`, formattedPosts, err => {
                     if(err) next();
                     res.send(`/export/${postType}.json`);
                 })
