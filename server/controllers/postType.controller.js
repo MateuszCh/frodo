@@ -148,6 +148,7 @@ module.exports = {
                         };
 
                         if(field.selectOptions) newField.selectOptions = field.selectOptions;
+                        if(field.multiselectOptions) newField.multiselectOptions = field.multiselectOptions;
                         return newField;
                     });
 
@@ -199,6 +200,7 @@ module.exports = {
                 };
                 fieldsIds.push(field.id);
                 if(field.selectOptions) newField.selectOptions = field.selectOptions;
+                if(field.multiselectOptions)newField.multiselectOptions = field.multiselectOptions;
                 return newField;
             });
 

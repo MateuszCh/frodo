@@ -18,6 +18,10 @@
                 name: 'Select',
                 type: 'select'
             },
+            multiselect: {
+                name: 'Multiselect',
+                type: 'multiselect'
+            },
             repeater: {
                 name: 'Repeater',
                 type: 'repeater'

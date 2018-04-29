@@ -39,6 +39,21 @@
                 })
             }
 
+            // multiselects
+            if(filters.multiselects.fields.length){
+                filters.multiselects.fields.forEach(function(multiselect){
+                    if(multiselect.values.length){
+                        models = models.filter(function(model){
+                            var matched = [];
+                            model.data[multiselect.id].forEach(function(multioption){
+                               if(multiselect.values.indexOf(multioption) > -1) matched.push(multioption);
+                            });
+                            return matched.length;
+                        })
+                    }
+                })
+            }
+
             // catalogues
             if(filters.catalogues.fields.length){
                 filters.catalogues.fields.forEach(function(catalogue){

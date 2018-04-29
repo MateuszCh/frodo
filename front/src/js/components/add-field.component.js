@@ -26,6 +26,7 @@
           title: undefined,
           id: undefined,
           selectOptions: undefined,
+          multiselectOptions: undefined,
           repeaterFields: []
         };
 

@@ -29,6 +29,26 @@
                    aria-label="clear select"
                    ng-click="vm.model[vm.field.id] = null">Clear</md-button>
     </div>
+    <!-- multiselect -->
+    <div ng-switch-when="multiselect"
+         layout="row"
+         layout-align="start center">
+        <md-input-container flex="grow">
+            <label ng-bind="::vm.field.title"
+                   ng-attr-for="{{vm.field.id + '-1'}}"></label>
+            <md-select ng-model="vm.model[vm.field.id]"
+                       multiple
+                       ng-attr-id="{{vm.field.id + '-1'}}">
+                <md-option ng-repeat="item in ::vm.field.multiOptions"
+                           ng-value="item">
+                    <span ng-bind="::item"></span>
+                </md-option>
+            </md-select>
+        </md-input-container>
+        <md-button class="md-raised md-warn"
+                   aria-label="clear select"
+                   ng-click="vm.model[vm.field.id] = null">Clear</md-button>
+    </div>
     <!-- catalogue -->
     <div ng-switch-when="catalogue"
          layout="row"

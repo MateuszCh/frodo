@@ -35,10 +35,11 @@
             var checkboxes = {type: 'checkbox', fields: []};
             var numbers = {type: 'number', fields: []};
             var selects = {type: 'select', fields: []};
+            var multiselects = {type: 'multiselect', fields: []};
             var dates = {type: 'date', fields: []};
             var catalogues = {type: 'catalogue', fields: []};
 
-            var filterableFields = ['checkbox', 'number', 'select', 'date', 'catalogue'];
+            var filterableFields = ['checkbox', 'number', 'select', 'multiselect', 'date', 'catalogue'];
 
             modelData.fields.forEach(function(field){
                if(filterableFields.indexOf(field.type) > -1){
@@ -63,6 +64,11 @@
                            filterField.options = field.options;
                            filterField.values = [];
                            selects.fields.push(filterField);
+                           break;
+                       case 'multiselect':
+                           filterField.multiOptions = field.multiOptions;
+                           filterField.values = [];
+                           multiselects.fields.push(filterField);
                            break;
                        case 'date':
                            filterField.range = setRange(modelData, filterField.id, true);
@@ -89,6 +95,7 @@
                 checkboxes: checkboxes,
                 numbers: numbers,
                 selects: selects,
+                multiselects: multiselects,
                 dates: dates,
                 catalogues: catalogues
             };
@@ -107,6 +114,9 @@
                 field.maxValue = field.range[1];
             });
             filters.selects.fields.forEach(function(field){
+                field.values = [];
+            });
+            filters.multiselects.fields.forEach(function(field){
                 field.values = [];
             });
             filters.dates.fields.forEach(function(field){

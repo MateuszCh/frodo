@@ -18,6 +18,9 @@ const FieldSchema = new Schema ({
     selectOptions: {
         type: String
     },
+    multiselectOptions: {
+        type: String
+    },
     repeaterFields: {
         type: [this],
         validate: [
@@ -54,6 +57,20 @@ FieldSchema.virtual('options')
         let selectOptions = this.selectOptions.replace(/\s*;\s*/g, ";").split(";");
         let options = [];
         selectOptions.forEach((option) => {
+            if(option) options.push(option.replace(/;/g, ""));
+        });
+
+        return Array.from((new Set(options)).values());
+    });
+
+FieldSchema.virtual('multiOptions')
+    .get(function(){
+        if(!this.multiselectOptions){
+            return null;
+        }
+        let multiselectOptions = this.multiselectOptions.replace(/\s*;\s*/g, ";").split(";");
+        let options = [];
+        multiselectOptions.forEach((option) => {
             if(option) options.push(option.replace(/;/g, ""));
         });
 
