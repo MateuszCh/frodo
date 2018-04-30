@@ -44,6 +44,7 @@ module.exports = {
                 files.forEach((file, i) => {
                     const model = {
                         filename : file.filename,
+                        src: `/uploads/${file.filename}`,
                         created : Date.now(),
                         type : file.mimetype,
                         size: file.size,
@@ -160,7 +161,8 @@ module.exports = {
                     const properties = ['title', 'description', 'author', 'date', 'place', 'type', 'size', 'catalogues', 'created'];
                     correctFiles.forEach((file, i) => {
                         const model = {
-                            filename : file.filename
+                            filename : file.filename,
+                            src: file.src
                         };
                         properties.forEach(prop => {
                             if(file[prop]) model[prop] = file[prop];
@@ -193,7 +195,8 @@ module.exports = {
                 const formattedFiles = JSON.stringify(files.map(file => {
                     const properties = ['title', 'description', 'author', 'date', 'place', 'type', 'size', 'catalogues', 'created'];
                     const newFile = {
-                        filename : file.filename
+                        filename : file.filename,
+                        src: src
                     };
 
                     properties.forEach(prop => {

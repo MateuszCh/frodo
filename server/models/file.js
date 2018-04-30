@@ -9,6 +9,9 @@ const FileSchema = new Schema({
        type: String,
        required: [true, 'Filename is required']
    },
+   src: {
+       type: String
+   },
    description: {
        type: String
    },
@@ -36,16 +39,7 @@ const FileSchema = new Schema({
    created: {
        type: Date
    }
-},{
-    toJSON: {
-        virtuals: true
-    }
 });
-
-FileSchema.virtual('src')
-    .get(function(){
-        return `/uploads/${this.filename}`;
-    });
 
 const File = mongoose.model('file', FileSchema);
 
