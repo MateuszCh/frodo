@@ -15,7 +15,11 @@
 
             if(filters.catalogues.length){
                 files = files.filter(function(file){
-                    return filters.catalogues.indexOf(file.catalogue) > -1;
+                    var matched = [];
+                    file.catalogues.forEach(function(catalogue){
+                        if(filters.catalogues.indexOf(catalogue) > -1) matched.push(catalogue);
+                    });
+                    return matched.length
                 })
             }
 

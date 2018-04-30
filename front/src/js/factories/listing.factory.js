@@ -157,7 +157,7 @@
                     if(sortingFields.indexOf(field.type) > -1){
                         var negative = '';
                         if(field.type === 'checkbox') negative = '-';
-                        sort.types.push({name: field.title, varName: negative + 'data.' + field.id});
+                        sort.types.push({name: field.title, varName: negative + 'data_' + field.id});
                     }
                 })
             }

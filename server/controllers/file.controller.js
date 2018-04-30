@@ -54,8 +54,12 @@ module.exports = {
 
                     for(let prop in fileProps){
                         if(fileProps[prop]){
-                            if(prop == 'catalogue'){
-                                model[prop] = fileProps[prop].toLowerCase();
+                            if(prop === 'catalogues'){
+                                if(Array.isArray(fileProps[prop])){
+                                    model[prop] = fileProps[prop].map(catalogue => catalogue.toLowerCase());
+                                } else {
+                                    model[prop] = [fileProps[prop].toLowerCase()];
+                                }
                             } else {
                                 model[prop] = fileProps[prop];
                             }
@@ -88,7 +92,7 @@ module.exports = {
                     existingFile.author = fileProps.author;
                     existingFile.date = fileProps.date;
                     existingFile.place = fileProps.place;
-                    existingFile.catalogue = fileProps.catalogue;
+                    existingFile.catalogues = fileProps.catalogues;
 
                     existingFile.save()
                         .then(file => res.send(file))
@@ -103,8 +107,8 @@ module.exports = {
             .catch(next)
     },
     getCatalogues(req, res, next){
-        File.find({}).distinct('catalogue')
-            .then(catalogues => res.send(catalogues))
+        File.find({}).distinct('catalogues')
+            .then(catalogues =>  res.send(catalogues))
             .catch(next)
     },
     getByCatalogue(req, res, next){
@@ -153,7 +157,7 @@ module.exports = {
             Counter.findOne({})
                 .then(counter => {
                     const filesModels = [];
-                    const properties = ['title', 'description', 'author', 'date', 'place', 'type', 'size', 'catalogue', 'created'];
+                    const properties = ['title', 'description', 'author', 'date', 'place', 'type', 'size', 'catalogues', 'created'];
                     correctFiles.forEach((file, i) => {
                         const model = {
                             filename : file.filename
@@ -187,7 +191,7 @@ module.exports = {
         File.find({})
             .then(files => {
                 const formattedFiles = JSON.stringify(files.map(file => {
-                    const properties = ['title', 'description', 'author', 'date', 'place', 'type', 'size', 'catalogue', 'created'];
+                    const properties = ['title', 'description', 'author', 'date', 'place', 'type', 'size', 'catalogues', 'created'];
                     const newFile = {
                         filename : file.filename
                     };

@@ -89,11 +89,13 @@
         function setCatalogues(arr){
             var catalogues = [];
             arr.forEach(function(fileData){
-                if(fileData.catalogue){
-                    var catalogue = fileData.catalogue.toLowerCase();
-                    if(vm.catalogues.indexOf(catalogue) === -1 && catalogues.indexOf(catalogue) === -1){
-                        catalogues.push(catalogue);
-                    }
+                if(fileData.catalogues){
+                    fileData.catalogues.forEach(function(catalogue){
+                       var catalogueLower = catalogue.toLowerCase();
+                       if(vm.catalogues.indexOf(catalogueLower) === -1 && catalogues.indexOf(catalogueLower) === -1){
+                           catalogues.push(catalogueLower);
+                       }
+                    });
                 }
             });
             vm.catalogues = vm.catalogues.concat(catalogues).sort();
@@ -102,12 +104,10 @@
 
         function editIndex(index) {
             vm.currentIndex = index;
-            setCatalogues(vm.data);
         }
 
         function existingFilesIndex(index){
             vm.currentExistingIndex = index;
-            setCatalogues(vm.allFiles);
             if($mdMedia('xs') || $mdMedia('sm')){
                 openEdit();
             }
@@ -145,7 +145,6 @@
                             vm.allFiles = vm.allFiles.concat(response.data);
                             setLocalId();
                             setDates();
-                            setCatalogues(vm.allFiles);
                             vm.data = [];
                             vm.files = [];
                             tools.infoDialog('Files uploaded successfully', ev);
@@ -189,7 +188,6 @@
             filesService.edit(vm.allFiles[vm.currentExistingIndex])
                 .then(function(r){
                     vm.actionStatus = '';
-                    setCatalogues(vm.allFiles);
                     tools.infoDialog(vm.allFiles[vm.currentExistingIndex].filename + ' saved successfully', ev);
                 })
                 .catch(function(e){
@@ -228,6 +226,9 @@
                             vm.importStatus = false;
                             var added = response.data.length - oldLength;
                             vm.allFiles = response.data;
+                            setCatalogues(vm.allFiles);
+                            setDates();
+                            setLocalId();
                             tools.infoDialog(added + ' files' + (added > 1 ? ' were' : ' was') + ' successfully imported', vm.importClickEvent);
                         })
                         .catch(function(error){

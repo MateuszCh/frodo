@@ -4,7 +4,9 @@
 
             $rootScope.$on('$stateChangeError', function(event, toState, toParams, fromState, fromParams, error){
                 event.preventDefault();
-                $state.get('error').error = error.detail.data.error;
+                if(error.detail && error.detail.data){
+                    $state.get('error').error = error.detail.data.error;
+                }
                 return $state.go('error');
             });
 
