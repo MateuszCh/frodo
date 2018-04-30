@@ -183,7 +183,7 @@
                      class="box-shadow-inset m-b-2 p-a-2">
                     <md-input-container class="block"
                                         flex="100">
-                        <label ng-bind="'Multiselect ' + field.title"></label>
+                        <label ng-bind="'Select ' + field.title"></label>
                         <md-select ng-model="field.values"
                                    multiple>
                             <md-option ng-value="option"
@@ -337,6 +337,21 @@
                                    ng-repeat="option in ::field.options">
                             <span ng-bind="option"></span>
                         </md-option>
+                    </md-select>
+                </md-input-container>
+            </div>
+            <div ng-repeat="field in ::filterType.fields track by field.id"
+                 ng-switch-when="multiselect"
+                 flex="100"
+                 layout="row"
+                 layout-wrap>
+                <md-input-container class="block"
+                                    flex="100">
+                    <label ng-bind="'Select ' + field.title"></label>
+                    <md-select ng-model="field.values"
+                               multiple>
+                        <md-option ng-value="option"
+                                   ng-repeat="option in ::field.multiOptions">{{option}}</md-option>
                     </md-select>
                 </md-input-container>
             </div>

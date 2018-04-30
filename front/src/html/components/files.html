@@ -208,22 +208,25 @@
                                         <label>Place</label>
                                         <input type="text" ng-model="vm.allFiles[vm.currentExistingIndex].place">
                                     </md-input-container>
-                                    <div layout="row">
-                                        <md-input-container class="m-b-0" flex="vm.catalogues.length ? 50 : 100">
-                                            <label>Catalogue</label>
+                                    <md-input-container ng-if="vm.catalogues.length">
+                                        <label>Select catalogue</label>
+                                        <md-select ng-model="vm.allFiles[vm.currentExistingIndex].catalogue">
+                                            <md-option ng-repeat="catalogue in vm.catalogues"
+                                                       ng-value="catalogue">
+                                                <span ng-bind="catalogue"></span>
+                                            </md-option>
+                                        </md-select>
+                                    </md-input-container>
+                                    <div layout="row"
+                                         class="m-b-4 m-t-4"
+                                         layout-align="start center">
+                                        <md-input-container class="m-b-0" flex="grow">
+                                            <label>Add new catalogue</label>
                                             <input type="text"
-                                                   ng-model="vm.allFiles[vm.currentExistingIndex].catalogue">
+                                                   ng-model="vm.newCatalogue">
                                         </md-input-container>
-                                        <md-input-container ng-if="vm.catalogues.length"
-                                                            flex="50">
-                                            <label>Select from existing ones</label>
-                                            <md-select ng-model="vm.allFiles[vm.currentExistingIndex].catalogue">
-                                                <md-option ng-repeat="catalogue in vm.catalogues"
-                                                           ng-value="catalogue">
-                                                    <span ng-bind="catalogue"></span>
-                                                </md-option>
-                                            </md-select>
-                                        </md-input-container>
+                                        <md-button class="md-raised md-primary"
+                                                   ng-click="vm.addNewCatalogue()">Add</md-button>
                                     </div>
                                 </div>
                             </div>

@@ -28,11 +28,13 @@
         vm.openEdit = openEdit;
         vm.importFiles = importFiles;
         vm.exportFiles = exportFiles;
+        vm.addNewCatalogue = addNewCatalogue;
         vm.activeView = 'choose';
         vm.catalogues = [];
         vm.data = [];
         vm.currentExistingIndex = 0;
         vm.actionStatus = '';
+        vm.newCatalogue = '';
         vm.limit = 80;
         var increment = 40;
         vm.search = {text: '', catalogues: []};
@@ -273,7 +275,18 @@
                     vm.exportStatus = false;
                     tools.infoDialog("There was error exporting", e);
                 })
+        }
 
+        function addNewCatalogue(){
+            if(vm.newCatalogue){
+                var catalogue = vm.newCatalogue.toLowerCase();
+                vm.newCatalogue = '';
+                if(vm.catalogues.indexOf(catalogue) === -1){
+                    vm.catalogues.push(catalogue);
+                    vm.catalogues = vm.catalogues.sort();
+                    filesService.setCatalogues(vm.catalogues);
+                }
+            }
         }
 
     }
