@@ -113,7 +113,7 @@ module.exports = {
             .catch(next)
     },
     getByCatalogue(req, res, next){
-        File.find({catalogue: req.params.catalogue})
+        File.find({catalogues: req.params.catalogue})
             .then(files => res.send(files))
             .catch(next)
     },
