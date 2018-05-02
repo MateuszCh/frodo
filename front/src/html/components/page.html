@@ -55,17 +55,14 @@
                 <h2 class="font-2 fs-4 center m-b-2">Components</h2>
                 <p ng-if="!vm.model.rows.length"
                    class="center m-t-1">There are no components yet</p>
-                <div id="components">
-                    <div ng-if="vm.edit">
-                        <add-component ng-repeat="i in vm.rowsNumber track by $index"
-                                       edit="true"
-                                       rows="vm.model.rows"
-                                       order="$index"
-                                       components="::vm.components">
-
-                        </add-component>
-                    </div>
-                </div>
+                <ul>
+                    <li ng-repeat="row in vm.model.rows track by $index">
+                        <add-component model="row"
+                                       order="{{$index}}"
+                                       remove-function="vm.removeComponent"
+                                       components="::vm.components"></add-component>
+                    </li>
+                </ul>
                 <md-button class="md-primary md-raised m-a-0 m-b-4-s m-t-2-s"
                            ng-click="vm.addComponent()">Add new component</md-button>
             </div>

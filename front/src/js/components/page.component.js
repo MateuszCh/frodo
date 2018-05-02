@@ -9,16 +9,16 @@
         controller: PageController
     });
 
-    PageController.$inject = ['$scope', '$compile', 'pagesService', '$rootScope', '$location', '$timeout', '$state', '$mdMedia', 'tools'];
-    function PageController($scope, $compile, pagesService, $rootScope, $location, $timeout, $state, $mdMedia, tools){
+    PageController.$inject = ['pagesService', '$rootScope', '$location', '$timeout', '$state', '$mdMedia', 'tools'];
+    function PageController(pagesService, $rootScope, $location, $timeout, $state, $mdMedia, tools){
         var vm  = this;
         vm.$mdMedia = $mdMedia;
-        var componentsElement = angular.element(document.querySelector('#components'));
         vm.$onInit = onInit;
         vm.setForm = setForm;
         vm.save = save;
         vm.removeDialog = removeDialog;
         vm.addComponent = addComponent;
+        vm.removeComponent = removeComponent;
 
         vm.model = {
             title: '',
@@ -41,9 +41,18 @@
         }
 
         function addComponent(){
-            var html = '<add-component rows="vm.model.rows" components="::vm.components"></add-component>';
-            var newComponent = $compile(html)($scope);
-            componentsElement.append(newComponent);
+            vm.model.rows.push({
+                data: {},
+                title: '',
+                type: ''
+            })
+        }
+
+        function removeComponent(i){
+            vm.model.rows.splice(i, 1);
+            $timeout(function(){
+                $rootScope.$broadcast('componentRemoved');
+            }, 100);
         }
 
         function save(ev){

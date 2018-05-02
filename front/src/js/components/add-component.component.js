@@ -3,60 +3,41 @@
         templateUrl: 'html/components/add-component.html',
         controllerAs: 'vm',
         bindings: {
-            rows: '=',
-            order: '<',
-            edit: '<',
-            components: '<'
+            components: '<',
+            model: '=',
+            order: '@',
+            removeFunction: '<'
         },
         controller: AddComponentController
     });
 
-    AddComponentController.$inject = ['$element', '$rootScope', '$scope'];
-    function AddComponentController($element, $rootScope, $scope){
+    AddComponentController.$inject = ['$scope'];
+    function AddComponentController($scope){
         var vm  = this;
-        vm.remove = remove;
         vm.onComponentSelect = onComponentSelect;
-
+        vm.open = false;
         vm.currentComponent = undefined;
-
-        vm.model = {
-            data : {},
-            title: '',
-            type: ''
-        };
 
         vm.$onInit = onInit;
 
         function onInit(){
-            if(vm.edit){
-                vm.model = vm.rows[vm.order];
+            if(vm.model.type){
                 vm.currentComponent = vm.components[vm.model.type];
-            } else {
-                vm.order = vm.rows.push(vm.model) - 1;
             }
 
-            $scope.$on('componentRemoved', function(e, position){
-                if(position < vm.order){
-                    vm.order--;
-                }
-            });
-
-            $scope.$on('pageSaved', function(){
-                vm.model = vm.rows[vm.order];
+            $scope.$on('componentRemoved', function(){
+                vm.currentComponent = vm.components[vm.model.type] || undefined;
+                vm.open = false;
+                $scope.$apply();
             })
 
         }
 
         function onComponentSelect(){
+            vm.open = true;
             vm.model.data = {};
             vm.model.title = vm.currentComponent.title;
             vm.model.type = vm.currentComponent.type;
-        }
-
-        function remove(){
-            $rootScope.$broadcast('componentRemoved', vm.order);
-            vm.rows.splice(vm.order, 1);
-            $element.remove();
         }
 
     }

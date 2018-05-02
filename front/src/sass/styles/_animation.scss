@@ -60,3 +60,7 @@
 .slide-up.ng-hide {
   max-height: 0;
 }
+
+.rotate {
+  transform: rotateX(180deg);
+}
