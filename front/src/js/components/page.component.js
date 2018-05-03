@@ -19,6 +19,9 @@
         vm.removeDialog = removeDialog;
         vm.addComponent = addComponent;
         vm.removeComponent = removeComponent;
+        vm.onDrop = onDrop;
+
+        var componentsElement = angular.element(document.querySelector('#components'));
 
         vm.model = {
             title: '',
@@ -36,7 +39,6 @@
             if(vm.edit){
                 vm.model = vm.page.data;
                 vm.currentTitle = vm.model.title;
-                vm.rowsNumber = new Array(vm.model.rows.length);
             }
         }
 
@@ -49,6 +51,7 @@
         }
 
         function removeComponent(i){
+            componentsElement[0].children[vm.model.rows.length - 1].remove();
             vm.model.rows.splice(i, 1);
             $timeout(function(){
                 $rootScope.$broadcast('componentRemoved');
@@ -83,7 +86,6 @@
                 tools.scrollToError();
             }
 
-
         }
 
         function remove(ev){
@@ -104,6 +106,19 @@
 
         function setForm(form){
             vm.form = form;
+        }
+
+        function onDrop(index, item, callback){
+            var indexFrom = callback();
+
+            if(!(indexFrom === index || indexFrom + 1 === index)){
+                vm.model.rows.splice(indexFrom, 1);
+                vm.model.rows.splice(indexFrom < index ? index-1 : index, 0, item);
+                $timeout(function(){
+                    $rootScope.$broadcast('componentDropped');
+                }, 10);
+            }
+            return true;
         }
 
     }

@@ -31,6 +31,7 @@
     "angular": "^1.6.7",
     "angular-animate": "^1.6.9",
     "angular-aria": "^1.6.9",
+    "angular-drag-and-drop-lists": "^2.1.0",
     "angular-material": "^1.1.8",
     "angular-messages": "^1.6.9",
     "angular-scroll": "^1.0.2",

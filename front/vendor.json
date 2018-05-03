@@ -8,5 +8,8 @@
   "./node_modules/angular-scroll/angular-scroll.min.js",
   "./node_modules/angular-touch/angular-touch.min.js",
   "./node_modules/angular-messages/angular-messages.min.js",
+  "./node_modules/angular-drag-and-drop-lists/angular-drag-and-drop-lists.min.js",
   "./node_modules/ng-file-upload/dist/ng-file-upload.min.js"
 ]
+
+

@@ -6,6 +6,7 @@
         'ngMessages',
         'ngMaterial',
         'ngFileUpload',
+        'dndLists',
         'duScroll'
     ])
 })();

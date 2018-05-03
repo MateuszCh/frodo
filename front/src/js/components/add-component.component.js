@@ -24,13 +24,14 @@
             if(vm.model.type){
                 vm.currentComponent = vm.components[vm.model.type];
             }
+            $scope.$on('componentRemoved', onComponentsEvent);
+            $scope.$on('componentDropped', onComponentsEvent)
+        }
 
-            $scope.$on('componentRemoved', function(){
-                vm.currentComponent = vm.components[vm.model.type] || undefined;
-                vm.open = false;
-                $scope.$apply();
-            })
-
+        function onComponentsEvent(){
+            vm.currentComponent = vm.components[vm.model.type] || undefined;
+            vm.open = false;
+            $scope.$apply();
         }
 
         function onComponentSelect(){

@@ -1,22 +1,32 @@
 <div layout="column"
      class="m-b-2 bg-col-w p-a-2 box-shadow-inset">
-    <div layout="row" layout-align="space-between center" flex="100" hide-gt-xs class="m-b-4">
+    <div layout="row"
+         layout-align="space-between center"
+         flex="100"
+         hide-gt-xs
+         class="m-b-2">
         <md-button class="md-primary md-raised m-a-0 m-r-2"
                    aria-label="toggle component"
                    ng-click="vm.open = !vm.open">
-            <md-icon md-svg-icon="arrow-down" class="transition" ng-class="{'rotate' : vm.open}"></md-icon>
+            <md-icon md-svg-icon="arrow-down"
+                     class="transition"
+                     ng-class="{'rotate' : vm.open}"></md-icon>
         </md-button>
         <md-button class="md-raised m-a-0 m-r-2 md-warn"
                    ng-click="vm.removeFunction(vm.order)"
                    aria-label="delete component">Delete</md-button>
     </div>
-    <div layout="row" flex="100" layout-align="start start">
+    <div layout="row"
+         flex="100"
+         layout-align="start start">
         <div layout="column">
             <md-button class="md-primary md-raised m-a-0 m-r-2"
                        hide-xs
                        aria-label="toggle component"
                        ng-click="vm.open = !vm.open">
-                <md-icon md-svg-icon="arrow-down" class="transition" ng-class="{'rotate' : vm.open}"></md-icon>
+                <md-icon md-svg-icon="arrow-down"
+                         class="transition"
+                         ng-class="{'rotate' : vm.open}"></md-icon>
             </md-button>
         </div>
         <md-input-container flex="grow">
@@ -30,7 +40,10 @@
             </md-select>
         </md-input-container>
     </div>
-    <div flex="100" layout="row" layout-align="start start" ng-hide="!vm.open">
+    <div flex="100"
+         layout="row"
+         layout-align="start start"
+         ng-hide="!vm.open">
         <md-button class="md-warn md-raised m-a-0 m-r-2"
                    hide-xs
                    ng-click="vm.removeFunction(vm.order)"

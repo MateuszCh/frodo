@@ -55,12 +55,32 @@
                 <h2 class="font-2 fs-4 center m-b-2">Components</h2>
                 <p ng-if="!vm.model.rows.length"
                    class="center m-t-1">There are no components yet</p>
-                <ul>
-                    <li ng-repeat="row in vm.model.rows track by $index">
-                        <add-component model="row"
-                                       order="{{$index}}"
-                                       remove-function="vm.removeComponent"
-                                       components="::vm.components"></add-component>
+                <ul dnd-list="vm.model.rows"
+                    id="components"
+                    dnd-drop="vm.onDrop(index, item, callback)">
+                    <li ng-repeat="row in vm.model.rows track by $index"
+                        class="transition"
+                        layout="column"
+                        layout-align="stretch center"
+                        dnd-draggable="row"
+                        dnd-callback="$index">
+                        <div layout="row"
+                             layout-align="center"
+                             hide-xs
+                             hide-sm>
+                            <md-button class="md-primary m-a-0">
+                                <md-icon md-svg-icon="hand-black"></md-icon>
+                            </md-button>
+                        </div>
+                        <dnd-nodrag>
+                            <add-component model="row"
+                                           order="{{$index}}"
+                                           remove-function="vm.removeComponent"
+                                           components="::vm.components"></add-component>
+                        </dnd-nodrag>
+                    </li>
+                    <li class="dndPlaceholder p-b-2">
+                        Drop component here
                     </li>
                 </ul>
                 <md-button class="md-primary md-raised m-a-0 m-b-4-s m-t-2-s"
