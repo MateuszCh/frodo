@@ -120,7 +120,7 @@
                 vm.data[i] = {date: null, isOpen: false};
             }
             vm.currentIndex = 0;
-            vm.data[0].isOpen = true;
+            if(vm.data[0]) vm.data[0].isOpen = true;
         }
 
         function removeFile(i) {
@@ -150,7 +150,10 @@
                             tools.infoDialog('Files uploaded successfully', ev);
                             vm.activeView = 'choose';
                         }
-                    }, function(resp){}, function(evt){
+                    }, function(e){
+                        vm.actionStatus = '';
+                        tools.infoDialog(e.data.error || e.data, ev);
+                    }, function(evt){
                         vm.progress = parseInt(100.0 * evt.loaded / evt.total);
                     })
                     .catch(function (e) {
