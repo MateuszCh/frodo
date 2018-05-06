@@ -18,7 +18,22 @@
         vm.showFiles = showFiles;
 
         function onInit(){
+            if(vm.field.type === 'select' && !vm.field.options){
+                setOptions(vm.field);
+            }
             vm.catalogues = filesService.getCatalogues();
+        }
+
+        function setOptions(field){
+            var selectOptions = field.selectOptions.replace(/\s*;\s*/g, ";").split(";");
+            var options = [];
+            selectOptions.forEach(function(option){
+                options.push(option.replace(/;/g, ""));
+            });
+            options = options.filter(function(value, index, self){
+                return self.indexOf(value) === index;
+            });
+            field.options = options;
         }
 
         function showFiles(ev){
