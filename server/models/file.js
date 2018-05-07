@@ -18,9 +18,6 @@ const FileSchema = new Schema({
    author: {
        type: String
    },
-   date: {
-       type: String
-   },
    place: {
        type: String
    },

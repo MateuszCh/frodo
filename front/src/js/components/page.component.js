@@ -68,7 +68,6 @@
                     .then(function(response){
                         if(vm.edit){
                             vm.actionStatus = '';
-                            vm.model = response.data;
                             $timeout(function(){
                                 $rootScope.$broadcast("pageSaved");
                             }, 10);

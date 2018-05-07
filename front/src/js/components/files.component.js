@@ -48,7 +48,6 @@
                         vm.loadingFiles = false;
                         vm.allFiles = response.data;
                         setCatalogues(vm.allFiles);
-                        setDates();
                         setLocalId();
                     })
                     .catch(function(error){
@@ -57,7 +56,6 @@
             } else {
                 vm.allFiles = vm.allFiles.data;
                 setCatalogues(vm.allFiles);
-                setDates();
                 setLocalId();
             }
 
@@ -65,16 +63,6 @@
                 if(vm.currentFilterLength !== l){
                     vm.currentExistingIndex = i;
                     vm.currentFilterLength = l;
-                }
-            })
-        }
-
-        function setDates(){
-            vm.allFiles.forEach(function(file){
-                file.date = new Date(file.date);
-
-                if(isNaN(file.date.getTime())){
-                    file.date = null;
                 }
             })
         }
@@ -117,7 +105,7 @@
             vm.data = new Array(vm.files.length);
             var i = 0;
             for(i; i < vm.data.length; i++){
-                vm.data[i] = {date: null, isOpen: false};
+                vm.data[i] = {isOpen: false};
             }
             vm.currentIndex = 0;
             if(vm.data[0]) vm.data[0].isOpen = true;
@@ -134,7 +122,7 @@
             var data = {};
 
             vm.data.forEach(function(fileData, i){
-                data[i] = fileData;
+                data[vm.files[i].name] = fileData;
             });
             if (vm.files.length) {
                 vm.actionStatus = 'upload';
@@ -144,7 +132,6 @@
                         if(response.data.length){
                             vm.allFiles = vm.allFiles.concat(response.data);
                             setLocalId();
-                            setDates();
                             vm.data = [];
                             vm.files = [];
                             tools.infoDialog('Files uploaded successfully', ev);
@@ -230,7 +217,6 @@
                             var added = response.data.length - oldLength;
                             vm.allFiles = response.data;
                             setCatalogues(vm.allFiles);
-                            setDates();
                             setLocalId();
                             tools.infoDialog(added + ' files' + (added > 1 ? ' were' : ' was') + ' successfully imported', vm.importClickEvent);
                         })

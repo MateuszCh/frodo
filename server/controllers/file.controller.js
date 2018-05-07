@@ -12,14 +12,23 @@ const storage = multer.diskStorage({
    }
 });
 
-function checkFileType(file, cb){
+let filenames = [];
+let currentlyUploading = [];
+
+function checkFile(file, cb){
+    if(filenames.indexOf(file.originalname) > -1){
+        cb(`${file.originalname} already exists`);
+    } else if(currentlyUploading.indexOf(file.originalname) > -1) {
+        cb(`You are trying to upload two files with the same filename: ${file.originalname}`);
+    }
     const filetypes = /jpeg|jpg|png|gif|pdf/;
     const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
     const mimetype = filetypes.test(file.mimetype);
     if(mimetype && extname){
+        currentlyUploading.push(file.originalname);
         return cb(null, true);
     } else {
-        cb('Error: Wrong file type');
+        cb('Error: Wrong file type' + file.originalname);
     }
 }
 
@@ -27,10 +36,21 @@ module.exports = {
     upload: multer({
         storage: storage,
         fileFilter: function(req, file, cb){
-            checkFileType(file, cb);
+            checkFile(file, cb);
         },
         limits: {fileSize: 10000000}
     }),
+    setFilenames(req, res, next){
+        filenames = [];
+        currentlyUploading = [];
+        File.find({})
+            .then(files => {
+                files.forEach(file => filenames.push(file.filename));
+                next();
+            })
+            .catch(e => res.status(422).send({error: 'There was error uploading files'}))
+
+    },
     create(req, res, next){
         const files = req.files;
         const filesProps = req.body.filesData || [];
@@ -49,20 +69,23 @@ module.exports = {
                         id: counter.counter + i
                     };
 
-                    const fileProps = filesProps[i];
+                    const fileProps = filesProps[file.filename];
+                    if(fileProps){
+                        const properties = ['title', 'description', 'author', 'place', 'catalogues'];
 
-                    for(let prop in fileProps){
-                        if(fileProps[prop]){
-                            if(prop === 'catalogues'){
-                                if(Array.isArray(fileProps[prop])){
-                                    model[prop] = fileProps[prop].map(catalogue => catalogue.toLowerCase());
-                                } else {
-                                    model[prop] = [fileProps[prop].toLowerCase()];
-                                }
-                            } else {
-                                model[prop] = fileProps[prop];
-                            }
-                        }
+                        properties.forEach(prop => {
+                           if(fileProps[prop]){
+                               if(prop === 'catalogues'){
+                                   if(Array.isArray(fileProps[prop])){
+                                       model[prop] = fileProps[prop].map(catalogue => catalogue.toLowerCase());
+                                   } else {
+                                       model[prop] = [fileProps[prop].toLowerCase()];
+                                   }
+                               } else {
+                                   model[prop] = fileProps[prop];
+                               }
+                           }
+                        });
                     }
 
                     fileModels.push(model);
@@ -89,7 +112,6 @@ module.exports = {
                     existingFile.title = fileProps.title;
                     existingFile.description = fileProps.description;
                     existingFile.author = fileProps.author;
-                    existingFile.date = fileProps.date;
                     existingFile.place = fileProps.place;
                     existingFile.catalogues = fileProps.catalogues;
 
@@ -149,14 +171,16 @@ module.exports = {
     },
     importFiles(req, res, next){
         const correctFiles = req.body.files.filter(file => {
-            return file.filename;
+            const filenameConflict = filenames.indexOf(file.filename) > -1 || currentlyUploading.indexOf(file.filename) > -1;
+            currentlyUploading.push(file.filename);
+            return file.filename && !filenameConflict;
         });
 
         if(correctFiles.length){
             Counter.findOne({})
                 .then(counter => {
                     const filesModels = [];
-                    const properties = ['title', 'description', 'author', 'date', 'place', 'type', 'size', 'catalogues', 'created'];
+                    const properties = ['title', 'description', 'author', 'place', 'type', 'size', 'catalogues', 'created'];
                     correctFiles.forEach((file, i) => {
                         const model = {
                             filename : file.filename,
@@ -191,10 +215,10 @@ module.exports = {
         File.find({})
             .then(files => {
                 const formattedFiles = JSON.stringify(files.map(file => {
-                    const properties = ['title', 'description', 'author', 'date', 'place', 'type', 'size', 'catalogues', 'created'];
+                    const properties = ['title', 'description', 'author', 'place', 'type', 'size', 'catalogues', 'created'];
                     const newFile = {
                         filename : file.filename,
-                        src: src
+                        src: file.src
                     };
 
                     properties.forEach(prop => {

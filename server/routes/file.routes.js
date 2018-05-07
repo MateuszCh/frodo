@@ -2,6 +2,8 @@ const FileController = require('../controllers/file.controller');
 
 module.exports = app => {
 
+    app.post('/api/file', FileController.setFilenames);
+
     app.post('/api/file', FileController.upload.array('files'), FileController.create);
 
     app.put('/api/file/', FileController.edit);
@@ -21,6 +23,8 @@ module.exports = app => {
     app.delete('/api/file/exportfile/:filename', FileController.deleteExportFile);
 
     app.get('/api/exportFiles', FileController.exportFiles);
+
+    app.post('/api/importFiles', FileController.setFilenames);
 
     app.post('/api/importFiles', FileController.importFiles);
 
