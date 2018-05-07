@@ -38,7 +38,9 @@ module.exports = {
            const props = Object.keys(post);
            if(props.length === 1 && post.title){
                return true;
-           } else if (props.length === 2 && post.title && post.data){
+           } else if (props.length === 2 && post.title && post.data) {
+               return true;
+           } else if (props.length === 3 && post.title && post.data && post.created){
                return true;
            } else {
                return false;
