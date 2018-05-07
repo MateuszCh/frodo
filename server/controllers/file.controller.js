@@ -190,7 +190,7 @@ module.exports = {
                             if(file[prop]) model[prop] = file[prop];
                         });
                         model.id = counter.counter + i;
-                        if(!file.created) file.created = Date.now();
+                        if(!file.created) model.created = Date.now();
                         filesModels.push(model);
                     });
 
