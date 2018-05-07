@@ -10,6 +10,7 @@ module.exports = {
             .then(response => {
                 const counter = response[0];
                 postProps.id = counter.counter;
+                postProps.created = Date.now();
                 const postType = response[1];
                 if(postType !== null){
                     const newPost = new Post(postProps);
@@ -58,6 +59,7 @@ module.exports = {
                            type: postType,
                            id: counter.counter + i
                        };
+                       model.created = post.created || Date.now();
                        postModels.push(model);
                     });
 
@@ -94,7 +96,8 @@ module.exports = {
                 const formattedPosts = JSON.stringify(posts.map(post => {
                     return {
                         title: post.title,
-                        data: post.data
+                        data: post.data,
+                        created: post.created
                     }
                 }), null, 4);
                 fs.writeFile(`${__dirname}/../../${postType}.json`, formattedPosts, err => {

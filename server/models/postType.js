@@ -32,11 +32,6 @@ PostTypeSchema.pre('remove', function(next){
         .then(() => next());
 });
 
-PostTypeSchema.virtual('created')
-    .get(function(){
-        return new Date(parseInt(this._id.toString().substring(0,8), 16) * 1000);
-    });
-
 PostTypeSchema.pre('save', function(next){
     let PostType = this;
     format.formatFieldsIds(PostType.fields);

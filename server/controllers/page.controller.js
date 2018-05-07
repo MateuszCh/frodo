@@ -12,6 +12,7 @@ module.exports = {
                     Counter.findOne({})
                         .then(counter => {
                             pageProps.id = counter.counter;
+                            pageProps.created = Date.now();
                             Page.create(pageProps)
                                 .then(page => {
                                     res.send(page);
@@ -80,7 +81,8 @@ module.exports = {
                     return {
                         title: page.title,
                         pageUrl: page.pageUrl,
-                        rows: page.rows
+                        rows: page.rows,
+                        created: page.created
                     }
                 }), null, 4);
 
@@ -124,6 +126,7 @@ module.exports = {
                         const pagesModels = [];
                         correctPages.forEach((page, i) => {
                             const model = page;
+                            if(!model.created) model.created = Date.now();
                             model.id = counter.counter + i;
                             pagesModels.push(model);
                         });

@@ -34,6 +34,7 @@ module.exports = {
                     Counter.findOne({})
                         .then(counter => {
                             postTypeProps.id = counter.counter;
+                            postTypeProps.created = Date.now();
                             Model.create(postTypeProps)
                                 .then(postType => {
                                     res.send(postType);
@@ -156,7 +157,8 @@ module.exports = {
                         title: postType.title,
                         pluralTitle: postType.pluralTitle,
                         type: postType.type,
-                        fields: fields
+                        fields: fields,
+                        created: postType.created
                     }
                 }), null, 4);
 
@@ -214,7 +216,8 @@ module.exports = {
             const model = {
                 title: postType.title,
                 type: postType.type,
-                fields: correctFields
+                fields: correctFields,
+                created: postType.created || Date.now()
             };
 
             if(!isComponent) model.pluralTitle = postType.pluralTitle;

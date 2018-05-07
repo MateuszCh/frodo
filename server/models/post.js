@@ -13,6 +13,9 @@ const PostSchema = new Schema({
    data: {
        type: Object
    },
+   created: {
+       type: Number
+   },
    id: {
        type: Number
    }
@@ -25,11 +28,6 @@ const PostSchema = new Schema({
 PostSchema.virtual('url')
     .get(function(){
         return `/posts/${this.type}/edit/${this.id}`;
-    });
-
-PostSchema.virtual('created')
-    .get(function(){
-       return new Date(parseInt(this._id.toString().substring(0,8), 16) * 1000);
     });
 
 const Post = mongoose.model('post', PostSchema);

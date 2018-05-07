@@ -20,6 +20,9 @@ const PostTypeAbstractSchema = new Schema({
             message: 'Each field should have a different id'
         }
     },
+    created: {
+        type: Number
+    },
     id: Number
 });
 

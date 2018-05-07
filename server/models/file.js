@@ -34,7 +34,7 @@ const FileSchema = new Schema({
        type: Number
    },
    created: {
-       type: Date
+       type: Number
    }
 });
 

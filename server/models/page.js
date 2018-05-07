@@ -14,6 +14,9 @@ const PageSchema = new Schema({
     rows: {
         type: [{}]
     },
+    created: {
+        type: Number
+    },
     id: {
         type: Number
     }
@@ -26,11 +29,6 @@ const PageSchema = new Schema({
 PageSchema.virtual('url')
     .get(function(){
         return `/pages/edit/${this.id}`;
-    });
-
-PageSchema.virtual('created')
-    .get(function(){
-        return new Date(parseInt(this._id.toString().substring(0,8), 16) * 1000);
     });
 
 const Page = mongoose.model('page', PageSchema);
