@@ -33,7 +33,7 @@
                 filters.selects.fields.forEach(function(select){
                     if(select.values.length){
                         models = models.filter(function(model){
-                            return select.values.indexOf(model.data[select.id]) > -1;
+                            return model.data[select.id] && select.values.indexOf(model.data[select.id]) > -1;
                         })
                     }
                 })
@@ -45,9 +45,11 @@
                     if(multiselect.values.length){
                         models = models.filter(function(model){
                             var matched = [];
-                            model.data[multiselect.id].forEach(function(multioption){
-                               if(multiselect.values.indexOf(multioption) > -1) matched.push(multioption);
-                            });
+                            if(model.data[multiselect.id] && model.data[multiselect.id].length){
+                                model.data[multiselect.id].forEach(function(multioption){
+                                    if(multiselect.values.indexOf(multioption) > -1) matched.push(multioption);
+                                });
+                            }
                             return matched.length;
                         })
                     }
