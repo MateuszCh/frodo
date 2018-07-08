@@ -23,11 +23,6 @@ module.exports = app => {
 
     app.delete("/api/file/:id", FileController.delete);
 
-    app.delete(
-        "/api/file/exportfile/:filename",
-        FileController.deleteExportFile
-    );
-
     app.get("/api/exportFiles", FileController.exportFiles);
 
     app.post("/api/importFiles", FileController.setFilenames);

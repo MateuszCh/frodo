@@ -188,13 +188,13 @@ module.exports = {
             })
             .catch(next);
     },
-    deleteExportFile(req, res, next) {
-        const filename = req.params.filename;
-        fs.unlink(`${__dirname}/../../${filename}.json`, err => {
-            if (err) next();
-            res.send("export file removed");
-        });
-    },
+    // deleteExportFile(req, res, next) {
+    //     const filename = req.params.filename;
+    //     fs.unlink(`${__dirname}/../../${filename}.json`, err => {
+    //         if (err) next();
+    //         res.send("export file removed");
+    //     });
+    // },
     importFiles(req, res, next) {
         const correctFiles = req.body.files.filter(file => {
             const filenameConflict =

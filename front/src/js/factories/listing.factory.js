@@ -357,10 +357,8 @@
                     }
                 },
                 exportStatus: undefined,
-                exportTimeout: undefined,
                 exportPosts: function(e) {
                     var self = this;
-                    $timeout.cancel(self.exportTimeout);
                     self.exportStatus = true;
                     self.apiService
                         .exportPosts(self.postType)
@@ -370,18 +368,6 @@
                             file.setAttribute("href", response.data);
                             file.setAttribute("download", "");
                             file.click();
-                            self.exportTimeout = $timeout(function() {
-                                filesService
-                                    .deleteExportFile(
-                                        self.postType || self.type
-                                    )
-                                    .then(function(response) {
-                                        // console.log(response);
-                                    })
-                                    .catch(function(error) {
-                                        console.log(error);
-                                    });
-                            }, 10000);
                         })
                         .catch(function(error) {
                             self.exportStatus = false;

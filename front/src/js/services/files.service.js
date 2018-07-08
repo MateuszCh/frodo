@@ -52,13 +52,6 @@
                 });
             }
 
-            function deleteExportFile(filename) {
-                return requestService.send(
-                    "/api/file/exportfile/" + filename,
-                    "DELETE"
-                );
-            }
-
             return {
                 getAllFiles: getAllFiles,
                 getCatalogues: getCatalogues,
@@ -67,7 +60,6 @@
                 upload: upload,
                 edit: edit,
                 remove: remove,
-                deleteExportFile: deleteExportFile,
                 exportFiles: exportFiles,
                 importFiles: importFiles
             };

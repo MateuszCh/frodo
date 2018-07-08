@@ -56,7 +56,6 @@
         vm.limit = 80;
         var increment = 40;
         vm.search = { text: "", catalogues: [] };
-        var exportTimeout;
 
         function onInit() {
             if (!vm.allFiles) {
@@ -301,7 +300,6 @@
         }
 
         function exportFiles(e) {
-            $timeout.cancel(exportTimeout);
             vm.exportStatus = true;
             filesService
                 .exportFiles()
@@ -311,16 +309,6 @@
                     file.setAttribute("href", response.data);
                     file.setAttribute("download", "");
                     file.click();
-                    exportTimeout = $timeout(function() {
-                        filesService
-                            .deleteExportFile("files")
-                            .then(function(response) {
-                                console.log(response);
-                            })
-                            .catch(function(error) {
-                                console.log(error);
-                            });
-                    }, 10000);
                 })
                 .catch(function(error) {
                     vm.exportStatus = false;
