@@ -1,150 +1,154 @@
 <div ng-switch="vm.field.type"
-     layout="column"
-     class="field">
+    layout="column"
+    class="field">
     <!-- text -->
     <md-input-container ng-switch-when="text"
-                        class="m-b-0">
+        class="m-b-0">
         <label ng-bind="::vm.field.title"
-               ng-attr-for="{{vm.field.id + '-1'}}"></label>
+            ng-attr-for="{{vm.field.id + '-1'}}"></label>
         <input type="text"
-               ng-attr-id="{{vm.field.id + '-1'}}"
-               ng-model="vm.model[vm.field.id]">
+            ng-attr-id="{{vm.field.id + '-1'}}"
+            ng-model="vm.model[vm.field.id]">
     </md-input-container>
     <!-- select -->
     <div ng-switch-when="select"
-         layout="row"
-         layout-align="start center">
+        layout="row"
+        layout-align="start center">
         <md-input-container flex="grow">
             <label ng-bind="::vm.field.title"
-                   ng-attr-for="{{vm.field.id + '-1'}}"></label>
+                ng-attr-for="{{vm.field.id + '-1'}}"></label>
             <md-select ng-model="vm.model[vm.field.id]"
-                       ng-attr-id="{{vm.field.id + '-1'}}">
+                ng-attr-id="{{vm.field.id + '-1'}}">
                 <md-option ng-repeat="item in ::vm.field.options"
-                           ng-value="item">
+                    ng-value="item">
                     <span ng-bind="::item"></span>
                 </md-option>
             </md-select>
         </md-input-container>
         <md-button class="md-raised md-warn"
-                   aria-label="clear select"
-                   ng-click="vm.model[vm.field.id] = null">Clear</md-button>
+            aria-label="clear select"
+            ng-click="vm.model[vm.field.id] = null">Clear</md-button>
     </div>
     <!-- multiselect -->
     <div ng-switch-when="multiselect"
-         layout="row"
-         layout-align="start center">
+        layout="row"
+        layout-align="start center">
         <md-input-container flex="grow">
             <label ng-bind="::vm.field.title"
-                   ng-attr-for="{{vm.field.id + '-1'}}"></label>
+                ng-attr-for="{{vm.field.id + '-1'}}"></label>
             <md-select ng-model="vm.model[vm.field.id]"
-                       multiple
-                       ng-attr-id="{{vm.field.id + '-1'}}">
+                multiple
+                ng-attr-id="{{vm.field.id + '-1'}}">
                 <md-option ng-repeat="item in ::vm.field.multiOptions"
-                           ng-value="item">
+                    ng-value="item">
                     <span ng-bind="::item"></span>
                 </md-option>
             </md-select>
         </md-input-container>
         <md-button class="md-raised md-warn"
-                   aria-label="clear select"
-                   ng-click="vm.model[vm.field.id] = null">Clear</md-button>
+            aria-label="clear select"
+            ng-click="vm.model[vm.field.id] = null">Clear</md-button>
     </div>
     <!-- catalogue -->
     <div ng-switch-when="catalogue"
-         layout="row"
-         layout-align="start center">
+        layout="row"
+        layout-align="start center">
         <md-input-container flex="grow">
             <label ng-bind="::vm.field.title"
-                   ng-attr-for="{{vm.field.id + '-1'}}"></label>
+                ng-attr-for="{{vm.field.id + '-1'}}"></label>
             <md-select ng-model="vm.model[vm.field.id]"
-                       ng-attr-id="{{vm.field.id + '-1'}}">
+                ng-attr-id="{{vm.field.id + '-1'}}">
                 <md-option ng-repeat="catalogue in ::vm.catalogues track by catalogue"
-                           ng-value="catalogue">
+                    ng-value="catalogue">
                     <span ng-bind="catalogue"></span>
                 </md-option>
             </md-select>
         </md-input-container>
         <md-button class="md-raised md-warn"
-                   aria-label="clear catalogue"
-                   ng-click="vm.model[vm.field.id] = null">Clear</md-button>
+            aria-label="clear catalogue"
+            ng-click="vm.model[vm.field.id] = null">Clear</md-button>
     </div>
     <!-- textarea -->
     <md-input-container ng-switch-when="textarea"
-                        class="m-b-0">
+        class="m-b-0">
         <label ng-bind="::vm.field.title"
-               ng-attr-for="{{vm.field.id + '-1'}}"></label>
+            ng-attr-for="{{vm.field.id + '-1'}}"></label>
         <textarea ng-atrr-id="{{vm.field.id + '-1'}}"
-                  rows="3"
-                  max-rows="10"
-                  ng-model="vm.model[vm.field.id]"></textarea>
+            rows="3"
+            max-rows="10"
+            ng-model="vm.model[vm.field.id]"></textarea>
     </md-input-container>
     <!-- number -->
     <md-input-container ng-switch-when="number"
-                        class="m-b-0">
+        class="m-b-0">
         <label ng-bind="::vm.field.title"
-               ng-attr-for="{{vm.field.id + '-1'}}"></label>
+            ng-attr-for="{{vm.field.id + '-1'}}"></label>
         <input type="number"
-               ng-model="vm.model[vm.field.id]"
-               ng-attr-id="{{vm.field.id + '-1'}}">
+            ng-model="vm.model[vm.field.id]"
+            ng-attr-id="{{vm.field.id + '-1'}}">
     </md-input-container>
     <!-- checkbox -->
     <div ng-switch-when="checkbox"
-         ng-init="!vm.model[vm.field.id] ? vm.model[vm.field.id] = false : null">
+        ng-init="!vm.model[vm.field.id] ? vm.model[vm.field.id] = false : null">
         <md-checkbox ng-model="vm.model[vm.field.id]"
-                     aria-label="checkbox field"
-                     class="m-a-0">
+            aria-label="checkbox field"
+            class="m-a-0">
             <span ng-bind="vm.field.title + ' : ' + vm.model[vm.field.id]"></span>
         </md-checkbox>
     </div>
     <!-- date -->
-    <div ng-switch-when="date" layout="row" layout-align="start center">
+    <div ng-switch-when="date"
+        layout="row"
+        layout-align="start center">
         <md-input-container class="m-b-0">
             <label ng-bind="::vm.field.title"
-                   ng-attr-for="{{vm.field.id + '-1'}}"></label>
+                ng-attr-for="{{vm.field.id + '-1'}}"></label>
             <md-datepicker ng-model="vm.model[vm.field.id]"
-                           onkeydown="return false;"
-                           md-open-on-focus=""></md-datepicker>
+                onkeydown="return false;"
+                md-open-on-focus=""></md-datepicker>
         </md-input-container>
         <md-button class="md-raised md-warn"
-                   aria-label="clear date"
-                   ng-click="vm.model[vm.field.id] = null">Clear</md-button>
+            aria-label="clear date"
+            ng-click="vm.model[vm.field.id] = null">Clear</md-button>
     </div>
     <!-- repeater -->
     <div ng-switch-when="repeater"
-         layout="column">
+        layout="column">
         <span class="block repeater-title m-b-1"
-              ng-bind="::vm.field.title"></span>
+            ng-bind="::vm.field.title"></span>
         <repeater parent-model="vm.model"
-                  field="vm.field"
-                  repeater-fields="vm.field.repeaterFields"></repeater>
+            field="vm.field"
+            repeater-fields="vm.field.repeaterFields"></repeater>
     </div>
     <!-- file -->
     <div ng-switch-when="file"
-         layout="row">
+        layout="row">
         <div layout="column"
-             layout-align="start start">
+            layout-align="start start">
             <p ng-bind="::vm.field.title"></p>
             <md-button class="md-primary md-raised m-l-0 m-r-0"
-                       aria-label="open files dialog"
-                       ng-click="vm.showFiles($event)">Select file</md-button>
+                aria-label="open files dialog"
+                ng-click="vm.showFiles($event)">Select file</md-button>
             <md-button class="md-warn md-raised m-l-0 m-r-0"
-                       aria-label="clear file"
-                       ng-click="vm.model[vm.field.id] = undefined"
-                       ng-if="vm.model[vm.field.id]">Clear</md-button>
+                aria-label="clear file"
+                ng-click="vm.model[vm.field.id] = undefined"
+                ng-if="vm.model[vm.field.id]">Clear</md-button>
         </div>
         <div layout="row"
-             layout-wrap
-             layout-align="center start"
-             flex="grow"
-             class="p-l-4"
-             ng-if="vm.model[vm.field.id]">
+            layout-wrap
+            layout-align="center start"
+            flex="grow"
+            class="p-l-4"
+            ng-if="vm.model[vm.field.id]">
             <p flex="100"
-               class="m-b-2">Selected file: <span ng-bind="vm.model[vm.field.id].filename"></span></p>
+                class="m-b-2">Selected file:
+                <span ng-bind="vm.model[vm.field.id].filename"></span>
+            </p>
             <div flex="50"
-                 class="ratio-16-9"
-                 ng-if="vm.model[vm.field.id].type !== 'application/pdf'">
+                class="ratio-16-9"
+                ng-if="vm.model[vm.field.id].type !== 'application/pdf'">
                 <img src="{{vm.model[vm.field.id]}}"
-                     class="fill object-fit-contain">
+                    class="fill object-fit-contain">
             </div>
         </div>
     </div>

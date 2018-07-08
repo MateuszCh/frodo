@@ -1,97 +1,127 @@
-(function(){
-    angular.module('frodo').filter('listingFilter', ListingFilter);
+(function() {
+    angular.module("frodo").filter("listingFilter", ListingFilter);
 
-    ListingFilter.$inject = ['$filter'];
+    ListingFilter.$inject = ["$filter"];
 
-    function ListingFilter($filter){
-
-        return function(models, filters, type){
-            if(!models.length){
+    function ListingFilter($filter) {
+        return function(models, filters, type) {
+            if (!models.length) {
                 return models;
             }
 
             // textFilter
-            models = $filter('filter')(models, filters.textFilter.value);
+            models = $filter("filter")(models, filters.textFilter.value);
 
-            if(type !== 'posts'){
+            if (type !== "posts") {
                 return models;
             }
 
             // checkboxes
-            if(filters.checkboxes.fields.length){
-                filters.checkboxes.fields.forEach(function(checkbox){
-                    if(checkbox.value !== 'all'){
-                        models = models.filter(function(model){
+            if (filters.checkboxes.fields.length) {
+                filters.checkboxes.fields.forEach(function(checkbox) {
+                    if (checkbox.value !== "all") {
+                        models = models.filter(function(model) {
                             return model.data[checkbox.id] === checkbox.value;
-                        })
+                        });
                     }
-                })
+                });
             }
 
             // selects
-            if(filters.selects.fields.length){
-                filters.selects.fields.forEach(function(select){
-                    if(select.values.length){
-                        models = models.filter(function(model){
-                            return model.data[select.id] && select.values.indexOf(model.data[select.id]) > -1;
-                        })
+            if (filters.selects.fields.length) {
+                filters.selects.fields.forEach(function(select) {
+                    if (select.values.length) {
+                        models = models.filter(function(model) {
+                            return (
+                                model.data[select.id] &&
+                                select.values.indexOf(model.data[select.id]) >
+                                    -1
+                            );
+                        });
                     }
-                })
+                });
             }
 
             // multiselects
-            if(filters.multiselects.fields.length){
-                filters.multiselects.fields.forEach(function(multiselect){
-                    if(multiselect.values.length){
-                        models = models.filter(function(model){
+            if (filters.multiselects.fields.length) {
+                filters.multiselects.fields.forEach(function(multiselect) {
+                    if (multiselect.values.length) {
+                        models = models.filter(function(model) {
                             var matched = [];
-                            if(model.data[multiselect.id] && model.data[multiselect.id].length){
-                                model.data[multiselect.id].forEach(function(multioption){
-                                    if(multiselect.values.indexOf(multioption) > -1) matched.push(multioption);
+                            if (
+                                model.data[multiselect.id] &&
+                                model.data[multiselect.id].length
+                            ) {
+                                model.data[multiselect.id].forEach(function(
+                                    multioption
+                                ) {
+                                    if (
+                                        multiselect.values.indexOf(
+                                            multioption
+                                        ) > -1
+                                    )
+                                        matched.push(multioption);
                                 });
                             }
                             return matched.length;
-                        })
+                        });
                     }
-                })
+                });
             }
 
             // catalogues
-            if(filters.catalogues.fields.length){
-                filters.catalogues.fields.forEach(function(catalogue){
-                    if(catalogue.values.length){
-                        models = models.filter(function(model){
-                            return catalogue.values.indexOf(model.data[catalogue.id]) > -1;
-                        })
+            if (filters.catalogues.fields.length) {
+                filters.catalogues.fields.forEach(function(catalogue) {
+                    if (catalogue.values.length) {
+                        models = models.filter(function(model) {
+                            return (
+                                catalogue.values.indexOf(
+                                    model.data[catalogue.id]
+                                ) > -1
+                            );
+                        });
                     }
-                })
+                });
             }
 
             // numbers
-            if(filters.numbers.fields.length){
-                filters.numbers.fields.forEach(function(number){
-                    if(number.minValue !== number.range[0] || number.maxValue !== number.range[1]){
-                        models = models.filter(function(model){
-                            return ((number.minValue <= model.data[number.id]) && (number.maxValue >= model.data[number.id]));
-                        })
+            if (filters.numbers.fields.length) {
+                filters.numbers.fields.forEach(function(number) {
+                    if (
+                        number.minValue !== number.range[0] ||
+                        number.maxValue !== number.range[1]
+                    ) {
+                        models = models.filter(function(model) {
+                            return (
+                                number.minValue <= model.data[number.id] &&
+                                number.maxValue >= model.data[number.id]
+                            );
+                        });
                     }
-                })
+                });
             }
 
             // dates
-            if(filters.dates.fields.length){
-                filters.dates.fields.forEach(function(date){
-                    if(date.minValue !== date.range[0] || date.maxValue !== date.range[1]){
-                        models = models.filter(function(model){
-                            return (model.data[date.id] && (date.minValue.getTime() <= (new Date(model.data[date.id])).getTime()) && (date.maxValue.getTime() >= (new Date(model.data[date.id])).getTime()));
-                        })
+            if (filters.dates.fields.length) {
+                filters.dates.fields.forEach(function(date) {
+                    if (
+                        date.minValue !== date.range[0] ||
+                        date.maxValue !== date.range[1]
+                    ) {
+                        models = models.filter(function(model) {
+                            return (
+                                model.data[date.id] &&
+                                date.minValue.getTime() <=
+                                    new Date(model.data[date.id]).getTime() &&
+                                date.maxValue.getTime() >=
+                                    new Date(model.data[date.id]).getTime()
+                            );
+                        });
                     }
-                })
+                });
             }
 
-            return models
-        }
-
+            return models;
+        };
     }
-
 })();

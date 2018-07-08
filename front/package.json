@@ -1,41 +1,41 @@
 {
-  "name": "Frodo",
-  "version": "1.0.0",
-  "description": "",
-  "scripts": {
-    "start": "gulp",
-    "watch": "gulp watch"
-  },
-  "author": "",
-  "license": "ISC",
-  "devDependencies": {
-    "browser-sync": "^2.18.8",
-    "del": "^3.0.0",
-    "gulp": "^3.9.1",
-    "gulp-autoprefixer": "^3.1.1",
-    "gulp-clean-css": "^3.9.0",
-    "gulp-concat": "^2.6.1",
-    "gulp-concat-css": "^3.1.0",
-    "gulp-hash": "^4.1.1",
-    "gulp-htmlmin": "^3.0.0",
-    "gulp-imagemin": "^3.1.1",
-    "gulp-inject": "^4.3.0",
-    "gulp-rename": "^1.2.2",
-    "gulp-sass": "^3.1.0",
-    "gulp-uglify": "^2.1.2",
-    "http-proxy-middleware": "^0.17.4",
-    "stream-series": "^0.1.1"
-  },
-  "dependencies": {
-    "@uirouter/angularjs": "^1.0.15",
-    "angular": "^1.6.7",
-    "angular-animate": "^1.6.9",
-    "angular-aria": "^1.6.9",
-    "angular-drag-and-drop-lists": "^2.1.0",
-    "angular-material": "^1.1.8",
-    "angular-messages": "^1.6.9",
-    "angular-scroll": "^1.0.2",
-    "angular-touch": "^1.6.9",
-    "ng-file-upload": "^12.2.13"
-  }
+    "name": "Frodo",
+    "version": "1.0.0",
+    "description": "",
+    "scripts": {
+        "start": "gulp",
+        "watch": "gulp watch"
+    },
+    "author": "",
+    "license": "ISC",
+    "devDependencies": {
+        "browser-sync": "^2.18.8",
+        "del": "^3.0.0",
+        "gulp": "^3.9.1",
+        "gulp-autoprefixer": "^3.1.1",
+        "gulp-clean-css": "^3.9.0",
+        "gulp-concat": "^2.6.1",
+        "gulp-concat-css": "^3.1.0",
+        "gulp-hash": "^4.1.1",
+        "gulp-htmlmin": "^3.0.0",
+        "gulp-imagemin": "^3.1.1",
+        "gulp-inject": "^4.3.0",
+        "gulp-rename": "^1.2.2",
+        "gulp-sass": "^3.1.0",
+        "gulp-uglify": "^2.1.2",
+        "http-proxy-middleware": "^0.17.4",
+        "stream-series": "^0.1.1"
+    },
+    "dependencies": {
+        "@uirouter/angularjs": "^1.0.15",
+        "angular": "^1.6.7",
+        "angular-animate": "^1.6.9",
+        "angular-aria": "^1.6.9",
+        "angular-drag-and-drop-lists": "^2.1.0",
+        "angular-material": "^1.1.8",
+        "angular-messages": "^1.6.9",
+        "angular-scroll": "^1.0.2",
+        "angular-touch": "^1.6.9",
+        "ng-file-upload": "^12.2.13"
+    }
 }

@@ -1,70 +1,76 @@
-(function(){
-    angular.module('frodo').service('filesService', ['requestService', 'Upload', function(requestService, Upload){
+(function() {
+    angular.module("frodo").service("filesService", [
+        "requestService",
+        "Upload",
+        function(requestService, Upload) {
+            var _catalogues;
 
-        var _catalogues;
-
-        function getAllFiles(){
-            return requestService.send('/api/file', 'GET');
-        }
-
-        function getCatalogues(){
-            if(_catalogues){
-                return _catalogues;
-            } else {
-                return requestService.send('/api/file/catalogues', 'GET');
+            function getAllFiles() {
+                return requestService.send("/api/file", "GET");
             }
-        }
 
-        function setCatalogues(catalogues){
-            _catalogues = catalogues;
-        }
+            function getCatalogues() {
+                if (_catalogues) {
+                    return _catalogues;
+                } else {
+                    return requestService.send("/api/file/catalogues", "GET");
+                }
+            }
 
-        function getByCatalogue(catalogue){
-            return requestService.send('/api/file/' + catalogue, 'GET');
-        }
+            function setCatalogues(catalogues) {
+                _catalogues = catalogues;
+            }
 
-        function remove(id){
-            return requestService.send('/api/file/' + id, 'DELETE');
-        }
+            function getByCatalogue(catalogue) {
+                return requestService.send("/api/file/" + catalogue, "GET");
+            }
 
-        function edit(data){
-            return requestService.send('/api/file', 'PUT', data);
-        }
+            function remove(id) {
+                return requestService.send("/api/file/" + id, "DELETE");
+            }
 
-        function exportFiles(){
-            return requestService.send('/api/exportFiles', 'GET');
-        }
+            function edit(data) {
+                return requestService.send("/api/file", "PUT", data);
+            }
 
-        function importFiles(data){
-            return requestService.send('/api/importFiles', 'POST', data);
-        }
+            function exportFiles() {
+                return requestService.send("/api/exportFiles", "GET");
+            }
 
-        function upload(files, filesData){
-            return Upload.upload({
-                url: '/api/file',
-                data: {
-                    files: files,
-                    filesData: filesData
-                },
-                arrayKey: ''
-            })
-        }
+            function importFiles(data) {
+                return requestService.send("/api/importFiles", "POST", data);
+            }
 
-        function deleteExportFile(filename){
-            return requestService.send('/api/file/exportfile/' + filename, 'DELETE');
-        }
+            function upload(files, filesData) {
+                return Upload.upload({
+                    url: "/api/file",
+                    data: {
+                        files: files,
+                        filesData: filesData
+                    },
+                    arrayKey: ""
+                });
+            }
 
-        return {
-            getAllFiles: getAllFiles,
-            getCatalogues: getCatalogues,
-            setCatalogues: setCatalogues,
-            getByCatalogue: getByCatalogue,
-            upload: upload,
-            edit: edit,
-            remove: remove,
-            deleteExportFile: deleteExportFile,
-            exportFiles: exportFiles,
-            importFiles: importFiles
+            function deleteExportFile(filename) {
+                return requestService.send(
+                    "/api/file/exportfile/" + filename,
+                    "DELETE"
+                );
+            }
+
+            return {
+                getAllFiles: getAllFiles,
+                getCatalogues: getCatalogues,
+                setCatalogues: setCatalogues,
+                getByCatalogue: getByCatalogue,
+                upload: upload,
+                edit: edit,
+                remove: remove,
+                deleteExportFile: deleteExportFile,
+                exportFiles: exportFiles,
+                importFiles: importFiles
+            };
         }
-    }]);
+    ]);
 })();

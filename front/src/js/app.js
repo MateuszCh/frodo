@@ -1,12 +1,12 @@
-(function(){
-    angular.module('frodo', [
-        'ui.router',
-        'ui.router.state.events',
-        'ngAnimate',
-        'ngMessages',
-        'ngMaterial',
-        'ngFileUpload',
-        'dndLists',
-        'duScroll'
-    ])
+(function() {
+    angular.module("frodo", [
+        "ui.router",
+        "ui.router.state.events",
+        "ngAnimate",
+        "ngMessages",
+        "ngMaterial",
+        "ngFileUpload",
+        "dndLists",
+        "duScroll"
+    ]);
 })();

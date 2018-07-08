@@ -1,41 +1,43 @@
 <section class="p-a-3 p-a-1-m p-a-1-s p-t-8-s p-t-8-m vh-100-l vh-100-x fill-s fill-m"
-         layout="column">
+    layout="column">
     <div layout-gt-xs="row"
-         flex-gt-sm="15"
-         flex-sm="10"
-         layout-align-gt-xs="center center">
+        flex-gt-sm="15"
+        flex-sm="10"
+        layout-align-gt-xs="center center">
         <h2 class="font-2 fs-6 center"
             flex="grow"
             ng-bind="vm.edit ? 'Edit ' + vm.currentTitle + ' page' : 'Add new page'"></h2>
         <div layout="row"
-             layout-align-xs="center center">
+            layout-align-xs="center center">
             <md-button class="md-primary"
-                       ng-class="{'md-fab' : !vm.$mdMedia('xs'), 'md-raised' : vm.$mdMedia('xs'), 'busy col-t' : vm.actionStatus == 'save'}"
-                       ng-click="vm.save($event)">Save</md-button>
+                ng-class="{'md-fab' : !vm.$mdMedia('xs'), 'md-raised' : vm.$mdMedia('xs'), 'busy col-t' : vm.actionStatus == 'save'}"
+        
+                ng-click="vm.save($event)">Save</md-button>
             <md-button class="md-warn"
-                       ng-if="vm.edit"
-                       ng-class="{'md-fab' : !vm.$mdMedia('xs'), 'md-raised' : vm.$mdMedia('xs'), 'busy col-t' : vm.actionStatus == 'remove'}"
-                       ng-click="vm.removeDialog($event)">Delete</md-button>
+                ng-if="vm.edit"
+                ng-class="{'md-fab' : !vm.$mdMedia('xs'), 'md-raised' : vm.$mdMedia('xs'), 'busy col-t' : vm.actionStatus == 'remove'}"
+        
+                ng-click="vm.removeDialog($event)">Delete</md-button>
         </div>
     </div>
     <div class="m-t-2 m-t-4-x m-t-4-l overflow-auto pos-relative"
-         id="scroll"
-         flex-gt-sm="85"
-         flex-sm="90"
-         layout
-         layout-align="center">
+        id="scroll"
+        flex-gt-sm="85"
+        flex-sm="90"
+        layout
+        layout-align="center">
         <div flex="100"
-             flex-gt-sm="60"
-             layout="column"
-             ng-form="page">
+            flex-gt-sm="60"
+            layout="column"
+            ng-form="page">
             <meta ng-init="vm.setForm(page)">
             <md-input-container>
                 <label for="title">Title</label>
                 <input id="title"
-                       name="title"
-                       type="text"
-                       ng-model="vm.model.title"
-                       required>
+                    name="title"
+                    type="text"
+                    ng-model="vm.model.title"
+                    required>
                 <div ng-messages="vm.form.title.$error">
                     <div ng-message="required">This is required</div>
                 </div>
@@ -43,10 +45,10 @@
             <md-input-container>
                 <label for="pageUrl">Url</label>
                 <input id="pageUrl"
-                       name="pageUrl"
-                       type="text"
-                       ng-model="vm.model.pageUrl"
-                       required>
+                    name="pageUrl"
+                    type="text"
+                    ng-model="vm.model.pageUrl"
+                    required>
                 <div ng-messages="vm.form.pageUrl.$error">
                     <div ng-message="required">This is required</div>
                 </div>
@@ -54,7 +56,7 @@
             <div>
                 <h2 class="font-2 fs-4 center m-b-2">Components</h2>
                 <p ng-if="!vm.model.rows.length"
-                   class="center m-t-1">There are no components yet</p>
+                    class="center m-t-1">There are no components yet</p>
                 <ul dnd-list="vm.model.rows"
                     id="components"
                     dnd-drop="vm.onDrop(index, item, callback)">
@@ -65,18 +67,18 @@
                         dnd-draggable="row"
                         dnd-callback="$index">
                         <div layout="row"
-                             layout-align="center"
-                             hide-xs
-                             hide-sm>
+                            layout-align="center"
+                            hide-xs
+                            hide-sm>
                             <md-button class="md-primary m-a-0">
                                 <md-icon md-svg-icon="hand-black"></md-icon>
                             </md-button>
                         </div>
                         <dnd-nodrag>
                             <add-component model="row"
-                                           order="{{$index}}"
-                                           remove-function="vm.removeComponent"
-                                           components="::vm.components"></add-component>
+                                order="{{$index}}"
+                                remove-function="vm.removeComponent"
+                                components="::vm.components"></add-component>
                         </dnd-nodrag>
                     </li>
                     <li class="dndPlaceholder p-b-2">
@@ -84,7 +86,7 @@
                     </li>
                 </ul>
                 <md-button class="md-primary md-raised m-a-0 m-b-4-s m-t-2-s"
-                           ng-click="vm.addComponent()">Add new component</md-button>
+                    ng-click="vm.addComponent()">Add new component</md-button>
             </div>
         </div>
     </div>

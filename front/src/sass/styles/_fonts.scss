@@ -1,47 +1,45 @@
 @each $name, $value in $fonts-map {
-  .font-#{$name} {
-    font-family: #{$value};
-  }
+    .font-#{$name} {
+        font-family: #{$value};
+    }
 }
 
 @for $i from $font-size-min through $font-size-max {
-  .fs-#{$i} {
-    font-size: #{$i / 2}em;
-  }
-
-  @each $name, $value in $size-map {
-    .fs-#{$i}-#{$name} {
-      .#{$value} & {
-        @extend .fs-#{$i};
-      }
+    .fs-#{$i} {
+        font-size: #{$i / 2}em;
     }
-  }
+
+    @each $name, $value in $size-map {
+        .fs-#{$i}-#{$name} {
+            .#{$value} & {
+                @extend .fs-#{$i};
+            }
+        }
+    }
 }
 
 @each $name, $value in $font-weight-map {
-  .fw-#{$name} {
-    font-weight: #{$value};
-  }
+    .fw-#{$name} {
+        font-weight: #{$value};
+    }
 }
 
 @each $position in $text-positions {
-
-  .#{$position} {
-    text-align: #{$position};
-  }
-
-  @each $name, $value in $size-map {
-    .#{$position}-#{$name} {
-      .#{$value} & {
-        @extend .#{$position};
-      }
+    .#{$position} {
+        text-align: #{$position};
     }
-  }
+
+    @each $name, $value in $size-map {
+        .#{$position}-#{$name} {
+            .#{$value} & {
+                @extend .#{$position};
+            }
+        }
+    }
 }
 
 @each $name, $value in $body-fs-map {
-  body.size-#{$name} {
-    font-size: #{$value};
-  }
+    body.size-#{$name} {
+        font-size: #{$value};
+    }
 }
-

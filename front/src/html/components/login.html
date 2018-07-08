@@ -1,25 +1,25 @@
 <section class="p-a-3 p-a-1-m p-a-1-s p-t-8-s p-t-8-m vh-100-l vh-100-x fill-s fill-m pos-relative"
-         layout="row"
-         layout-align="center center"
-         ng-switch="vm.exist">
+    layout="row"
+    layout-align="center center"
+    ng-switch="vm.exist">
     <h1 class="center font-3 fs-6 pos-absolute top-2">Frodo</h1>
     <div ng-form="login"
-         layout="column"
-         flex-xl="20"
-         flex-lg="25"
-         flex-sm="50"
-         flex-xs="80"
-         class="bg-col-1-20"
-         ng-switch-when="true">
+        layout="column"
+        flex-xl="20"
+        flex-lg="25"
+        flex-sm="50"
+        flex-xs="80"
+        class="bg-col-1-20"
+        ng-switch-when="true">
         <meta ng-init="vm.setForm(login)">
         <md-input-container>
             <label for="username">Username</label>
             <input type="text"
-                   id="username"
-                   required
-                   ng-enter="vm.login()"
-                   name="username"
-                   ng-model="vm.data.username">
+                id="username"
+                required
+                ng-enter="vm.login()"
+                name="username"
+                ng-model="vm.data.username">
             <div ng-messages="vm.form.username.$error">
                 <div ng-message="required">This is required</div>
             </div>
@@ -27,21 +27,21 @@
         <md-input-container>
             <label for="password">Password</label>
             <input type="password"
-                   id="password"
-                   name="password"
-                   ng-enter="vm.login()"
-                   required
-                   ng-model="vm.data.password">
+                id="password"
+                name="password"
+                ng-enter="vm.login()"
+                required
+                ng-model="vm.data.password">
             <div ng-messages="vm.form.password.$error">
                 <div ng-message="required">This is required</div>
             </div>
         </md-input-container>
         <md-button ng-click="vm.login()"
-                   ng-class="{'busy' : vm.actionStatus}"
-                   class="md-primary md-raised m-a-0 overflow-visible pos-relative">
+            ng-class="{'busy' : vm.actionStatus}"
+            class="md-primary md-raised m-a-0 overflow-visible pos-relative">
             <span class="col-w">Sign in</span>
             <span ng-bind="vm.errorMessage"
-                  class="pos-absolute bottom--6 left-0 right-0 col-e"></span>
+                class="pos-absolute bottom--6 left-0 right-0 col-e"></span>
         </md-button>
     </div>
     <p ng-switch-when="false">There is no username, please contact admin</p>

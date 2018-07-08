@@ -1,47 +1,47 @@
-(function(){
-    angular.module('frodo').component('login', {
-        templateUrl: 'html/components/login.html',
-        controllerAs: 'vm',
+(function() {
+    angular.module("frodo").component("login", {
+        templateUrl: "html/components/login.html",
+        controllerAs: "vm",
         controller: LoginController,
         bindings: {
-            exist: '<'
+            exist: "<"
         }
     });
 
-    LoginController.$inject = ['userService', '$state'];
-    function LoginController(userService, $state){
+    LoginController.$inject = ["userService", "$state"];
+    function LoginController(userService, $state) {
         var vm = this;
         vm.$onInit = onInit;
         vm.login = login;
         vm.setForm = setform;
         vm.data = {};
 
-        function onInit(){
+        function onInit() {
             vm.exist = vm.exist.data;
         }
 
-        function login(){
+        function login() {
             vm.form.$submitted = true;
             vm.errorMessage = undefined;
-            if(vm.form.$valid){
+            if (vm.form.$valid) {
                 vm.actionStatus = true;
-                userService.login(vm.data)
-                    .then(function(response){
+                userService
+                    .login(vm.data)
+                    .then(function(response) {
                         vm.actionStatus = false;
                         var user = response.data;
                         userService.setUser(user.username, user.id, 1);
-                        $state.go('main');
+                        $state.go("main");
                     })
-                    .catch(function(error){
+                    .catch(function(error) {
                         vm.actionStatus = false;
                         vm.errorMessage = error.data;
-                    })
+                    });
             }
         }
 
-        function setform(form){
+        function setform(form) {
             vm.form = form;
         }
-
     }
 })();

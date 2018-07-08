@@ -1,25 +1,25 @@
 <header hide-gt-md
-        ng-if="!vm.login"
-        class="z-10"></header>
+    ng-if="!vm.login"
+    class="z-10"></header>
 <md-sidenav md-component-id="sidenav"
-            ng-show="!vm.login"
-            class="pos-fixed sidenav"
-            md-is-locked-open="$mdMedia('gt-md')"
-            md-whiteframe="4">
+    ng-show="!vm.login"
+    class="pos-fixed sidenav"
+    md-is-locked-open="$mdMedia('gt-md')"
+    md-whiteframe="4">
     <sidenav></sidenav>
 </md-sidenav>
 <ui-view id="page"
-         ng-class="{'page--login' : vm.login}"
-         class="fade page p-t-8-s p-t-8-m"
-         md-swipe-right="vm.login ? null : vm.openSidenav()"
-         md-swipe-left="vm.$mdMedia('max-width: 960px') ? vm.openFilters() : null">
+    ng-class="{'page--login' : vm.login}"
+    class="fade page p-t-8-s p-t-8-m"
+    md-swipe-right="vm.login ? null : vm.openSidenav()"
+    md-swipe-left="vm.$mdMedia('max-width: 960px') ? vm.openFilters() : null">
     <error ng-if="!$resolve"></error>
 </ui-view>
 <md-button class="md-fab md-fab-bottom-right scroll pos-fixed bg-col-1 hover-bg-1-4"
-           ng-if="!vm.login"
-           ng-class="{'scrolled' : vm.scrolled}"
-           ng-click="vm.scroll()"
-           aria-label="Back to Top">
+    ng-if="!vm.login"
+    ng-class="{'scrolled' : vm.scrolled}"
+    ng-click="vm.scroll()"
+    aria-label="Back to Top">
     <md-tooltip md-direction="top">Back to Top</md-tooltip>
     <md-icon md-svg-icon="arrow"></md-icon>
 </md-button>

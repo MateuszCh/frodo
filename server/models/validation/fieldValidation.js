@@ -1,17 +1,17 @@
 module.exports = {
-    validateRepeater : function validate(fields, prop){
+    validateRepeater: function validate(fields, prop) {
         return fields.some(field => {
-            if(!field[prop]){
+            if (!field[prop]) {
                 return true;
             }
-            if(field.repeaterFields && field.repeaterFields.length){
+            if (field.repeaterFields && field.repeaterFields.length) {
                 return validate(field.repeaterFields, prop);
             }
             return false;
-        })
+        });
     },
-    validateRepeaterIds : function validate(fields){
-        if(!(fields || fields.length)){
+    validateRepeaterIds: function validate(fields) {
+        if (!(fields || fields.length)) {
             return false;
         }
 
@@ -22,19 +22,19 @@ module.exports = {
             repeaterFields.push(field.repeaterFields);
         });
 
-        if((new Set(ids)).size !== ids.length){
+        if (new Set(ids).size !== ids.length) {
             return true;
         }
 
-        if(repeaterFields && repeaterFields.length){
+        if (repeaterFields && repeaterFields.length) {
             return repeaterFields.some(fields => {
                 return validate(fields);
-            })
+            });
         }
         return false;
     },
-    validateFieldsIds(fields){
-        if(!(fields || fields.length)){
+    validateFieldsIds(fields) {
+        if (!(fields || fields.length)) {
             return true;
         }
 
@@ -42,6 +42,6 @@ module.exports = {
         fields.forEach(field => {
             ids.push(field.id);
         });
-        return (new Set(ids)).size === ids.length;
+        return new Set(ids).size === ids.length;
     }
 };

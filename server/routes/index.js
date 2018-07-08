@@ -1,15 +1,14 @@
-const postTypeRoutes = require('./postType.routes'),
-      postRoutes = require('./post.routes'),
-      componentRoutes = require('./component.routes'),
-      pageRoutes = require('./page.routes'),
-      fileRoutes = require('./file.routes'),
-      userRoutes = require('./user.routes');
+const postTypeRoutes = require("./postType.routes"),
+    postRoutes = require("./post.routes"),
+    componentRoutes = require("./component.routes"),
+    pageRoutes = require("./page.routes"),
+    fileRoutes = require("./file.routes"),
+    userRoutes = require("./user.routes");
 
 module.exports = app => {
-
-    app.put(['*'], isAuthenticated);
-    app.post(['*'], isAuthenticated);
-    app.delete(['*'], isAuthenticated);
+    app.put(["*"], isAuthenticated);
+    app.post(["*"], isAuthenticated);
+    app.delete(["*"], isAuthenticated);
 
     postTypeRoutes(app);
     postRoutes(app);
@@ -19,11 +18,10 @@ module.exports = app => {
     userRoutes(app);
 };
 
-
-function isAuthenticated(req, res, next){
-    if(req.user || req.path === '/user/login' || req.path === '/login'){
+function isAuthenticated(req, res, next) {
+    if (req.user || req.path === "/user/login" || req.path === "/login") {
         next();
     } else {
-        res.status(401).send({error: 'User not authenticated'});
+        res.status(401).send({ error: "User not authenticated" });
     }
 }

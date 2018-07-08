@@ -1,17 +1,35 @@
-(function () {
-    angular.module('frodo').component('files', {
-        templateUrl: 'html/components/files.html',
-        controllerAs: 'vm',
+(function() {
+    angular.module("frodo").component("files", {
+        templateUrl: "html/components/files.html",
+        controllerAs: "vm",
         bindings: {
-            allFiles: '<',
-            isPopup: '<'
+            allFiles: "<",
+            isPopup: "<"
         },
         controller: FilesController
     });
 
-    FilesController.$inject = ['$scope', 'filesService', '$rootScope', '$mdDialog', 'tools', '$mdMedia', '$mdSidenav', '$timeout'];
+    FilesController.$inject = [
+        "$scope",
+        "filesService",
+        "$rootScope",
+        "$mdDialog",
+        "tools",
+        "$mdMedia",
+        "$mdSidenav",
+        "$timeout"
+    ];
 
-    function FilesController($scope, filesService, $rootScope, $mdDialog, tools, $mdMedia, $mdSidenav, $timeout) {
+    function FilesController(
+        $scope,
+        filesService,
+        $rootScope,
+        $mdDialog,
+        tools,
+        $mdMedia,
+        $mdSidenav,
+        $timeout
+    ) {
         var vm = this;
         vm.$onInit = onInit;
         vm.$mdMedia = $mdMedia;
@@ -29,60 +47,64 @@
         vm.importFiles = importFiles;
         vm.exportFiles = exportFiles;
         vm.addNewCatalogue = addNewCatalogue;
-        vm.activeView = 'choose';
+        vm.activeView = "choose";
         vm.catalogues = [];
         vm.data = [];
         vm.currentExistingIndex = 0;
-        vm.actionStatus = '';
-        vm.newCatalogue = '';
+        vm.actionStatus = "";
+        vm.newCatalogue = "";
         vm.limit = 80;
         var increment = 40;
-        vm.search = {text: '', catalogues: []};
+        vm.search = { text: "", catalogues: [] };
         var exportTimeout;
 
-        function onInit(){
-            if(!vm.allFiles){
+        function onInit() {
+            if (!vm.allFiles) {
                 vm.loadingFiles = true;
-                filesService.getAllFiles()
-                    .then(function(response){
+                filesService
+                    .getAllFiles()
+                    .then(function(response) {
                         vm.loadingFiles = false;
                         vm.allFiles = response.data;
                         setCatalogues(vm.allFiles);
                         setLocalId();
                     })
-                    .catch(function(error){
+                    .catch(function(error) {
                         vm.loadingFiles = false;
-                    })
+                    });
             } else {
                 vm.allFiles = vm.allFiles.data;
                 setCatalogues(vm.allFiles);
                 setLocalId();
             }
 
-            $scope.$on('filesFiltered', function(ev, i, l){
-                if(vm.currentFilterLength !== l){
+            $scope.$on("filesFiltered", function(ev, i, l) {
+                if (vm.currentFilterLength !== l) {
                     vm.currentExistingIndex = i;
                     vm.currentFilterLength = l;
                 }
-            })
+            });
         }
 
-        function setLocalId(){
+        function setLocalId() {
             var i = 0;
-            for(i; i < vm.allFiles.length; i++){
+            for (i; i < vm.allFiles.length; i++) {
                 vm.allFiles[i].localId = i;
             }
         }
 
-        function setCatalogues(arr){
+        function setCatalogues(arr) {
             var catalogues = [];
-            arr.forEach(function(fileData){
-                if(fileData.catalogues){
-                    fileData.catalogues.forEach(function(catalogue){
-                       var catalogueLower = catalogue.toLowerCase();
-                       if(vm.catalogues.indexOf(catalogueLower) === -1 && catalogues.indexOf(catalogueLower) === -1){
-                           catalogues.push(catalogueLower);
-                       }
+            arr.forEach(function(fileData) {
+                if (fileData.catalogues) {
+                    fileData.catalogues.forEach(function(catalogue) {
+                        var catalogueLower = catalogue.toLowerCase();
+                        if (
+                            vm.catalogues.indexOf(catalogueLower) === -1 &&
+                            catalogues.indexOf(catalogueLower) === -1
+                        ) {
+                            catalogues.push(catalogueLower);
+                        }
                     });
                 }
             });
@@ -94,9 +116,9 @@
             vm.currentIndex = index;
         }
 
-        function existingFilesIndex(index){
+        function existingFilesIndex(index) {
             vm.currentExistingIndex = index;
-            if($mdMedia('xs') || $mdMedia('sm')){
+            if ($mdMedia("xs") || $mdMedia("sm")) {
                 openEdit();
             }
         }
@@ -104,11 +126,11 @@
         function onFilesSelect() {
             vm.data = new Array(vm.files.length);
             var i = 0;
-            for(i; i < vm.data.length; i++){
-                vm.data[i] = {isOpen: false};
+            for (i; i < vm.data.length; i++) {
+                vm.data[i] = { isOpen: false };
             }
             vm.currentIndex = 0;
-            if(vm.data[0]) vm.data[0].isOpen = true;
+            if (vm.data[0]) vm.data[0].isOpen = true;
         }
 
         function removeFile(i) {
@@ -118,122 +140,159 @@
         }
 
         function upload(ev) {
-
             var data = {};
 
-            vm.data.forEach(function(fileData, i){
+            vm.data.forEach(function(fileData, i) {
                 data[vm.files[i].name] = fileData;
             });
             if (vm.files.length) {
-                vm.actionStatus = 'upload';
-                filesService.upload(vm.files, data)
-                    .then(function (response) {
-                        vm.actionStatus = '';
-                        if(response.data.length){
-                            vm.allFiles = vm.allFiles.concat(response.data);
-                            setLocalId();
-                            vm.data = [];
-                            vm.files = [];
-                            tools.infoDialog('Files uploaded successfully', ev);
-                            vm.activeView = 'choose';
+                vm.actionStatus = "upload";
+                filesService
+                    .upload(vm.files, data)
+                    .then(
+                        function(response) {
+                            vm.actionStatus = "";
+                            if (response.data.length) {
+                                vm.allFiles = vm.allFiles.concat(response.data);
+                                setLocalId();
+                                vm.data = [];
+                                vm.files = [];
+                                tools.infoDialog(
+                                    "Files uploaded successfully",
+                                    ev
+                                );
+                                vm.activeView = "choose";
+                            }
+                        },
+                        function(e) {
+                            vm.actionStatus = "";
+                            tools.infoDialog(e.data.error || e.data, ev);
+                        },
+                        function(evt) {
+                            vm.progress = parseInt(
+                                (100.0 * evt.loaded) / evt.total
+                            );
                         }
-                    }, function(e){
-                        vm.actionStatus = '';
+                    )
+                    .catch(function(e) {
+                        vm.actionStatus = "";
                         tools.infoDialog(e.data.error || e.data, ev);
-                    }, function(evt){
-                        vm.progress = parseInt(100.0 * evt.loaded / evt.total);
-                    })
-                    .catch(function (e) {
-                        vm.actionStatus = '';
-                        tools.infoDialog(e.data.error || e.data, ev);
-                    })
+                    });
             }
         }
 
-        function chooseFile(){
+        function chooseFile() {
             $mdDialog.hide(vm.allFiles[vm.currentExistingIndex]);
         }
 
-        function deleteFile(ev){
-            vm.actionStatus = 'delete';
-            filesService.remove(vm.allFiles[vm.currentExistingIndex]._id)
-                .then(function(r){
-                    vm.actionStatus = '';
-                    tools.infoDialog(vm.allFiles[vm.currentExistingIndex].filename + ' removed successfully', ev);
+        function deleteFile(ev) {
+            vm.actionStatus = "delete";
+            filesService
+                .remove(vm.allFiles[vm.currentExistingIndex]._id)
+                .then(function(r) {
+                    vm.actionStatus = "";
+                    tools.infoDialog(
+                        vm.allFiles[vm.currentExistingIndex].filename +
+                            " removed successfully",
+                        ev
+                    );
                     vm.allFiles.splice(vm.currentExistingIndex, 1);
                     setLocalId();
                 })
-                .catch(function(e){
-                    vm.actionStatus = '';
+                .catch(function(e) {
+                    vm.actionStatus = "";
                     tools.infoDialog(e.data.error || e.data, ev);
-                })
+                });
         }
 
-        function deleteDialog(ev){
-            tools.removeDialog(ev, deleteFile, 'Are you sure you want to delete ' + vm.allFiles[vm.currentExistingIndex].filename);
+        function deleteDialog(ev) {
+            tools.removeDialog(
+                ev,
+                deleteFile,
+                "Are you sure you want to delete " +
+                    vm.allFiles[vm.currentExistingIndex].filename
+            );
         }
 
-        function saveFile(ev){
-            vm.actionStatus = 'save';
-            filesService.edit(vm.allFiles[vm.currentExistingIndex])
-                .then(function(r){
-                    vm.actionStatus = '';
-                    tools.infoDialog(vm.allFiles[vm.currentExistingIndex].filename + ' saved successfully', ev);
+        function saveFile(ev) {
+            vm.actionStatus = "save";
+            filesService
+                .edit(vm.allFiles[vm.currentExistingIndex])
+                .then(function(r) {
+                    vm.actionStatus = "";
+                    tools.infoDialog(
+                        vm.allFiles[vm.currentExistingIndex].filename +
+                            " saved successfully",
+                        ev
+                    );
                 })
-                .catch(function(e){
-                    vm.actionStatus = '';
+                .catch(function(e) {
+                    vm.actionStatus = "";
                     tools.infoDialog(e.data.error || e.data, ev);
-                })
+                });
         }
 
-        function incrementLimit(){
-            if(vm.allFiles.length > vm.limit){
+        function incrementLimit() {
+            if (vm.allFiles.length > vm.limit) {
                 vm.limit += increment;
                 $scope.$apply();
             }
-            if(vm.limit >= vm.allFiles.length){
-                $rootScope.$broadcast('loadFinished');
+            if (vm.limit >= vm.allFiles.length) {
+                $rootScope.$broadcast("loadFinished");
             }
         }
 
-        function openEdit(){
-            $mdSidenav('editFiles').open();
+        function openEdit() {
+            $mdSidenav("editFiles").open();
         }
 
-        function importFiles(e){
+        function importFiles(e) {
             var reader = new FileReader();
             var oldLength = vm.allFiles.length;
-            reader.onload = function(e){
+            reader.onload = function(e) {
                 var files = JSON.parse(e.target.result);
 
-                if(files.length){
+                if (files.length) {
                     var data = {
                         files: files
                     };
                     vm.importStatus = true;
-                    filesService.importFiles(data)
-                        .then(function(response){
+                    filesService
+                        .importFiles(data)
+                        .then(function(response) {
                             vm.importStatus = false;
                             var added = response.data.length - oldLength;
                             vm.allFiles = response.data;
                             setCatalogues(vm.allFiles);
                             setLocalId();
-                            tools.infoDialog(added + ' files' + (added > 1 ? ' were' : ' was') + ' successfully imported', vm.importClickEvent);
+                            tools.infoDialog(
+                                added +
+                                    " files" +
+                                    (added > 1 ? " were" : " was") +
+                                    " successfully imported",
+                                vm.importClickEvent
+                            );
                         })
-                        .catch(function(error){
+                        .catch(function(error) {
                             vm.importStatus = false;
-                            tools.infoDialog(error.data.error, vm.importClickEvent);
-                        })
+                            tools.infoDialog(
+                                error.data.error,
+                                vm.importClickEvent
+                            );
+                        });
                 } else {
                     tools.infoDialog("There is no correct files to import", e);
                 }
             };
 
-            if(e.target.files && e.target.files[0]){
+            if (e.target.files && e.target.files[0]) {
                 var error = e.target.files[0].$error;
-                if(error){
-                    if(error === 'pattern'){
-                        tools.infoDialog("Wrong file format!", vm.importClickEvent);
+                if (error) {
+                    if (error === "pattern") {
+                        tools.infoDialog(
+                            "Wrong file format!",
+                            vm.importClickEvent
+                        );
                     }
                 } else {
                     reader.readAsText(e.target.files[0]);
@@ -241,43 +300,44 @@
             }
         }
 
-        function exportFiles(e){
+        function exportFiles(e) {
             $timeout.cancel(exportTimeout);
             vm.exportStatus = true;
-            filesService.exportFiles()
-                .then(function(response){
+            filesService
+                .exportFiles()
+                .then(function(response) {
                     vm.exportStatus = false;
                     var file = document.createElement("a");
-                    file.setAttribute('href', response.data);
-                    file.setAttribute('download', '');
+                    file.setAttribute("href", response.data);
+                    file.setAttribute("download", "");
                     file.click();
-                    exportTimeout = $timeout(function(){
-                        filesService.deleteExportFile('files')
-                            .then(function(response){
+                    exportTimeout = $timeout(function() {
+                        filesService
+                            .deleteExportFile("files")
+                            .then(function(response) {
                                 console.log(response);
                             })
-                            .catch(function(error){
+                            .catch(function(error) {
                                 console.log(error);
-                            })
+                            });
                     }, 10000);
                 })
-                .catch(function(error){
+                .catch(function(error) {
                     vm.exportStatus = false;
                     tools.infoDialog("There was error exporting", e);
-                })
+                });
         }
 
-        function addNewCatalogue(){
-            if(vm.newCatalogue){
+        function addNewCatalogue() {
+            if (vm.newCatalogue) {
                 var catalogue = vm.newCatalogue.toLowerCase();
-                vm.newCatalogue = '';
-                if(vm.catalogues.indexOf(catalogue) === -1){
+                vm.newCatalogue = "";
+                if (vm.catalogues.indexOf(catalogue) === -1) {
                     vm.catalogues.push(catalogue);
                     vm.catalogues = vm.catalogues.sort();
                     filesService.setCatalogues(vm.catalogues);
                 }
             }
         }
-
     }
 })();

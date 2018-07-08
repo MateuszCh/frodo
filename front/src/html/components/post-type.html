@@ -1,41 +1,43 @@
 <section class="p-a-3 p-a-1-m p-a-1-s p-t-8-s p-t-8-m vh-100-l vh-100-x fill-s fill-m"
-         layout="column">
+    layout="column">
     <div layout-gt-xs="row"
-         flex-gt-sm="15"
-         flex-sm="10"
-         layout-align-gt-xs="center center">
+        flex-gt-sm="15"
+        flex-sm="10"
+        layout-align-gt-xs="center center">
         <h2 class="font-2 fs-6 center"
             flex="grow"
             ng-bind="vm.edit ? 'Edit ' + vm.currentType + ' ' + vm.type : 'Add new ' + vm.type"></h2>
         <div layout="row"
-             layout-align-xs="center center">
+            layout-align-xs="center center">
             <md-button class="md-primary"
-                       ng-class="{'md-fab' : !vm.$mdMedia('xs'), 'md-raised' : vm.$mdMedia('xs'), 'busy col-t' : vm.actionStatus == 'save'}"
-                       ng-click="vm.save($event)">Save</md-button>
+                ng-class="{'md-fab' : !vm.$mdMedia('xs'), 'md-raised' : vm.$mdMedia('xs'), 'busy col-t' : vm.actionStatus == 'save'}"
+        
+                ng-click="vm.save($event)">Save</md-button>
             <md-button class="md-warn"
-                       ng-if="vm.edit"
-                       ng-class="{'md-fab' : !vm.$mdMedia('xs'), 'md-raised' : vm.$mdMedia('xs'), 'busy col-t' : vm.actionStatus == 'remove'}"
-                       ng-click="vm.removeDialog($event)">Delete</md-button>
+                ng-if="vm.edit"
+                ng-class="{'md-fab' : !vm.$mdMedia('xs'), 'md-raised' : vm.$mdMedia('xs'), 'busy col-t' : vm.actionStatus == 'remove'}"
+        
+                ng-click="vm.removeDialog($event)">Delete</md-button>
         </div>
     </div>
     <div class="m-t-2 m-t-4-x m-t-4-l overflow-auto pos-relative"
-         id="scroll"
-         flex-gt-sm="85"
-         flex-sm="90"
-         layout
-         layout-align="center">
+        id="scroll"
+        flex-gt-sm="85"
+        flex-sm="90"
+        layout
+        layout-align="center">
         <div flex="100"
-             flex-gt-sm="60"
-             layout="column"
-             ng-form="postType">
+            flex-gt-sm="60"
+            layout="column"
+            ng-form="postType">
             <meta ng-init="vm.setForm(postType)">
             <md-input-container>
                 <label for="title">Title</label>
                 <input id="title"
-                       name="title"
-                       type="text"
-                       ng-model="vm.model.title"
-                       required>
+                    name="title"
+                    type="text"
+                    ng-model="vm.model.title"
+                    required>
                 <div ng-messages="vm.form.title.$error">
                     <div ng-message="required">This is required.</div>
                 </div>
@@ -43,10 +45,10 @@
             <md-input-container ng-if="vm.type === 'post type'">
                 <label for="pluralTitle">Plural Title</label>
                 <input id="pluralTitle"
-                       type="text"
-                       name="pluralTitle"
-                       ng-model="vm.model.pluralTitle"
-                       required>
+                    type="text"
+                    name="pluralTitle"
+                    ng-model="vm.model.pluralTitle"
+                    required>
                 <div ng-messages="vm.form.pluralTitle.$error">
                     <div ng-message="required">This is required.</div>
                 </div>
@@ -54,11 +56,11 @@
             <md-input-container>
                 <label for="type">Type</label>
                 <input id="type"
-                       name="type"
-                       type="text"
-                       ng-change="vm.formatTypeString()"
-                       ng-model="vm.model.type"
-                       required>
+                    name="type"
+                    type="text"
+                    ng-change="vm.formatTypeString()"
+                    ng-model="vm.model.type"
+                    required>
                 <div ng-messages="vm.form.type.$error">
                     <div ng-message="required">This is required.</div>
                 </div>
@@ -66,18 +68,18 @@
             <div>
                 <h2 class="font-2 fs-4 center m-b-2">Fields</h2>
                 <p ng-if="!vm.model.fields.length"
-                   class="center m-t-1">There are no fields yet</p>
+                    class="center m-t-1">There are no fields yet</p>
                 <div id="postFields">
                     <div ng-if="vm.edit">
                         <add-field ng-repeat="i in vm.fieldsNumber track by $index"
-                                   edit="true"
-                                   form="vm.form"
-                                   model="vm.model.fields"
-                                   order="$index"></add-field>
+                            edit="true"
+                            form="vm.form"
+                            model="vm.model.fields"
+                            order="$index"></add-field>
                     </div>
                 </div>
                 <md-button class="md-primary md-raised m-a-0 m-b-4-s m-t-2-s"
-                           ng-click="vm.addField()">Add new field</md-button>
+                    ng-click="vm.addField()">Add new field</md-button>
             </div>
         </div>
     </div>

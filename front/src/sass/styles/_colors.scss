@@ -1,25 +1,25 @@
 @each $name, $value in $colors-map {
-  .bg-col-#{$name} {
-    background-color: $value !important;
-  }
-  .col-#{$name} {
-    color: $value;
-  }
-  .hover-bg-#{$name} {
-    &:hover {
-      background-color: $value !important;
+    .bg-col-#{$name} {
+        background-color: $value !important;
     }
-  }
-  .hover-col-#{$name} {
-    &:hover {
-      color: $value !important;
+    .col-#{$name} {
+        color: $value;
     }
-  }
-  @for $i from 1 through 10 {
-    .hover-bg-#{$name}-#{$i} {
-      &:hover {
-        background-color: lighten($value, $i * 5) !important;
-      }
+    .hover-bg-#{$name} {
+        &:hover {
+            background-color: $value !important;
+        }
     }
-  }
+    .hover-col-#{$name} {
+        &:hover {
+            color: $value !important;
+        }
+    }
+    @for $i from 1 through 10 {
+        .hover-bg-#{$name}-#{$i} {
+            &:hover {
+                background-color: lighten($value, $i * 5) !important;
+            }
+        }
+    }
 }

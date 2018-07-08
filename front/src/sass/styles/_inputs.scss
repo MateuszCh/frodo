@@ -1,34 +1,34 @@
 input,
 select {
-  @extend .font-1;
+    @extend .font-1;
 }
 
 .field {
-  @extend .p-a-2;
-  @extend .bg-col-w;
-  @extend .m-b-2;
-  box-shadow: 0 0 8px 0.5px darkgray inset;
+    @extend .p-a-2;
+    @extend .bg-col-w;
+    @extend .m-b-2;
+    box-shadow: 0 0 8px 0.5px darkgray inset;
 }
 
 .box-shadow-inset {
-  box-shadow: 0 0 8px 0.5px darkgray inset;
+    box-shadow: 0 0 8px 0.5px darkgray inset;
 }
 
 .repeater {
-  box-shadow: 0 0 8px 0.5px darkgray inset !important;
-  @extend .p-a-2;
-  @extend .m-b-1;
-  .repeater-title {
-    @extend .m-t--2;
-  }
-  .field {
-    @extend .p-r-0;
-    @extend .p-l-0;
-    margin-bottom: 0 !important;
-    box-shadow: none;
-  }
+    box-shadow: 0 0 8px 0.5px darkgray inset !important;
+    @extend .p-a-2;
+    @extend .m-b-1;
+    .repeater-title {
+        @extend .m-t--2;
+    }
+    .field {
+        @extend .p-r-0;
+        @extend .p-l-0;
+        margin-bottom: 0 !important;
+        box-shadow: none;
+    }
 
-  .not-last > .field {
-    border-bottom: 1px solid lightgray;
-  }
+    .not-last > .field {
+        border-bottom: 1px solid lightgray;
+    }
 }
