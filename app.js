@@ -49,9 +49,9 @@ mongoose.connection.on("open", () => {
 
 const app = express();
 
-app.use(bodyParser.json({limit: '1mb'}));
+app.use(bodyParser.json({ limit: "1mb" }));
 
-app.use(bodyParser.urlencoded({ extended: false, limit: '1mb' }));
+app.use(bodyParser.urlencoded({ extended: false, limit: "1mb" }));
 
 app.use(cookieParser());
 
@@ -60,7 +60,7 @@ app.use(
         cookie: { maxAge: 3600000 },
         store: new MongoStore({ mongooseConnection: mongoose.connection }),
         name: "frodo",
-        secret: "secret",
+        secret: config.sessionSecret,
         saveUninitialized: true,
         resave: true
     })
