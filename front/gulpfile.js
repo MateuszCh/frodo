@@ -1,5 +1,5 @@
 const gulp = require('gulp'),
-    sass = require('gulp-sass'),
+    sass = require('gulp-sass')(require('sass')),
     inject = require('gulp-inject'),
     hash = require('gulp-hash'),
     imagemin = require('gulp-imagemin'),
@@ -49,14 +49,14 @@ function errorLog(error) {
 // TASKS //
 ///////////
 
-gulp.task('html', function() {
+gulp.task('html', function () {
     return gulp
         .src(paths.srcHTML)
         .pipe(htmlmin({ collapseWhitespace: true }))
         .pipe(gulp.dest(paths.public));
 });
 
-gulp.task('htmlWatch', function() {
+gulp.task('htmlWatch', function () {
     return gulp
         .src(paths.srcTemplates)
         .pipe(htmlmin({ collapseWhitespace: true }))
@@ -64,55 +64,31 @@ gulp.task('htmlWatch', function() {
         .pipe(browserSync.stream());
 });
 
-gulp.task('css', function() {
-    return gulp
-        .src(paths.srcSCSS)
-        .pipe(sass())
-        .on('error', errorLog)
-        .pipe(prefix('> 1%'))
-        .pipe(concatCss('main.css'))
-        .pipe(cleancss())
-        .pipe(gulp.dest(paths.publicCSS))
-        .pipe(browserSync.stream());
+gulp.task('css', function () {
+    return gulp.src(paths.srcSCSS).pipe(sass()).on('error', errorLog).pipe(prefix('> 1%')).pipe(concatCss('main.css')).pipe(cleancss()).pipe(gulp.dest(paths.publicCSS)).pipe(browserSync.stream());
 });
 
-gulp.task('cssLib', function() {
-    return gulp
-        .src(paths.srcMaterialCss)
-        .pipe(rename('libs.min.css'))
-        .pipe(gulp.dest(paths.publicCSS));
+gulp.task('cssLib', function () {
+    return gulp.src(paths.srcMaterialCss).pipe(rename('libs.min.css')).pipe(gulp.dest(paths.publicCSS));
 });
 
-gulp.task('js', function() {
-    return gulp
-        .src(paths.srcJS)
-        .on('error', errorLog)
-        .pipe(concat('app.min.js'))
-        .pipe(uglify())
-        .pipe(gulp.dest(paths.publicJS))
-        .pipe(browserSync.stream());
+gulp.task('js', function () {
+    return gulp.src(paths.srcJS).on('error', errorLog).pipe(concat('app.min.js')).pipe(uglify()).pipe(gulp.dest(paths.publicJS)).pipe(browserSync.stream());
 });
 
-gulp.task('jsLib', function() {
-    return gulp
-        .src(vendor)
-        .on('error', errorLog)
-        .pipe(concat('libs.min.js'))
-        .pipe(gulp.dest(paths.publicJS));
+gulp.task('jsLib', function () {
+    return gulp.src(vendor).on('error', errorLog).pipe(concat('libs.min.js')).pipe(gulp.dest(paths.publicJS));
 });
 
-gulp.task('images', function() {
-    return gulp
-        .src(paths.srcIMAGES)
-        .pipe(imagemin())
-        .pipe(gulp.dest(paths.publicIMAGES));
+gulp.task('images', function () {
+    return gulp.src(paths.srcIMAGES).pipe(imagemin()).pipe(gulp.dest(paths.publicIMAGES));
 });
 
 gulp.task('copy', gulp.series(gulp.parallel('html', 'css', 'js', 'images')));
 
 gulp.task(
     'inject',
-    gulp.series(gulp.parallel('copy'), function() {
+    gulp.series(gulp.parallel('copy'), function () {
         const css = gulp.src(['public/css/main.css'], { read: false });
         const vendorCss = gulp.src(['public/css/libs.min.css'], {
             read: false
@@ -140,7 +116,7 @@ gulp.task(
 
 gulp.task(
     'browser-sync',
-    gulp.series(gulp.parallel('inject'), function() {
+    gulp.series(gulp.parallel('inject'), function () {
         browserSync.init({
             port: 3002,
             proxy: {
@@ -153,7 +129,7 @@ gulp.task(
 
 gulp.task(
     'watch',
-    gulp.series(gulp.parallel('browser-sync'), function() {
+    gulp.series(gulp.parallel('browser-sync'), function () {
         gulp.watch([paths.srcTemplates], ['htmlWatch']);
         gulp.watch([paths.srcSCSSs], ['css']);
         gulp.watch([paths.srcJS], ['js']);
@@ -162,12 +138,6 @@ gulp.task(
 
 gulp.task('default', gulp.series(gulp.parallel('cssLib', 'jsLib', 'inject')));
 
-gulp.task('clean', function() {
-    del([
-        paths.publicIndex,
-        paths.publicHTML,
-        paths.publicCSS,
-        paths.publicJS,
-        paths.publicIMAGES
-    ]);
+gulp.task('clean', function () {
+    del([paths.publicIndex, paths.publicHTML, paths.publicCSS, paths.publicJS, paths.publicIMAGES]);
 });
