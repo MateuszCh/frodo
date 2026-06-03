@@ -1,0 +1,23 @@
+{
+    "mongoUrl": "mongodb://mongo:27017/frodo",
+    "uploadsPath": "uploads",
+    "sessionSecret": "docker-local-secret",
+    "admin": {
+        "username": "bilbo",
+        "password": "mellon"
+    },
+    "users": [
+        {
+            "username": "bilbo",
+            "password": "mellon"
+        },
+        {
+            "username": "samwise",
+            "password": "mellon"
+        },
+        {
+            "username": "admin",
+            "password": "mellon"
+        }
+    ]
+}

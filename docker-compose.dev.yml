@@ -1,0 +1,34 @@
+services:
+  mongo:
+    image: mongo:6
+    volumes:
+      - mongo_data:/data/db
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')", "--quiet"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  app:
+    build:
+      context: .
+      target: deps
+    ports:
+      - "3000:3000"
+      - "3002:3002"
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/front/node_modules
+      - /app/front/public
+      - ./config.dev.json:/app/config.json:ro
+    depends_on:
+      mongo:
+        condition: service_healthy
+    command: sh docker-entrypoint.dev.sh
+    restart: unless-stopped
+
+volumes:
+  mongo_data:
