@@ -1,0 +1,38 @@
+<section class="auth">
+    <form #form="ngForm" class="auth-form" (ngSubmit)="changePassword(form)">
+        <h3 class="center font-2 fs-5">Change Password</h3>
+        <mat-form-field class="full-width">
+            <mat-label>Password</mat-label>
+            <input matInput type="password" name="password" required [(ngModel)]="data.password" />
+            <mat-error>This is required</mat-error>
+        </mat-form-field>
+        <mat-form-field class="full-width">
+            <mat-label>New password</mat-label>
+            <input
+                matInput
+                type="password"
+                name="newPassword"
+                required
+                [(ngModel)]="data.newPassword"
+            />
+            <mat-error>This is required</mat-error>
+        </mat-form-field>
+        <mat-form-field class="full-width">
+            <mat-label>New password confirmation</mat-label>
+            <input
+                matInput
+                type="password"
+                name="newPasswordConfirmation"
+                required
+                [(ngModel)]="data.newPasswordConfirmation"
+            />
+            <mat-error>This is required</mat-error>
+        </mat-form-field>
+        <button mat-raised-button color="primary" type="submit" [class.busy]="passwordStatus()">
+            Change password
+        </button>
+        <p class="form-message" [class.error]="errorMessage()" [class.success]="successMessage()">
+            {{ errorMessage() || successMessage() }}
+        </p>
+    </form>
+</section>

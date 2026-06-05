@@ -1,0 +1,15 @@
+@for (row of rows(); track $index) {
+    <div class="repeater-row">
+        @for (rf of field().repeaterFields ?? []; track rf.id) {
+            <app-field
+                [field]="rf"
+                [model]="row"
+                [namePrefix]="namePrefix() + '_' + $index + '_'"
+            ></app-field>
+        }
+        <button mat-raised-button color="warn" type="button" (click)="removeRow($index)">
+            Delete row
+        </button>
+    </div>
+}
+<button mat-raised-button color="primary" type="button" (click)="addRow()">Add new row</button>

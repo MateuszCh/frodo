@@ -1,0 +1,81 @@
+@use 'sass:math';
+
+// Ported from front-legacy/src/sass (_settings, _fonts, _colors, _general).
+$colors-map: (
+    w: white,
+    b: #2d2c2c,
+    t: transparent,
+    e: red,
+    border: rgba(0, 0, 0, 0.12),
+    1: #ff9800,
+    2: #0f1830,
+    3: #007089,
+    4: #29001e,
+    5: #9b1d20,
+    6: #93aa3e,
+    7: #ff5722,
+    8: #ebebeb,
+    9: #444,
+);
+
+$fonts-map: (
+    1: "'Oswald', sans-serif",
+    2: "'Unica One', cursive",
+    3: "'Pacifico', cursive",
+);
+
+$font-weight-map: (
+    regular: 400,
+    bold: bold,
+);
+
+$text-positions: left, right, center;
+
+// font families
+@each $name, $value in $fonts-map {
+    .font-#{$name} {
+        font-family: #{$value};
+    }
+}
+
+// font sizes fs-0 .. fs-8 (i/2 em)
+@for $i from 0 through 8 {
+    .fs-#{$i} {
+        font-size: #{math.div($i, 2)}em;
+    }
+}
+
+// font weights
+@each $name, $value in $font-weight-map {
+    .fw-#{$name} {
+        font-weight: #{$value};
+    }
+}
+
+// text alignment
+@each $position in $text-positions {
+    .#{$position} {
+        text-align: #{$position};
+    }
+}
+
+// colors
+@each $name, $value in $colors-map {
+    .bg-col-#{$name} {
+        background-color: $value !important;
+    }
+    .col-#{$name} {
+        color: $value;
+    }
+    .hover-bg-#{$name}:hover {
+        background-color: $value !important;
+    }
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.block {
+    display: block;
+}

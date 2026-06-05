@@ -1,0 +1,48 @@
+<section class="editor">
+    <form #form="ngForm"
+          (ngSubmit)="save(form)">
+        <div class="editor-header">
+            <h2 class="font-2 fs-6 center">
+                {{ edit() ? 'Edit ' + postType().title : 'Add new ' + postType().title }}
+            </h2>
+            <div class="editor-actions">
+                <button mat-raised-button
+                        color="primary"
+                        type="submit"
+                        [class.busy]="actionStatus() === 'save'">
+                    Save
+                </button>
+                @if (edit()) {
+                <button mat-raised-button
+                        color="warn"
+                        type="button"
+                        [class.busy]="actionStatus() === 'remove'"
+                        (click)="removeDialog()">
+                    Delete
+                </button>
+                }
+            </div>
+        </div>
+
+        <div class="editor-body">
+            <mat-form-field class="full-width">
+                <mat-label>Title</mat-label>
+                <input matInput
+                       name="title"
+                       required
+                       [(ngModel)]="model().title" />
+                <mat-error>This is required</mat-error>
+            </mat-form-field>
+
+            <h2 class="font-2 fs-4 center">Fields</h2>
+            @if (!fields().length) {
+            <p class="center">There are no fields yet</p>
+            }
+
+            @for (field of fields(); track field.id) {
+            <app-field [field]="field"
+                       [model]="model().data"></app-field>
+            }
+        </div>
+    </form>
+</section>

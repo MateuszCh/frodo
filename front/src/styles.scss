@@ -1,0 +1,121 @@
+@use '@angular/material' as mat;
+@use './styles/utilities';
+
+// Frodo theme — primary orange, accent/tertiary red (from legacy md.config.js),
+// Oswald typography everywhere (menu, buttons, inputs) like the old front.
+html {
+    color-scheme: light;
+    @include mat.theme(
+        (
+            color: (
+                primary: mat.$orange-palette,
+                tertiary: mat.$red-palette,
+            ),
+            typography: (
+                brand-family: 'Oswald, sans-serif',
+                plain-family: 'Oswald, sans-serif',
+            ),
+            density: 0,
+        )
+    );
+    --mat-sys-background: rgb(250, 250, 250);
+
+    // Rectangular buttons with slight rounding (default is full pill shape).
+    --mat-button-filled-container-shape: 4px;
+    --mat-button-outlined-container-shape: 4px;
+    --mat-button-protected-container-shape: 4px;
+    --mat-button-text-container-shape: 4px;
+    --mat-button-tonal-container-shape: 4px;
+
+}
+
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    font-family: 'Oswald', Roboto, 'Helvetica Neue', sans-serif;
+    background-color: rgb(250, 250, 250);
+}
+
+// Main content background like the old front (Angular Material 1 default #fafafa).
+.mat-drawer-container {
+    background-color: rgb(250, 250, 250);
+}
+
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+}
+
+a {
+    color: inherit;
+    text-decoration: none;
+}
+
+// Breathing room below inputs (the form-field subscript already reserves a line
+// for hints/errors, so adding a margin gives consistent spacing between fields).
+mat-form-field.mat-mdc-form-field {
+    margin-bottom: 8px;
+}
+
+// Transparent inputs: the default `fill` appearance only draws a bottom line
+// (no top/left/right border), so clearing the container fill leaves just that
+// underline. Also disable the hover state-layer so it stays transparent.
+.mat-mdc-form-field {
+    --mat-form-field-filled-container-color: transparent;
+    --mat-form-field-hover-state-layer-opacity: 0;
+    --mat-form-field-focus-state-layer-opacity: 0;
+
+    // Remove the default horizontal padding (16px) the `fill` wrapper applies,
+    // so the input text and underline align with the field edges.
+    .mat-mdc-text-field-wrapper {
+        padding-left: 0;
+        padding-right: 0;
+    }
+}
+
+// Data-entry field wrapper (port of _inputs.scss .field) — white card with an
+// inset shadow, used by the post/component dynamic fields.
+.field {
+    display: block;
+    padding: 16px;
+    margin-bottom: 16px;
+    background-color: #fff;
+    box-shadow: 0 0 8px 0.5px darkgray inset;
+}
+
+// Fields nested inside a repeater row are flat (the row provides the border).
+.repeater-row .field {
+    padding: 0;
+    margin-bottom: 0;
+    box-shadow: none;
+    background-color: transparent;
+}
+
+// Button colors: orange background, white text for primary; red for warn.
+.mat-mdc-raised-button.mat-primary,
+.mat-mdc-unelevated-button.mat-primary {
+    background-color: rgb(255, 152, 0) !important;
+    color: white !important;
+}
+
+.mat-mdc-raised-button.mat-warn,
+.mat-mdc-unelevated-button.mat-warn {
+    background-color: rgb(244, 67, 54) !important;
+    color: white !important;
+}
+
+// mat-sidenav-content must never scroll itself — each routed component
+// manages its own internal scroll. Using !important on the Material class
+// guarantees this overrides Material's own `overflow: auto`.
+.mat-drawer-content {
+    overflow: hidden !important;
+    // Turn it into a flex column so that children using `flex: 1` get a
+    // properly constrained height (resolves the height: 100% chain issue).
+    display: flex !important;
+    flex-direction: column !important;
+}

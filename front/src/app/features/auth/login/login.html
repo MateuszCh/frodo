@@ -1,0 +1,29 @@
+<section class="auth">
+    <h1 class="center font-3 fs-6">Frodo</h1>
+    @if (exist()) {
+        <form #form="ngForm" class="auth-form" (ngSubmit)="login(form)">
+            <mat-form-field class="full-width">
+                <mat-label>Username</mat-label>
+                <input matInput name="username" required [(ngModel)]="data.username" />
+                <mat-error>This is required</mat-error>
+            </mat-form-field>
+            <mat-form-field class="full-width">
+                <mat-label>Password</mat-label>
+                <input
+                    matInput
+                    type="password"
+                    name="password"
+                    required
+                    [(ngModel)]="data.password"
+                />
+                <mat-error>This is required</mat-error>
+            </mat-form-field>
+            <button mat-raised-button color="primary" type="submit" [class.busy]="actionStatus()">
+                Sign in
+            </button>
+            <p class="form-message error">{{ errorMessage() }}</p>
+        </form>
+    } @else {
+        <p class="center">There is no username, please contact admin</p>
+    }
+</section>

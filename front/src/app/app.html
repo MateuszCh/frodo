@@ -1,0 +1,36 @@
+@if (!isLogin() && !isDesktop()) {
+<app-header class="z-10"></app-header>
+}
+
+<mat-sidenav-container class="app-container"
+                       autosize="false">
+    @if (!isLogin()) {
+    <mat-sidenav #sidenav
+                 class="sidenav"
+                 [mode]="isDesktop() ? 'side' : 'over'"
+                 [opened]="isDesktop()"
+                 [disableClose]="isDesktop()">
+        <app-sidenav></app-sidenav>
+    </mat-sidenav>
+    }
+
+    <mat-sidenav-content id="scroll"
+                         class="page"
+                         (scroll)="onScroll()">
+        <div id="page"
+             class="fade"
+             [class.page--login]="isLogin()">
+            <router-outlet></router-outlet>
+        </div>
+
+        @if (!isLogin()) {
+        <button mat-fab
+                class="scroll-fab"
+                [class.scrolled]="layout.scrolled()"
+                (click)="scrollTop()"
+                aria-label="Back to Top">
+            <mat-icon svgIcon="arrow"></mat-icon>
+        </button>
+        }
+    </mat-sidenav-content>
+</mat-sidenav-container>

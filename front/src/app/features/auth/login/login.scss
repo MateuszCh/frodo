@@ -1,0 +1,33 @@
+.auth {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+}
+.auth-form {
+    display: flex;
+    flex-direction: column;
+    width: 320px;
+    max-width: 80vw;
+}
+.full-width {
+    width: 100%;
+}
+.center {
+    text-align: center;
+}
+/* Reserve space so showing a submit/backend error doesn't reflow the centered form. */
+.form-message {
+    min-height: 1.5em;
+    margin: 8px 0 0;
+    text-align: center;
+}
+.form-message.error {
+    color: #f44336;
+}
+.busy {
+    opacity: 0.6;
+    pointer-events: none;
+}

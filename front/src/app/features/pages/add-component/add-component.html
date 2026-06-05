@@ -1,0 +1,38 @@
+<div class="add-component">
+    <div class="add-component__head">
+        @if (current()) {
+        <button mat-icon-button
+                type="button"
+                (click)="open.set(!open())"
+                aria-label="toggle">
+            <mat-icon svgIcon="arrow-down"
+                      [class.rotate]="open()"></mat-icon>
+        </button>
+        }
+        <mat-form-field class="full-width">
+            <mat-label>Type</mat-label>
+            <mat-select [ngModel]="current()"
+                        [ngModelOptions]="{ standalone: true }"
+                        [compareWith]="compare"
+                        (ngModelChange)="onSelect($event)">
+                @for (item of components(); track item.id) {
+                <mat-option [value]="item">{{ item.title }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+        <button mat-raised-button
+                color="warn"
+                type="button"
+                (click)="remove.emit()">Delete</button>
+    </div>
+
+    @if (open() && current()) {
+    <div class="add-component__fields">
+        @for (field of current()!.fields; track field.id) {
+        <app-field [field]="field"
+                   [model]="model().data!"
+                   [namePrefix]="'comp_' + order() + '_'"></app-field>
+        }
+    </div>
+    }
+</div>
