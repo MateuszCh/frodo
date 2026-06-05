@@ -9,8 +9,8 @@
 .auth-form {
     display: flex;
     flex-direction: column;
-    width: 320px;
-    max-width: 80vw;
+    width: 100%;
+    max-width: 25%;
 }
 .full-width {
     width: 100%;
@@ -30,4 +30,10 @@
 .busy {
     opacity: 0.6;
     pointer-events: none;
+}
+
+@media (max-width: 959px) {
+    .auth-form {
+        max-width: 80%;
+    }
 }

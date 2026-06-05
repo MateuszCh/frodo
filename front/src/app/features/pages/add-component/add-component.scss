@@ -12,6 +12,19 @@
 .full-width {
     flex: 1 1 auto;
 }
+.add-component__head .mat-mdc-icon-button {
+    min-height: 40px;
+    min-width: 40px;
+    flex-shrink: 0;
+}
+
+.add-component__head .mat-mdc-icon-button .mat-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
 .rotate {
     transform: rotate(180deg);
+    transform-origin: center center;
 }

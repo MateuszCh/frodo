@@ -1,21 +1,13 @@
 import { DOCUMENT, Injectable, effect, inject, signal } from '@angular/core';
-import type { MatSidenav } from '@angular/material/sidenav';
 
-/**
- * Port of MainController (responsive `size-*` class on <body>) + page-body
- * sidenav/filters orchestration. The shell registers its MatSidenav instances
- * so header/listing can toggle them.
- */
 @Injectable({ providedIn: 'root' })
 export class LayoutService {
     private document = inject(DOCUMENT);
 
     readonly size = signal(this.computeSize());
     readonly scrolled = signal(false);
-    /** true while the current route is the posts listing (has filters). */
     readonly hasFilters = signal(false);
-
-    private sidenav?: MatSidenav;
+    readonly sidenavOpen = signal(false);
 
     constructor() {
         const win = this.document.defaultView;
@@ -34,16 +26,12 @@ export class LayoutService {
         });
     }
 
-    registerSidenav(sidenav: MatSidenav): void {
-        this.sidenav = sidenav;
-    }
-
     toggleSidenav(): void {
-        this.sidenav?.toggle();
+        this.sidenavOpen.update((v) => !v);
     }
 
     closeSidenav(): void {
-        this.sidenav?.close();
+        this.sidenavOpen.set(false);
     }
 
     private computeSize(): string {

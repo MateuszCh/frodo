@@ -46,7 +46,8 @@ form {
 .editor-body {
     flex: 1;
     min-height: 0;
-    overflow-y: auto;
+    overflow-y: scroll;
+    scrollbar-gutter: stable;
     padding: 16px;
     max-width: 720px;
     width: 100%;

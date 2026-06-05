@@ -13,6 +13,7 @@ import { PostsService } from '../../../core/posts.service';
 import { PostTypesService } from '../../../core/post-types.service';
 import { ComponentsService } from '../../../core/components.service';
 import { FilesService } from '../../../core/files.service';
+import { LayoutService } from '../../../core/layout.service';
 import { ToolsService } from '../../../core/tools.service';
 import { InfiniteScrollDirective } from '../../../shared/infinite-scroll.directive';
 import { ListingFiltersComponent } from '../listing-filters/listing-filters';
@@ -58,6 +59,11 @@ export class ListingComponent {
 
     private router = inject(Router);
     private tools = inject(ToolsService);
+    private layout = inject(LayoutService);
+
+    protected readonly isDesktop = computed(() =>
+        ['size-l', 'size-x', 'size-xl'].includes(this.layout.size()),
+    );
     private pagesService = inject(PagesService);
     private postsService = inject(PostsService);
     private postTypesService = inject(PostTypesService);

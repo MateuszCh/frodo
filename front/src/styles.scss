@@ -26,7 +26,10 @@ html {
     --mat-button-protected-container-shape: 4px;
     --mat-button-text-container-shape: 4px;
     --mat-button-tonal-container-shape: 4px;
-
+    --mdc-protected-button-container-height: 40px;
+    --mdc-filled-button-container-height: 40px;
+    --mdc-outlined-button-container-height: 40px;
+    --mdc-text-button-container-height: 40px;
 }
 
 html,
@@ -78,6 +81,39 @@ mat-form-field.mat-mdc-form-field {
     }
 }
 
+.mat-mdc-form-field-infix {
+    padding-bottom: 1px !important;
+}
+
+.mat-mdc-form-field {
+    --mat-form-field-container-height: 50px;
+}
+
+.mat-mdc-form-field-error-wrapper {
+    padding-left: 0 !important;
+    padding-right: 0 !important;
+}
+
+.mat-mdc-form-field:not(.mat-focused):not(.mat-form-field-invalid) .mdc-floating-label {
+    color: rgba(0, 0, 0, 0.54) !important;
+}
+
+.mat-mdc-form-field:not(.mat-focused) .mdc-line-ripple::before {
+    border-bottom-color: rgba(0, 0, 0, 0.54) !important;
+}
+
+.mat-mdc-form-field.mat-focused .mdc-floating-label {
+    color: rgb(255, 152, 0) !important;
+}
+
+.mat-mdc-form-field.mat-focused .mdc-line-ripple::after {
+    border-bottom-color: rgb(255, 152, 0) !important;
+}
+
+.mat-mdc-form-field.mat-form-field-invalid .mdc-floating-label {
+    color: var(--mat-sys-error) !important;
+}
+
 // Data-entry field wrapper (port of _inputs.scss .field) — white card with an
 // inset shadow, used by the post/component dynamic fields.
 .field {
@@ -88,12 +124,24 @@ mat-form-field.mat-mdc-form-field {
     box-shadow: 0 0 8px 0.5px darkgray inset;
 }
 
+.repeater-title {
+    display: block;
+    padding-bottom: 4px;
+}
+
 // Fields nested inside a repeater row are flat (the row provides the border).
 .repeater-row .field {
     padding: 0;
     margin-bottom: 0;
     box-shadow: none;
     background-color: transparent;
+}
+
+// Uppercase text on all Material buttons (raised, flat, stroked, menu items).
+// .mdc-button__label is the MDC text node — icon-buttons and FABs don't have it.
+.mdc-button__label,
+.mat-mdc-menu-item .mdc-list-item__primary-text {
+    text-transform: uppercase;
 }
 
 // Button colors: orange background, white text for primary; red for warn.
@@ -103,10 +151,44 @@ mat-form-field.mat-mdc-form-field {
     color: white !important;
 }
 
+.mat-mdc-icon-button.mat-primary {
+    background-color: rgb(255, 152, 0) !important;
+    color: white !important;
+}
+
 .mat-mdc-raised-button.mat-warn,
 .mat-mdc-unelevated-button.mat-warn {
     background-color: rgb(244, 67, 54) !important;
     color: white !important;
+}
+
+// Global scrollbar styling — always visible, orange thumb on light track.
+// -webkit-appearance: none forces traditional (non-overlay) scrollbars on macOS,
+// which keeps them permanently visible whenever the container is scrollable.
+* {
+    scrollbar-width: thin;
+    scrollbar-color: #ff9800 #ebebeb;
+}
+
+::-webkit-scrollbar {
+    -webkit-appearance: none;
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background-color: #ebebeb !important;
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: #ff9800;
+    border-radius: 4px;
+    border: none;
+}
+
+.file-picker-panel .mdc-dialog__surface {
+    border-radius: 4px !important;
+    background-color: white !important;
 }
 
 // mat-sidenav-content must never scroll itself — each routed component

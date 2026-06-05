@@ -1,4 +1,4 @@
-import { Component, OnInit, forwardRef, inject, input } from '@angular/core';
+import { Component, OnInit, forwardRef, inject, input, signal } from '@angular/core';
 import { FormsModule, ControlContainer, NgForm } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -34,6 +34,7 @@ import { RepeaterComponent } from '../repeater/repeater';
         forwardRef(() => RepeaterComponent),
     ],
     templateUrl: './field-input.html',
+    styleUrl: './field-input.scss',
 })
 export class FieldInputComponent implements OnInit {
     readonly field = input.required<Field>();
@@ -47,6 +48,7 @@ export class FieldInputComponent implements OnInit {
     protected options: string[] = [];
     protected multiOptions: string[] = [];
     protected readonly catalogues = this.filesService.catalogues;
+    protected readonly fileSrc = signal<string | null>(null);
 
     ngOnInit(): void {
         const field = this.field();
@@ -54,6 +56,10 @@ export class FieldInputComponent implements OnInit {
 
         this.options = field.options ?? parseOptions(field.selectOptions);
         this.multiOptions = field.multiOptions ?? parseOptions(field.multiselectOptions);
+
+        if (field.type === 'file') {
+            this.fileSrc.set((model[field.id] as string) ?? null);
+        }
 
         if (field.type === 'checkbox' && model[field.id] == null) {
             model[field.id] = false;
@@ -69,15 +75,17 @@ export class FieldInputComponent implements OnInit {
 
     clear(): void {
         this.model()[this.field().id] = null;
+        this.fileSrc.set(null);
     }
 
     openFiles(): void {
         this.dialog
-            .open(FilePickerDialogComponent, { maxWidth: '90vw' })
+            .open(FilePickerDialogComponent, { maxWidth: '95vw', width: '90vw', height: '85vh', panelClass: 'file-picker-panel' })
             .afterClosed()
             .subscribe((file) => {
                 if (file) {
-                    this.model()[this.field().id] = file.src;
+                    this.model()[this.field().id] = file.src ?? null;
+                    this.fileSrc.set(file.src ?? null);
                 }
             });
     }

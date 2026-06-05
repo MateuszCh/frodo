@@ -1,8 +1,12 @@
 <section class="listing-section">
+    @if (!isDesktop() && filtersOpen()) {
+    <div class="filters-backdrop" (click)="filtersOpen.set(false)"></div>
+    }
+
     <div class="listing-header">
         <h2 class="font-2 fs-6 center">
             <span class="font-2">{{ title() }}</span>
-            <span class="font-2 fs-1">({{ count() }})</span>
+            <span class="font-2 fs-1">({{ matchCount() }})</span>
         </h2>
 
         <div class="listing-actions">
@@ -104,35 +108,31 @@
                 }
             </mat-list>
 
-            @if (visible().length < filtered().length)
-              {
-              <div
-              appInfiniteScroll
-              (reached)="incrementLimit()"
-              class="sentinel">
+            @if (visible().length < filtered().length) {
+            <div appInfiniteScroll
+                 (reached)="incrementLimit()"
+                 class="sentinel"></div>
+            }
         </div>
-        }
-    </div>
 
-    <aside class="listing-filters"
-           [class.open]="filtersOpen()">
-        @if (baseModels().length) {
-        <app-listing-filters [filters]="filters()"
-                             [type]="family()"
-                             (changed)="onFilterChange()"></app-listing-filters>
+        <aside class="listing-drawer" [class.listing-drawer--open]="filtersOpen()">
+            @if (baseModels().length) {
+            <app-listing-filters [filters]="filters()"
+                                 [type]="family()"
+                                 (changed)="onFilterChange()"></app-listing-filters>
 
-        @if (isPosts()) {
-        <div class="center">
-            <button mat-raised-button
-                    color="primary"
-                    (click)="resetFilters()">
-                Reset Filters
-            </button>
-        </div>
-        }
-        } @else {
-        <p class="center">There are no {{ title() }} to filter</p>
-        }
-    </aside>
+            @if (isPosts()) {
+            <div class="center">
+                <button mat-raised-button
+                        color="primary"
+                        (click)="resetFilters()">
+                    Reset Filters
+                </button>
+            </div>
+            }
+            } @else {
+            <p class="center">There are no {{ title() }} to filter</p>
+            }
+        </aside>
     </div>
 </section>

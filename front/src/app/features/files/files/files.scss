@@ -1,11 +1,42 @@
 :host {
-    display: block;
+    display: flex;
+    flex-direction: column;
     height: 100%;
-    overflow-y: auto;
+    overflow: hidden;
+    position: relative;
+}
+
+.files-popup-close {
+    position: absolute;
+    top: 4px;
+    right: 4px;
+    z-index: 10;
+}
+
+// propagate height through Angular Material tab internals
+:host ::ng-deep mat-tab-group {
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+:host ::ng-deep .mat-mdc-tab-body-wrapper {
+    flex: 1;
+    min-height: 0;
+}
+
+:host ::ng-deep .mat-mdc-tab-body-content {
+    height: 100%;
+    overflow: hidden;
 }
 
 .files {
     padding: 16px;
+    flex: 1;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
 }
 
 .files-header {
@@ -27,13 +58,20 @@
 
 .files-select {
     display: flex;
-    gap: 16px;
+    gap: 0;
     margin-top: 16px;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
 }
 
 .files-grid-pane {
-    flex: 1 1 70%;
+    flex: 0 0 70%;
     min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    padding-right: 16px;
 }
 
 .files-filters {
@@ -45,7 +83,7 @@
 
 .files-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+    grid-template-columns: repeat(10, minmax(0, 1fr));
     gap: 8px;
 }
 
@@ -57,20 +95,55 @@
     aspect-ratio: 1 / 1;
 }
 
-.files-grid__item.current {
-    outline: 2px solid var(--mat-sys-primary, #ff9800);
-}
-
 .files-grid__item img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    transform: scale(0);
+    transition: transform 0.5s ease;
+}
+
+.files-grid__item.img-loaded img {
+    transform: scale(1);
+}
+
+.files-grid__item.current {
+    box-shadow: inset 0 0 0 5px rgb(255, 152, 0);
+}
+
+.files-grid__item.current img {
+    transform: scale(0.9);
 }
 
 .files-edit {
-    flex: 0 0 320px;
-    display: flex;
-    flex-direction: column;
+    flex: 0 0 30%;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    border-left: 1px solid rgba(0, 0, 0, 0.12);
+    padding-left: 16px;
+    padding-right: 12px;
+    padding-bottom: 24px;
+}
+
+.files-edit__name {
+    margin: 0 0 4px;
+    font-size: 32px;
+    font-family: 'Unica One', cursive;
+    text-align: center;
+    word-break: break-word;
+}
+
+.files-edit__size {
+    margin: 0 0 8px;
+    font-size: 13px;
+    color: rgba(0, 0, 0, 0.6);
+    text-align: center;
+}
+
+.files-edit__actions--center {
+    justify-content: center;
 }
 
 .files-edit__preview img {
@@ -85,23 +158,134 @@
     align-items: center;
 }
 
+.files-edit__new-catalogue mat-form-field {
+    flex: 1;
+    min-width: 0;
+}
+
 .files-edit__actions {
     display: flex;
     gap: 8px;
     margin-top: 8px;
+    justify-content: center;
 }
 
+.files-edit__divider {
+    border: none;
+    border-top: 1px solid rgba(0, 0, 0, 0.12);
+    margin: 16px 0;
+}
+
+.files-edit__meta {
+    list-style: none;
+    margin: 0 0 8px;
+    padding: 0;
+    font-size: 13px;
+}
+
+.files-edit__meta li {
+    display: flex;
+    gap: 8px;
+    padding: 5px 0;
+}
+
+.files-edit__meta-label {
+    flex-shrink: 0;
+    width: 36px;
+    color: rgba(0, 0, 0, 0.54);
+}
+
+.files-edit__meta-url {
+    word-break: break-all;
+    overflow-wrap: anywhere;
+}
+
+// "ADD NEW FILES" tab — no files selected yet: center the Select button
 .files-upload {
-    padding: 16px 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    padding: 16px;
+    overflow-x: hidden;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+}
+
+// files selected: three-column row layout
+.files-upload.files-upload--active {
+    align-items: flex-start;
+    justify-content: flex-start;
+    gap: 16px;
+}
+
+.files-upload__actions {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    max-width: 520px;
+    align-items: center;
+    justify-content: center;
+    flex: 0 0 30%;
+    align-self: stretch;
 }
 
-.upload-item {
+.files-upload__actions-btns {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.files-upload__list {
+    flex: 0 0 35%;
+    min-width: 0;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
     border: 1px solid rgba(0, 0, 0, 0.12);
-    padding: 8px;
+    align-self: stretch;
+}
+
+.upload-list-item {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 8px 12px;
+    background: white;
+    border: none;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    cursor: pointer;
+    font-family: 'Oswald', sans-serif;
+    font-size: 14px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.upload-list-item:last-child {
+    border-bottom: none;
+}
+
+.upload-list-item.current {
+    background: rgb(255, 152, 0);
+    color: white;
+}
+
+.files-upload__edit {
+    flex: 0 0 35%;
+    display: flex;
+    flex-direction: column;
+    overflow-y: auto;
+    scrollbar-gutter: stable;
+    align-self: stretch;
+}
+
+.files-upload__preview {
+    margin-top: 16px;
+}
+
+.files-upload__preview img {
+    width: 100%;
+    max-height: 200px;
+    object-fit: contain;
 }
 
 .full-width {
@@ -125,8 +309,22 @@
 @media (max-width: 959px) {
     .files-select {
         flex-direction: column;
+        overflow-y: auto;
+        overflow-x: hidden;
+    }
+    .files-grid-pane {
+        overflow-y: visible;
+        padding-right: 0;
+    }
+    .files-grid {
+        grid-template-columns: repeat(4, minmax(0, 1fr));
     }
     .files-edit {
         flex-basis: auto;
+        border-left: none;
+        border-top: 1px solid rgba(0, 0, 0, 0.12);
+        padding-left: 0;
+        padding-top: 16px;
+        overflow-y: visible;
     }
 }

@@ -1,15 +1,11 @@
-@if (!isLogin() && !isDesktop()) {
-<app-header class="z-10"></app-header>
-}
-
 <mat-sidenav-container class="app-container"
                        autosize="false">
     @if (!isLogin()) {
-    <mat-sidenav #sidenav
-                 class="sidenav"
+    <mat-sidenav class="sidenav"
                  [mode]="isDesktop() ? 'side' : 'over'"
-                 [opened]="isDesktop()"
-                 [disableClose]="isDesktop()">
+                 [opened]="isDesktop() || layout.sidenavOpen()"
+                 [disableClose]="isDesktop()"
+                 (closed)="layout.closeSidenav()">
         <app-sidenav></app-sidenav>
     </mat-sidenav>
     }
@@ -17,6 +13,9 @@
     <mat-sidenav-content id="scroll"
                          class="page"
                          (scroll)="onScroll()">
+        @if (!isLogin() && !isDesktop()) {
+        <app-header></app-header>
+        }
         <div id="page"
              class="fade"
              [class.page--login]="isLogin()">

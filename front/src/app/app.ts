@@ -1,6 +1,6 @@
 import { Component, computed, effect, inject, viewChild } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { MatSidenav, MatSidenavContent, MatSidenavModule } from '@angular/material/sidenav';
+import { MatSidenavContent, MatSidenavModule } from '@angular/material/sidenav';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatTooltipModule } from '@angular/material/tooltip';
@@ -28,11 +28,9 @@ export class App {
     protected layout = inject(LayoutService);
     private route = injectRouteState();
 
-    private sidenav = viewChild<MatSidenav>('sidenav');
     private content = viewChild.required(MatSidenavContent);
 
     protected readonly isLogin = computed(() => {
-        console.log(this.route().url);
         return this.route().url.startsWith('/login');
     });
     protected readonly isDesktop = computed(() =>
@@ -41,14 +39,6 @@ export class App {
 
     constructor() {
         registerAppIcons();
-
-        // register the sidenav whenever it enters the DOM (it is removed on the login page)
-        effect(() => {
-            const sidenav = this.sidenav();
-            if (sidenav) {
-                this.layout.registerSidenav(sidenav);
-            }
-        });
 
         // close the over-mode sidenav after navigating on small screens
         effect(() => {

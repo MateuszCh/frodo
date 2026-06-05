@@ -1,9 +1,11 @@
-import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { Component, OnInit, computed, effect, inject, input, output, signal, viewChild } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpEventType } from '@angular/common/http';
-import { MatTabsModule } from '@angular/material/tabs';
+import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
+import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -13,16 +15,19 @@ import { FileItem } from '../../../models/models';
 import { FilesService, FileMeta } from '../../../core/files.service';
 import { ToolsService } from '../../../core/tools.service';
 import { BytesPipe } from '../../../shared/bytes.pipe';
+import { ImgLoadedDirective } from '../../../shared/img-loaded.directive';
 import { InfiniteScrollDirective } from '../../../shared/infinite-scroll.directive';
 
 interface PendingUpload {
     file: File;
-    meta: FileMeta & { catalogues?: string[] };
+    previewUrl: string;
+    meta: FileMeta;
 }
 
 @Component({
     selector: 'app-files',
     imports: [
+        DatePipe,
         FormsModule,
         MatTabsModule,
         MatButtonModule,
@@ -31,7 +36,9 @@ interface PendingUpload {
         MatInputModule,
         MatSelectModule,
         MatProgressBarModule,
+        MatDialogModule,
         BytesPipe,
+        ImgLoadedDirective,
         InfiniteScrollDirective,
     ],
     templateUrl: './files.html',
@@ -39,7 +46,10 @@ interface PendingUpload {
 })
 export class FilesComponent implements OnInit {
     readonly allFiles = input<FileItem[]>([]);
+    readonly isPopup = input(false);
+    readonly fileSelected = output<FileItem>();
 
+    private readonly tabs = viewChild.required<MatTabGroup>('tabs');
     private filesService = inject(FilesService);
     private tools = inject(ToolsService);
 
@@ -50,12 +60,26 @@ export class FilesComponent implements OnInit {
     protected readonly limit = signal(80);
     protected readonly selected = signal<FileItem | undefined>(undefined);
     protected readonly newCatalogue = signal('');
+    protected readonly newCataloguePending = signal('');
 
     protected readonly pending = signal<PendingUpload[]>([]);
+    protected readonly selectedPending = signal<number | null>(null);
+    protected readonly selectedPendingItem = computed(() => {
+        const i = this.selectedPending();
+        return i !== null ? this.pending()[i] : undefined;
+    });
     protected readonly progress = signal(0);
     protected readonly actionStatus = signal<'' | 'upload' | 'save' | 'delete'>('');
     protected readonly importStatus = signal(false);
     protected readonly exportStatus = signal(false);
+
+    private readonly selectionGuard = effect(() => {
+        const list = this.filtered();
+        const sel = this.selected();
+        if (sel !== undefined && !list.includes(sel)) {
+            this.selected.set(list.length ? list[0] : undefined);
+        }
+    }, { allowSignalWrites: true });
 
     protected readonly filtered = computed(() => {
         let list = this.files();
@@ -72,9 +96,17 @@ export class FilesComponent implements OnInit {
     protected readonly visible = computed(() => this.filtered().slice(0, this.limit()));
 
     ngOnInit(): void {
-        const files = this.allFiles() ?? [];
-        this.files.set(files);
-        this.deriveCatalogues(files);
+        if (this.isPopup()) {
+            this.filesService.getAllFiles().subscribe((files) => {
+                const list = files ?? [];
+                this.files.set(list);
+                this.deriveCatalogues(list);
+            });
+        } else {
+            const files = this.allFiles() ?? [];
+            this.files.set(files);
+            this.deriveCatalogues(files);
+        }
     }
 
     // ---- catalogues -----------------------------------------------------------
@@ -97,10 +129,36 @@ export class FilesComponent implements OnInit {
         }
     }
 
+    addCataloguePending(): void {
+        const value = this.newCataloguePending().trim().toLowerCase();
+        this.newCataloguePending.set('');
+        if (!value) return;
+        if (this.catalogues().indexOf(value) === -1) {
+            const list = [...this.catalogues(), value].sort();
+            this.catalogues.set(list);
+            this.filesService.setCatalogues(list);
+        }
+        const i = this.selectedPending();
+        if (i === null) return;
+        this.pending.update((list) =>
+            list.map((item, idx) => {
+                if (idx !== i) return item;
+                const cats = item.meta.catalogues ?? [];
+                if (cats.includes(value)) return item;
+                return { ...item, meta: { ...item.meta, catalogues: [...cats, value] } };
+            }),
+        );
+    }
+
     // ---- selection / edit -----------------------------------------------------
 
     select(file: FileItem): void {
         this.selected.set(file);
+    }
+
+    chooseSelected(): void {
+        const file = this.selected();
+        if (file) this.fileSelected.emit(file);
     }
 
     isImage(file: FileItem | undefined): boolean {
@@ -156,14 +214,48 @@ export class FilesComponent implements OnInit {
 
     // ---- upload ---------------------------------------------------------------
 
+    selectPending(i: number): void {
+        this.selectedPending.set(i);
+    }
+
+    clearPending(): void {
+        this.pending().forEach((p) => {
+            if (p.previewUrl.startsWith('blob:')) URL.revokeObjectURL(p.previewUrl);
+        });
+        this.pending.set([]);
+        this.selectedPending.set(null);
+    }
+
     onFilesSelect(event: Event): void {
         const input = event.target as HTMLInputElement;
         const list = Array.from(input.files ?? []);
-        this.pending.set(list.map((file) => ({ file, meta: { catalogues: [] } })));
+        if (!list.length) return;
+        this.pending.set(
+            list.map((file) => ({
+                file,
+                previewUrl: file.type.startsWith('image/')
+                    ? URL.createObjectURL(file)
+                    : 'images/pdf-placeholder.png',
+                meta: { catalogues: [] },
+            })),
+        );
+        this.selectedPending.set(0);
+        input.value = '';
     }
 
     removePending(index: number): void {
+        const item = this.pending()[index];
+        if (item?.previewUrl.startsWith('blob:')) URL.revokeObjectURL(item.previewUrl);
         this.pending.update((list) => list.filter((_, i) => i !== index));
+        const newLen = this.pending().length;
+        if (newLen === 0) {
+            this.selectedPending.set(null);
+            return;
+        }
+        const sel = this.selectedPending();
+        if (sel === null) return;
+        if (sel > index) this.selectedPending.set(sel - 1);
+        else if (sel === index) this.selectedPending.set(Math.min(sel, newLen - 1));
     }
 
     upload(): void {
@@ -190,7 +282,8 @@ export class FilesComponent implements OnInit {
                         if (uploaded.length) {
                             this.files.update((list) => [...list, ...uploaded]);
                             this.deriveCatalogues(this.files());
-                            this.pending.set([]);
+                            this.clearPending();
+                            this.tabs().selectedIndex = 0;
                             this.tools.alert('Files uploaded successfully');
                         }
                     }

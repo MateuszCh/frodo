@@ -21,6 +21,14 @@ export function injectRouteState(): Signal<RouteState> {
     // NavigationEnd fires.
     const initialUrl = document.location ? document.location.pathname + document.location.search : router.url;
 
+    // Read family/type from the current snapshot so components created after
+    // NavigationEnd (e.g. sidenav after login redirect) get the correct
+    // active state without waiting for the next navigation.
+    let initialLeaf = route.snapshot;
+    while (initialLeaf.firstChild) {
+        initialLeaf = initialLeaf.firstChild;
+    }
+
     return toSignal(
         router.events.pipe(
             filter((e) => e instanceof NavigationEnd),
@@ -36,6 +44,12 @@ export function injectRouteState(): Signal<RouteState> {
                 };
             }),
         ),
-        { initialValue: { family: undefined, type: undefined, url: initialUrl } },
+        {
+            initialValue: {
+                family: initialLeaf.data['family'] as string | undefined,
+                type: initialLeaf.paramMap.get('type') ?? undefined,
+                url: initialUrl,
+            },
+        },
     );
 }

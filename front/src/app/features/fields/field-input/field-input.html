@@ -98,20 +98,20 @@
         }
         @case ('file') {
             <div class="field-file">
+                <p class="field-file__title">{{ f.title }}</p>
                 <div class="field-file__controls">
-                    <p>{{ f.title }}</p>
                     <button mat-raised-button color="primary" type="button" (click)="openFiles()">
                         Select file
                     </button>
-                    @if (data[f.id]) {
+                    @if (fileSrc()) {
                         <button mat-raised-button color="warn" type="button" (click)="clear()">
                             Clear
                         </button>
                     }
                 </div>
-                @if (data[f.id]) {
+                @if (fileSrc(); as src) {
                     <div class="field-file__preview">
-                        <img [src]="data[f.id]" alt="selected file" />
+                        <img [src]="src" alt="selected file" />
                     </div>
                 }
             </div>
