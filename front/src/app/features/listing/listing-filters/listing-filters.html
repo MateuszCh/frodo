@@ -1,0 +1,117 @@
+@let f = filters();
+@if (f) {
+    <h2 class="font-2 center fs-4">filters</h2>
+
+    <mat-form-field class="full-width">
+        <mat-label>Search</mat-label>
+        <input matInput [(ngModel)]="f.textFilter.value" (ngModelChange)="changed.emit()" />
+    </mat-form-field>
+
+    @if (type() === 'posts') {
+        @for (field of f.checkboxes?.fields; track field.id) {
+            <div class="filter-box">
+                <p>{{ field.title }}</p>
+                <mat-radio-group [(ngModel)]="field.value" (ngModelChange)="changed.emit()">
+                    <mat-radio-button [value]="true">True</mat-radio-button>
+                    <mat-radio-button [value]="false">False</mat-radio-button>
+                    <mat-radio-button value="all">All</mat-radio-button>
+                </mat-radio-group>
+            </div>
+        }
+
+        @for (field of f.selects?.fields; track field.id) {
+            <mat-form-field class="full-width">
+                <mat-label>Select {{ field.title }}</mat-label>
+                <mat-select multiple [(ngModel)]="field.values" (ngModelChange)="changed.emit()">
+                    @for (option of field.options; track option) {
+                        <mat-option [value]="option">{{ option }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+        }
+
+        @for (field of f.multiselects?.fields; track field.id) {
+            <mat-form-field class="full-width">
+                <mat-label>Select {{ field.title }}</mat-label>
+                <mat-select multiple [(ngModel)]="field.values" (ngModelChange)="changed.emit()">
+                    @for (option of field.multiOptions; track option) {
+                        <mat-option [value]="option">{{ option }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+        }
+
+        @for (field of f.catalogues?.fields; track field.id) {
+            <mat-form-field class="full-width">
+                <mat-label>Select {{ field.title }}</mat-label>
+                <mat-select multiple [(ngModel)]="field.values" (ngModelChange)="changed.emit()">
+                    @for (option of field.options; track option) {
+                        <mat-option [value]="option">{{ option }}</mat-option>
+                    }
+                </mat-select>
+            </mat-form-field>
+        }
+
+        @for (field of f.numbers?.fields; track field.id) {
+            <div class="filter-box">
+                <p>{{ field.title }}</p>
+                <div class="range-row">
+                    <mat-form-field>
+                        <mat-label>Minimum</mat-label>
+                        <input
+                            matInput
+                            type="number"
+                            [(ngModel)]="field.minValue"
+                            (ngModelChange)="changed.emit()"
+                        />
+                    </mat-form-field>
+                    <mat-form-field>
+                        <mat-label>Maximum</mat-label>
+                        <input
+                            matInput
+                            type="number"
+                            [(ngModel)]="field.maxValue"
+                            (ngModelChange)="changed.emit()"
+                        />
+                    </mat-form-field>
+                </div>
+            </div>
+        }
+
+        @for (field of f.dates?.fields; track field.id) {
+            <div class="filter-box">
+                <p>{{ field.title }}</p>
+                <div class="range-row">
+                    <mat-form-field>
+                        <mat-label>From</mat-label>
+                        <input
+                            matInput
+                            [matDatepicker]="fromPicker"
+                            [(ngModel)]="field.minValue"
+                            (ngModelChange)="changed.emit()"
+                        />
+                        <mat-datepicker-toggle
+                            matIconSuffix
+                            [for]="fromPicker"
+                        ></mat-datepicker-toggle>
+                        <mat-datepicker #fromPicker></mat-datepicker>
+                    </mat-form-field>
+                    <mat-form-field>
+                        <mat-label>To</mat-label>
+                        <input
+                            matInput
+                            [matDatepicker]="toPicker"
+                            [(ngModel)]="field.maxValue"
+                            (ngModelChange)="changed.emit()"
+                        />
+                        <mat-datepicker-toggle
+                            matIconSuffix
+                            [for]="toPicker"
+                        ></mat-datepicker-toggle>
+                        <mat-datepicker #toPicker></mat-datepicker>
+                    </mat-form-field>
+                </div>
+            </div>
+        }
+    }
+}

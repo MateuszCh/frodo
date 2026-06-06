@@ -1,0 +1,78 @@
+<section class="editor">
+    <form #form="ngForm"
+          (ngSubmit)="save(form)">
+        <div class="editor-header">
+            <h2 class="font-2 fs-6 center">
+                {{
+                edit() ? 'Edit ' + currentType() + ' ' + typeLabel() : 'Add new ' + typeLabel()
+                }}
+            </h2>
+            <div class="editor-actions">
+                <button mat-raised-button
+                        color="primary"
+                        type="submit"
+                        [class.busy]="actionStatus() === 'save'">
+                    Save
+                </button>
+                @if (edit()) {
+                <button mat-raised-button
+                        color="warn"
+                        type="button"
+                        [class.busy]="actionStatus() === 'remove'"
+                        (click)="removeDialog()">
+                    Delete
+                </button>
+                }
+            </div>
+        </div>
+
+        <div class="editor-body">
+            <mat-form-field class="full-width">
+                <mat-label>Title</mat-label>
+                <input matInput
+                       name="title"
+                       required
+                       [(ngModel)]="model().title" />
+                <mat-error>This is required</mat-error>
+            </mat-form-field>
+
+            @if (!isComponent()) {
+            <mat-form-field class="full-width">
+                <mat-label>Plural Title</mat-label>
+                <input matInput
+                       name="pluralTitle"
+                       required
+                       [(ngModel)]="model().pluralTitle" />
+                <mat-error>This is required</mat-error>
+            </mat-form-field>
+            }
+
+            <mat-form-field class="full-width">
+                <mat-label>Type</mat-label>
+                <input matInput
+                       name="type"
+                       required
+                       [(ngModel)]="model().type"
+                       (ngModelChange)="formatType()" />
+                <mat-error>This is required</mat-error>
+            </mat-form-field>
+
+            <h2 class="font-2 fs-4 center">Fields</h2>
+            @if (!model().fields.length) {
+            <p class="center">There are no fields yet</p>
+            }
+
+            @for (field of model().fields; track field; let i = $index) {
+            <app-add-field [field]="field"
+                           (remove)="removeField(i)"></app-add-field>
+            }
+
+            <button mat-raised-button
+                    color="primary"
+                    type="button"
+                    (click)="addField()">
+                Add new field
+            </button>
+        </div>
+    </form>
+</section>

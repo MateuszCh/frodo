@@ -1,0 +1,120 @@
+@let f = field();
+@let data = model();
+@let ctrl = namePrefix() + f.id;
+
+<div class="field">
+    @switch (f.type) {
+        @case ('text') {
+            <mat-form-field class="full-width">
+                <mat-label>{{ f.title }}</mat-label>
+                <input matInput type="text" [name]="ctrl" [(ngModel)]="data[f.id]" />
+            </mat-form-field>
+        }
+        @case ('textarea') {
+            <mat-form-field class="full-width">
+                <mat-label>{{ f.title }}</mat-label>
+                <textarea matInput rows="3" [name]="ctrl" [(ngModel)]="data[f.id]"></textarea>
+            </mat-form-field>
+        }
+        @case ('number') {
+            <mat-form-field class="full-width">
+                <mat-label>{{ f.title }}</mat-label>
+                <input matInput type="number" [name]="ctrl" [(ngModel)]="data[f.id]" />
+            </mat-form-field>
+        }
+        @case ('select') {
+            <div class="field-row">
+                <mat-form-field class="full-width">
+                    <mat-label>{{ f.title }}</mat-label>
+                    <mat-select [name]="ctrl" [(ngModel)]="data[f.id]">
+                        @for (item of options; track item) {
+                            <mat-option [value]="item">{{ item }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+                <button mat-raised-button color="warn" type="button" (click)="clear()">
+                    Clear
+                </button>
+            </div>
+        }
+        @case ('multiselect') {
+            <div class="field-row">
+                <mat-form-field class="full-width">
+                    <mat-label>{{ f.title }}</mat-label>
+                    <mat-select multiple [name]="ctrl" [(ngModel)]="data[f.id]">
+                        @for (item of multiOptions; track item) {
+                            <mat-option [value]="item">{{ item }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+                <button mat-raised-button color="warn" type="button" (click)="clear()">
+                    Clear
+                </button>
+            </div>
+        }
+        @case ('catalogue') {
+            <div class="field-row">
+                <mat-form-field class="full-width">
+                    <mat-label>{{ f.title }}</mat-label>
+                    <mat-select [name]="ctrl" [(ngModel)]="data[f.id]">
+                        @for (catalogue of catalogues(); track catalogue) {
+                            <mat-option [value]="catalogue">{{ catalogue }}</mat-option>
+                        }
+                    </mat-select>
+                </mat-form-field>
+                <button mat-raised-button color="warn" type="button" (click)="clear()">
+                    Clear
+                </button>
+            </div>
+        }
+        @case ('checkbox') {
+            <mat-checkbox [name]="ctrl" [(ngModel)]="data[f.id]">
+                {{ f.title }} : {{ data[f.id] }}
+            </mat-checkbox>
+        }
+        @case ('date') {
+            <div class="field-row">
+                <mat-form-field>
+                    <mat-label>{{ f.title }}</mat-label>
+                    <input
+                        matInput
+                        [matDatepicker]="picker"
+                        [name]="ctrl"
+                        [(ngModel)]="data[f.id]"
+                    />
+                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-datepicker #picker></mat-datepicker>
+                </mat-form-field>
+                <button mat-raised-button color="warn" type="button" (click)="clear()">
+                    Clear
+                </button>
+            </div>
+        }
+        @case ('repeater') {
+            <div class="field-repeater">
+                <span class="repeater-title">{{ f.title }}</span>
+                <app-repeater [parentModel]="data" [field]="f" [namePrefix]="ctrl"></app-repeater>
+            </div>
+        }
+        @case ('file') {
+            <div class="field-file">
+                <p class="field-file__title">{{ f.title }}</p>
+                <div class="field-file__controls">
+                    <button mat-raised-button color="primary" type="button" (click)="openFiles()">
+                        Select file
+                    </button>
+                    @if (fileSrc()) {
+                        <button mat-raised-button color="warn" type="button" (click)="clear()">
+                            Clear
+                        </button>
+                    }
+                </div>
+                @if (fileSrc(); as src) {
+                    <div class="field-file__preview">
+                        <img [src]="src" alt="selected file" />
+                    </div>
+                }
+            </div>
+        }
+    }
+</div>

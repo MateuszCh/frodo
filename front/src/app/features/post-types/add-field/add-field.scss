@@ -1,0 +1,22 @@
+.add-field {
+    display: flex;
+    gap: 16px;
+    padding: 16px;
+    margin-bottom: 16px;
+    box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+    background: #fff;
+}
+.add-field__body {
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+}
+.full-width {
+    width: 100%;
+}
+.add-field__repeater {
+    padding-left: 8px;
+}
+.right {
+    text-align: right;
+}

@@ -1,6 +1,8 @@
 node_modules/
 front/node_modules/
 front/public/
+front/.angular/
+front-legacy/
 config.json
 config.dev.json
 .git/

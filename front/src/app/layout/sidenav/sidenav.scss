@@ -1,0 +1,52 @@
+.sidenav-list {
+    padding-left: 16px;
+    padding-right: 16px;
+}
+
+.sidenav-list h1 {
+    text-align: center;
+}
+.sidenav-list h1 a {
+    text-decoration: none;
+    color: inherit;
+}
+
+.sidenav-list a[mat-list-item] {
+    padding-left: 8px;
+    padding-right: 8px;
+    // Rectangular state layer with slight rounding, visible on hover.
+    // Focus state disabled so the effect disappears after clicking.
+    --mat-list-list-item-hover-state-layer-opacity: 0.08;
+    --mat-list-list-item-focus-state-layer-opacity: 0;
+    --mat-list-list-item-hover-state-layer-color: #000;
+    border-radius: 4px;
+
+    &:focus-visible {
+        --mat-list-list-item-focus-state-layer-opacity: 0.12;
+    }
+
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.08);
+    }
+
+    span {
+        font-size: 14px;
+        text-transform: uppercase;
+        transition: font-size 0.2s ease, color 0.2s ease;
+    }
+
+    span.active {
+        font-size: 21px;
+        font-weight: 600;
+        color: #ff5722;
+    }
+}
+
+.sidenav-user {
+    margin-top: 32px;
+}
+
+.busy {
+    opacity: 0.5;
+    pointer-events: none;
+}

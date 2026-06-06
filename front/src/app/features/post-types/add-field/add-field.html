@@ -1,0 +1,86 @@
+@let f = field();
+<div class="add-field">
+    <button mat-raised-button
+            color="warn"
+            type="button"
+            class="add-field__delete"
+            (click)="remove.emit()">
+        Delete
+    </button>
+
+    <div class="add-field__body">
+        <mat-form-field class="full-width">
+            <mat-label>Title</mat-label>
+            <input matInput
+                   type="text"
+                   [name]="uid + '_title'"
+                   required
+                   [(ngModel)]="f.title" />
+            <mat-error>This is required</mat-error>
+        </mat-form-field>
+
+        <mat-form-field class="full-width">
+            <mat-label>Id</mat-label>
+            <input matInput
+                   type="text"
+                   [name]="uid + '_id'"
+                   required
+                   [(ngModel)]="f.id"
+                   (ngModelChange)="formatId()" />
+            <mat-error>This is required</mat-error>
+        </mat-form-field>
+
+        <mat-form-field class="full-width">
+            <mat-label>Select type</mat-label>
+            <mat-select [name]="uid + '_type'"
+                        required
+                        [(ngModel)]="f.type">
+                @for (option of fieldTypes; track option.type) {
+                <mat-option [value]="option.type">{{ option.name }}</mat-option>
+                }
+            </mat-select>
+            <mat-error>This is required</mat-error>
+        </mat-form-field>
+
+        @if (f.type === 'select') {
+        <mat-form-field class="full-width">
+            <mat-label>Options (separated by semicolons)</mat-label>
+            <input matInput
+                   type="text"
+                   [name]="uid + '_selectOptions'"
+                   required
+                   [(ngModel)]="f.selectOptions" />
+            <mat-error>This is required</mat-error>
+        </mat-form-field>
+        }
+
+        @if (f.type === 'multiselect') {
+        <mat-form-field class="full-width">
+            <mat-label>Options (separated by semicolons)</mat-label>
+            <input matInput
+                   type="text"
+                   [name]="uid + '_multiselectOptions'"
+                   required
+                   [(ngModel)]="f.multiselectOptions" />
+            <mat-error>This is required</mat-error>
+        </mat-form-field>
+        }
+
+        @if (f.type === 'repeater') {
+        <div class="add-field__repeater">
+            @for (rf of f.repeaterFields ?? []; track rf; let i = $index) {
+            <app-add-field [field]="rf"
+                           (remove)="removeRepeaterField(i)"></app-add-field>
+            }
+            <div class="right">
+                <button mat-raised-button
+                        color="primary"
+                        type="button"
+                        (click)="addRepeaterField()">
+                    Add new repeater field
+                </button>
+            </div>
+        </div>
+        }
+    </div>
+</div>

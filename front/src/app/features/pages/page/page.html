@@ -1,0 +1,77 @@
+<section class="editor">
+    <form #form="ngForm"
+          (ngSubmit)="save(form)">
+        <div class="editor-header">
+            <h2 class="font-2 fs-6 center">
+                {{ edit() ? 'Edit ' + currentTitle() + ' page' : 'Add new page' }}
+            </h2>
+            <div class="editor-actions">
+                <button mat-raised-button
+                        color="primary"
+                        type="submit"
+                        [class.busy]="actionStatus() === 'save'">
+                    Save
+                </button>
+                @if (edit()) {
+                <button mat-raised-button
+                        color="warn"
+                        type="button"
+                        [class.busy]="actionStatus() === 'remove'"
+                        (click)="removeDialog()">
+                    Delete
+                </button>
+                }
+            </div>
+        </div>
+
+        <div class="editor-body">
+            <mat-form-field class="full-width">
+                <mat-label>Title</mat-label>
+                <input matInput
+                       name="title"
+                       required
+                       [(ngModel)]="model().title" />
+                <mat-error>This is required</mat-error>
+            </mat-form-field>
+
+            <mat-form-field class="full-width">
+                <mat-label>Url</mat-label>
+                <input matInput
+                       name="pageUrl"
+                       required
+                       [(ngModel)]="model().pageUrl" />
+                <mat-error>This is required</mat-error>
+            </mat-form-field>
+
+            <h2 class="font-2 fs-4 center">Components</h2>
+            @if (!rows().length) {
+            <p class="center">There are no components yet</p>
+            }
+
+            <ul class="rows"
+                cdkDropList
+                (cdkDropListDropped)="drop($event)">
+                @for (row of rows(); track row; let i = $index) {
+                <li class="row"
+                    cdkDrag>
+                    <div class="row__handle"
+                         cdkDragHandle>
+                        <mat-icon svgIcon="hand-black"></mat-icon>
+                    </div>
+                    <app-add-component [components]="components()"
+                                       [model]="row"
+                                       [order]="i"
+                                       (remove)="removeComponent(i)"></app-add-component>
+                </li>
+                }
+            </ul>
+
+            <button mat-raised-button
+                    color="primary"
+                    type="button"
+                    (click)="addComponent()">
+                Add new component
+            </button>
+        </div>
+    </form>
+</section>
