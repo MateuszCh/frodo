@@ -2,7 +2,6 @@ const gulp = require('gulp'),
     sass = require('gulp-sass')(require('sass')),
     inject = require('gulp-inject'),
     hash = require('gulp-hash'),
-    imagemin = require('gulp-imagemin'),
     uglify = require('gulp-uglify'),
     prefix = require('gulp-autoprefixer'),
     browserSync = require('browser-sync').create(),
@@ -81,7 +80,7 @@ gulp.task('jsLib', function () {
 });
 
 gulp.task('images', function () {
-    return gulp.src(paths.srcIMAGES).pipe(imagemin()).pipe(gulp.dest(paths.publicIMAGES));
+    return gulp.src(paths.srcIMAGES).pipe(gulp.dest(paths.publicIMAGES));
 });
 
 gulp.task('copy', gulp.series(gulp.parallel('html', 'css', 'js', 'images')));
@@ -130,13 +129,37 @@ gulp.task(
 gulp.task(
     'watch',
     gulp.series(gulp.parallel('browser-sync'), function () {
-        gulp.watch([paths.srcTemplates], ['htmlWatch']);
-        gulp.watch([paths.srcSCSSs], ['css']);
-        gulp.watch([paths.srcJS], ['js']);
+        const watchOpts = { usePolling: true, interval: 500 };
+        gulp.watch([paths.srcTemplates], watchOpts, gulp.series('htmlWatch'));
+        gulp.watch([paths.srcSCSSs], watchOpts, gulp.series('css'));
+        gulp.watch([paths.srcJS], watchOpts, gulp.series('js'));
     })
 );
 
 gulp.task('default', gulp.series(gulp.parallel('cssLib', 'jsLib', 'inject')));
+
+gulp.task('watch-docker', gulp.series(
+    gulp.parallel('cssLib', 'jsLib'),
+    'inject',
+    function () {
+        browserSync.init({
+            port: 3002,
+            listen: '0.0.0.0',
+            open: false,
+            socket: {
+                domain: 'localhost:3002'
+            },
+            proxy: {
+                target: 'localhost:3000',
+                ws: false
+            }
+        });
+        const watchOpts = { usePolling: true, interval: 500 };
+        gulp.watch([paths.srcTemplates], watchOpts, gulp.series('htmlWatch'));
+        gulp.watch([paths.srcSCSSs], watchOpts, gulp.series('css'));
+        gulp.watch([paths.srcJS], watchOpts, gulp.series('js'));
+    }
+));
 
 gulp.task('clean', function () {
     del([paths.publicIndex, paths.publicHTML, paths.publicCSS, paths.publicJS, paths.publicIMAGES]);
