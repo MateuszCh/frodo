@@ -59,8 +59,8 @@
 
 // Desktop: static side panel in the flex row.
 .listing-drawer {
-    width: 320px;
-    flex-shrink: 0;
+    flex: 0 0 30%;
+    min-width: 0;
     overflow-y: scroll;
     scrollbar-gutter: stable;
     padding: 16px 12px 16px 16px;

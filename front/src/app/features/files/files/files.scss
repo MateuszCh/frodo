@@ -163,6 +163,10 @@
     min-width: 0;
 }
 
+.files-edit__new-catalogue button {
+    flex-shrink: 0;
+}
+
 .files-edit__actions {
     display: flex;
     gap: 8px;
@@ -270,12 +274,14 @@
 }
 
 .files-upload__edit {
-    flex: 0 0 35%;
+    flex: 1;
+    min-width: 0;
     display: flex;
     flex-direction: column;
     overflow-y: auto;
     scrollbar-gutter: stable;
     align-self: stretch;
+    padding-right: 12px;
 }
 
 .files-upload__preview {
