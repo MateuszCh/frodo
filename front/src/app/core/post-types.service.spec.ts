@@ -61,30 +61,44 @@ describe('PostTypesService', () => {
         expect(result).toEqual(pt);
     });
 
-    it('edit() sends PUT /api/postType/edit', () => {
+    it('edit() sends PUT /api/postType/edit and returns the updated post type', () => {
         const pt = makePostType({ title: 'Updated' });
-        service.edit(pt).subscribe();
+        let result: PostType | undefined;
+        service.edit(pt).subscribe((r) => (result = r));
         http.expectOne({ method: 'PUT', url: '/api/postType/edit' }).flush(pt);
+        expect(result).toEqual(pt);
     });
 
-    it('getById() sends GET /api/postType/:id', () => {
-        service.getById(1).subscribe();
-        http.expectOne({ method: 'GET', url: '/api/postType/1' }).flush(makePostType());
+    it('getById() sends GET /api/postType/:id and returns the post type', () => {
+        const pt = makePostType();
+        let result: PostType | undefined;
+        service.getById(1).subscribe((r) => (result = r));
+        http.expectOne({ method: 'GET', url: '/api/postType/1' }).flush(pt);
+        expect(result).toEqual(pt);
     });
 
-    it('getByIdWithPosts() sends GET /api/postTypePosts/:id', () => {
-        service.getByIdWithPosts(2).subscribe();
-        http.expectOne({ method: 'GET', url: '/api/postTypePosts/2' }).flush(makePostType());
+    it('getByIdWithPosts() sends GET /api/postTypePosts/:id and returns the post type', () => {
+        const pt = makePostType();
+        let result: PostType | undefined;
+        service.getByIdWithPosts(2).subscribe((r) => (result = r));
+        http.expectOne({ method: 'GET', url: '/api/postTypePosts/2' }).flush(pt);
+        expect(result).toEqual(pt);
     });
 
-    it('getByType() sends GET /api/postTypeByType/:type', () => {
-        service.getByType('articles').subscribe();
-        http.expectOne({ method: 'GET', url: '/api/postTypeByType/articles' }).flush(makePostType());
+    it('getByType() sends GET /api/postTypeByType/:type and returns the post type', () => {
+        const pt = makePostType();
+        let result: PostType | undefined;
+        service.getByType('articles').subscribe((r) => (result = r));
+        http.expectOne({ method: 'GET', url: '/api/postTypeByType/articles' }).flush(pt);
+        expect(result).toEqual(pt);
     });
 
-    it('getByTypeWithPosts() sends GET /api/postTypeByTypePosts/:type', () => {
-        service.getByTypeWithPosts('news').subscribe();
-        http.expectOne({ method: 'GET', url: '/api/postTypeByTypePosts/news' }).flush(makePostType());
+    it('getByTypeWithPosts() sends GET /api/postTypeByTypePosts/:type and returns the post type', () => {
+        const pt = makePostType();
+        let result: PostType | undefined;
+        service.getByTypeWithPosts('news').subscribe((r) => (result = r));
+        http.expectOne({ method: 'GET', url: '/api/postTypeByTypePosts/news' }).flush(pt);
+        expect(result).toEqual(pt);
     });
 
     it('remove() sends DELETE /api/postType/:id with responseType text', () => {

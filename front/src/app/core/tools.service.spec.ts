@@ -105,7 +105,7 @@ describe('ToolsService', () => {
             }).not.toThrow();
         });
 
-        it('uses the found container when selector matches a DOM element (line 30 truthy branch)', () => {
+        it('uses the found container when selector matches a DOM element', () => {
             const container = document.createElement('div');
             container.id = 'scroll';
             const invalidEl = document.createElement('div');
@@ -121,7 +121,7 @@ describe('ToolsService', () => {
             expect(scrollSpy).toHaveBeenCalled();
         });
 
-        it('falls back to document when the selector does not match any element (line 30 falsy ?? branch)', () => {
+        it('falls back to document when the selector does not match any element', () => {
             const el = document.createElement('div');
             el.className = 'ng-invalid';
             const scrollSpy = vi.fn();
