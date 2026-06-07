@@ -3,7 +3,7 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { provideLocationMocks } from '@angular/common/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 
 import { ListingComponent } from './listing';
 import { ListingFiltersComponent } from '../listing-filters/listing-filters';
@@ -374,5 +374,169 @@ describe('ListingComponent — sortBy()', () => {
         fixture.detectChanges();
         comp.sortBy('title');
         expect(sessionStorage.getItem('sorting.pages')).toBe('title');
+    });
+});
+
+// ---------------------------------------------------------------------------
+// resetFilters()
+// ---------------------------------------------------------------------------
+
+describe('ListingComponent — resetFilters()', () => {
+    it('resets text filter value', () => {
+        const { fixture, comp } = setup();
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+        // Build a filters object with a text value and reset it
+        const filters = comp.filters();
+        if (filters) {
+            filters.textFilter.value = 'search';
+            comp.resetFilters();
+            expect(comp.filters()!.textFilter.value).toBeUndefined();
+        }
+    });
+
+    it('does not throw when filters is undefined', () => {
+        const { fixture, comp } = setup();
+        // family with no model → filters remain undefined
+        fixture.componentRef.setInput('family', 'posts');
+        fixture.componentRef.setInput('model', makePostType({ fields: [] }));
+        fixture.detectChanges();
+        expect(() => comp.resetFilters()).not.toThrow();
+    });
+});
+
+// ---------------------------------------------------------------------------
+// editPostType()
+// ---------------------------------------------------------------------------
+
+describe('ListingComponent — editPostType()', () => {
+    it('navigates to /post-types/edit/:id', () => {
+        const { fixture, comp, router } = setup();
+        const navigateSpy = vi.spyOn(router, 'navigate');
+        fixture.componentRef.setInput('family', 'posts');
+        fixture.componentRef.setInput('model', makePostType({ id: 7 }));
+        fixture.detectChanges();
+        comp.editPostType();
+        expect(navigateSpy).toHaveBeenCalledWith(['/post-types/edit', 7]);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// export()
+// ---------------------------------------------------------------------------
+
+describe('ListingComponent — export()', () => {
+    it('calls pagesService.exportData() for pages family', () => {
+        const mocks = createMocks();
+        mocks.pages.exportData.mockReturnValue(of('/export/pages.json'));
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+        comp.export();
+        expect(mocks.pages.exportData).toHaveBeenCalled();
+    });
+
+    it('calls postsService.exportData() for posts family', () => {
+        const mocks = createMocks();
+        mocks.posts.exportData.mockReturnValue(of('/export/posts.json'));
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'posts');
+        fixture.componentRef.setInput('model', makePostType({ type: 'articles' }));
+        fixture.detectChanges();
+        comp.export();
+        expect(mocks.posts.exportData).toHaveBeenCalledWith('articles');
+    });
+
+    it('calls postTypesService.exportData() for postTypes family', () => {
+        const mocks = createMocks();
+        mocks.postTypes.exportData.mockReturnValue(of('/export/post-types.json'));
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'postTypes');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+        comp.export();
+        expect(mocks.postTypes.exportData).toHaveBeenCalled();
+    });
+
+    it('calls componentsService.exportData() for components family', () => {
+        const mocks = createMocks();
+        mocks.components.exportData.mockReturnValue(of('/export/components.json'));
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'components');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+        comp.export();
+        expect(mocks.components.exportData).toHaveBeenCalled();
+    });
+
+    it('sets exportStatus to false after success', () => {
+        const mocks = createMocks();
+        mocks.pages.exportData.mockReturnValue(of('/path'));
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+        comp.export();
+        expect(comp.exportStatus()).toBe(false);
+    });
+
+    it('shows alert and clears exportStatus on error', () => {
+        const mocks = createMocks();
+        mocks.pages.exportData.mockReturnValue(throwError(() => new Error('fail')));
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+        comp.export();
+        expect(mocks.tools.alert).toHaveBeenCalled();
+        expect(comp.exportStatus()).toBe(false);
+    });
+});
+
+// ---------------------------------------------------------------------------
+// removeDialog() — additional families
+// ---------------------------------------------------------------------------
+
+describe('ListingComponent — removeDialog() for multiple families', () => {
+    beforeEach(() => vi.useFakeTimers());
+    afterEach(() => vi.useRealTimers());
+
+    it('calls postsService.remove for posts family', () => {
+        const mocks = createMocks();
+        mocks.tools.confirm.mockReturnValue(of(true));
+        const { fixture, comp } = setup(mocks);
+        const postType = makePostType({ posts: [makePost({ _id: 'post1' })] });
+        fixture.componentRef.setInput('family', 'posts');
+        fixture.componentRef.setInput('model', postType);
+        fixture.detectChanges();
+        comp.removeDialog(postType.posts![0]);
+        expect(mocks.posts.remove).toHaveBeenCalledWith('post1');
+    });
+
+    it('calls postTypesService.remove and refreshMenu for postTypes family', () => {
+        const mocks = createMocks();
+        mocks.tools.confirm.mockReturnValue(of(true));
+        const { fixture, comp } = setup(mocks);
+        const pt = makePostType({ _id: 'ptid' });
+        fixture.componentRef.setInput('family', 'postTypes');
+        fixture.componentRef.setInput('model', [pt]);
+        fixture.detectChanges();
+        comp.removeDialog(pt);
+        expect(mocks.postTypes.remove).toHaveBeenCalledWith('ptid');
+        expect(mocks.postTypes.refreshMenu).toHaveBeenCalled();
+    });
+
+    it('calls componentsService.remove for components family', () => {
+        const mocks = createMocks();
+        mocks.tools.confirm.mockReturnValue(of(true));
+        const { fixture, comp } = setup(mocks);
+        const c = { _id: 'cid', id: 1, title: 'Hero', type: 'hero', fields: [] };
+        fixture.componentRef.setInput('family', 'components');
+        fixture.componentRef.setInput('model', [c]);
+        fixture.detectChanges();
+        comp.removeDialog(c);
+        expect(mocks.components.remove).toHaveBeenCalledWith('cid');
     });
 });

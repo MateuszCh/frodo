@@ -277,6 +277,65 @@ describe('applyFilters', () => {
         const result = applyFilters(pages as unknown as Record<string, unknown>[], filters, 'pages');
         expect(result).toHaveLength(1);
     });
+
+    it('filters by date range when range is narrowed', () => {
+        const d1 = new Date('2024-01-01');
+        const d2 = new Date('2024-12-31');
+        const mid = new Date('2024-06-15');
+        const postsWithDates: Post[] = [
+            makePost({ data: { pub: '2024-01-01' } }),
+            makePost({ data: { pub: '2024-06-15' } }),
+            makePost({ data: { pub: '2024-12-31' } }),
+        ];
+        const filters: Filters = {
+            textFilter: { type: 'text' },
+            dates: {
+                type: 'date',
+                fields: [{ id: 'pub', title: 'Published', range: [d1, d2], minValue: mid, maxValue: d2 }],
+            },
+        };
+        const result = applyFilters(postsWithDates as unknown as Record<string, unknown>[], filters, 'posts');
+        expect(result).toHaveLength(2); // mid and d2 pass; d1 is before mid
+    });
+
+    it('excludes posts with missing date values from date filter', () => {
+        const d1 = new Date('2024-01-01');
+        const d2 = new Date('2024-12-31');
+        const postsWithDates: Post[] = [
+            makePost({ data: {} }),                    // no date value
+            makePost({ data: { pub: '2024-06-01' } }),
+        ];
+        const filters: Filters = {
+            textFilter: { type: 'text' },
+            dates: {
+                type: 'date',
+                fields: [{ id: 'pub', title: 'Published', range: [d1, d2], minValue: d1, maxValue: d2 }],
+            },
+        };
+        // Range not narrowed (minValue === range[0]), so filter is inactive — all pass
+        const resultUnnarrowed = applyFilters(postsWithDates as unknown as Record<string, unknown>[], filters, 'posts');
+        expect(resultUnnarrowed).toHaveLength(2);
+
+        // Narrow the range to trigger filtering
+        const narrowed = { ...filters, dates: { type: 'date', fields: [{ ...filters.dates!.fields[0], minValue: new Date('2024-05-01') }] } } as Filters;
+        const resultNarrowed = applyFilters(postsWithDates as unknown as Record<string, unknown>[], narrowed, 'posts');
+        expect(resultNarrowed).toHaveLength(1); // post without date is excluded
+    });
+
+    it('filters by catalogue values', () => {
+        const postsWithCat: Post[] = [
+            makePost({ data: { cat: 'nature' } }),
+            makePost({ data: { cat: 'tech' } }),
+            makePost({ data: { cat: 'nature' } }),
+        ];
+        const filters: Filters = {
+            textFilter: { type: 'text' },
+            catalogues: { type: 'catalogue', fields: [{ id: 'cat', title: 'Category', values: ['tech'] }] },
+        };
+        const result = applyFilters(postsWithCat as unknown as Record<string, unknown>[], filters, 'posts');
+        expect(result).toHaveLength(1);
+        expect((result[0] as unknown as Post).data['cat']).toBe('tech');
+    });
 });
 
 // ---------------------------------------------------------------------------
@@ -384,5 +443,15 @@ describe('applySort', () => {
         const copy = [...items];
         applySort(items as unknown as Record<string, unknown>[], '-title');
         expect(items).toEqual(copy);
+    });
+
+    it('sorts by a top-level field other than "title" or "created" (fallback branch)', () => {
+        const pages = [
+            { pageUrl: '/z', title: 'Z' },
+            { pageUrl: '/a', title: 'A' },
+            { pageUrl: '/m', title: 'M' },
+        ];
+        const sorted = applySort(pages as unknown as Record<string, unknown>[], 'pageUrl') as typeof pages;
+        expect(sorted.map((p) => p.pageUrl)).toEqual(['/a', '/m', '/z']);
     });
 });
