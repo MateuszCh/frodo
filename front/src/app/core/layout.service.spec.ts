@@ -64,6 +64,22 @@ describe('LayoutService body class effect', () => {
 });
 
 // ---------------------------------------------------------------------------
+// null defaultView — covers the `if (win)` false branch
+// ---------------------------------------------------------------------------
+
+describe('LayoutService — null defaultView', () => {
+    it('creates without error when defaultView is null', () => {
+        const mockDoc = { body: document.body, defaultView: null };
+        TestBed.configureTestingModule({
+            providers: [LayoutService, { provide: DOCUMENT, useValue: mockDoc }],
+        });
+        const service = TestBed.inject(LayoutService);
+        TestBed.tick();
+        expect(service.size()).toBe('size-x'); // defaultView null → innerWidth fallback 1280 → size-x
+    });
+});
+
+// ---------------------------------------------------------------------------
 // resize event handler (lines 16-19 in layout.service.ts)
 // ---------------------------------------------------------------------------
 

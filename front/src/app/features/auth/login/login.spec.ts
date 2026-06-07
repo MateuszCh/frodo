@@ -2,7 +2,8 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { provideLocationMocks } from '@angular/common/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
-import { NgForm } from '@angular/forms';
+import { NgForm, NgModel } from '@angular/forms';
+import { By } from '@angular/platform-browser';
 import { of, throwError } from 'rxjs';
 import { UserService } from '../../../core/user.service';
 import { LoginComponent } from './login';
@@ -117,4 +118,48 @@ describe('LoginComponent', () => {
         component.login(fakeForm(true));
         expect((component as any).errorMessage()).toBeUndefined();
     });
+
+    it('form renders username and password inputs when exist = true (login.html lines 7-17)', () => {
+        fixture.componentRef.setInput('exist', true);
+        fixture.detectChanges();
+
+        const usernameEl = fixture.debugElement.query(By.css('input[name="username"]'));
+        const passwordEl = fixture.debugElement.query(By.css('input[name="password"]'));
+
+        expect(usernameEl).not.toBeNull();
+        expect(passwordEl).not.toBeNull();
+        expect(passwordEl.nativeElement.type).toBe('password');
+    });
+
+    it('submit button click triggers login via ngSubmit (login.html (ngSubmit) handler)', () => {
+        fixture.componentRef.setInput('exist', true);
+        fixture.detectChanges();
+
+        const spy = vi.spyOn(component, 'login').mockImplementation(() => {});
+        const submitBtn: HTMLButtonElement = fixture.nativeElement.querySelector('button[type="submit"]');
+        submitBtn.click();
+
+        expect(spy).toHaveBeenCalled();
+    });
+
+    it('ngModel two-way binding: viewToModelUpdate triggers ngModelChange setter (login.html lines 7-17)', () => {
+        fixture.componentRef.setInput('exist', true);
+        fixture.detectChanges();
+
+        // viewToModelUpdate() emits ngModelChange → template runs data.username = $event
+        const usernameNgModel = fixture.debugElement
+            .query(By.css('input[name="username"]'))
+            .injector.get(NgModel);
+        const passwordNgModel = fixture.debugElement
+            .query(By.css('input[name="password"]'))
+            .injector.get(NgModel);
+
+        usernameNgModel.viewToModelUpdate('admin');
+        passwordNgModel.viewToModelUpdate('secret');
+        fixture.detectChanges();
+
+        expect((component as any).data.username).toBe('admin');
+        expect((component as any).data.password).toBe('secret');
+    });
+
 });

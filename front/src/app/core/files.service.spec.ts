@@ -119,4 +119,15 @@ describe('FilesService', () => {
         expect(form.get('filesData[img.jpg][title]')).toBe('My Photo');
         req.flush([]);
     });
+
+    it('upload() skips null and undefined metadata values', () => {
+        const file = new File(['data'], 'img.jpg', { type: 'image/jpeg' });
+        const filesData = { 'img.jpg': { title: 'My Photo', desc: null as unknown as string } };
+        service.upload([file], filesData).subscribe();
+        const req = http.expectOne('/api/file');
+        const form = req.request.body as FormData;
+        expect(form.get('filesData[img.jpg][title]')).toBe('My Photo');
+        expect(form.get('filesData[img.jpg][desc]')).toBeNull(); // skipped
+        req.flush([]);
+    });
 });

@@ -39,6 +39,18 @@ describe('PostTypesService', () => {
         expect(service.menu()).toHaveLength(2);
     });
 
+    it('getAll() handles null response gracefully', () => {
+        service.getAll().subscribe();
+        http.expectOne('/api/postType').flush(null);
+        expect(service.menu()).toEqual([]);
+    });
+
+    it('refreshMenu() handles null response gracefully', () => {
+        service.refreshMenu();
+        http.expectOne('/api/postType').flush(null);
+        expect(service.menu()).toEqual([]);
+    });
+
     // ---- CRUD ----------------------------------------------------------------
 
     it('create() sends POST /api/postType', () => {

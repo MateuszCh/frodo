@@ -104,6 +104,36 @@ describe('ToolsService', () => {
                 vi.runAllTimers();
             }).not.toThrow();
         });
+
+        it('uses the found container when selector matches a DOM element (line 30 truthy branch)', () => {
+            const container = document.createElement('div');
+            container.id = 'scroll';
+            const invalidEl = document.createElement('div');
+            invalidEl.className = 'ng-invalid';
+            const scrollSpy = vi.fn();
+            invalidEl.scrollIntoView = scrollSpy;
+            container.appendChild(invalidEl);
+            document.body.appendChild(container);
+
+            service.scrollToError('#scroll');
+            vi.runAllTimers();
+
+            expect(scrollSpy).toHaveBeenCalled();
+        });
+
+        it('falls back to document when the selector does not match any element (line 30 falsy ?? branch)', () => {
+            const el = document.createElement('div');
+            el.className = 'ng-invalid';
+            const scrollSpy = vi.fn();
+            el.scrollIntoView = scrollSpy;
+            document.body.appendChild(el);
+
+            service.scrollToError('#does-not-exist');
+            vi.runAllTimers();
+
+            // Falls back to document → finds .ng-invalid in body → scrollIntoView called
+            expect(scrollSpy).toHaveBeenCalled();
+        });
     });
 
     // ---- debounce ------------------------------------------------------------

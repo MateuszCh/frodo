@@ -1,10 +1,12 @@
+import { TestBed } from '@angular/core/testing';
 import { BytesPipe } from './bytes.pipe';
 
 describe('BytesPipe', () => {
     let pipe: BytesPipe;
 
     beforeEach(() => {
-        pipe = new BytesPipe();
+        TestBed.configureTestingModule({ providers: [BytesPipe] });
+        pipe = TestBed.inject(BytesPipe);
     });
 
     it('returns "-" for null', () => {

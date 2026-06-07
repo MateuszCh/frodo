@@ -125,6 +125,36 @@ describe('ListingComponent — isPosts / title', () => {
         fixture.detectChanges();
         expect(comp.title()).toBe('Articles');
     });
+
+    it('title falls back to "" when pluralTitle is undefined (line 143 ?? branch)', () => {
+        const { fixture, comp } = setup();
+        fixture.componentRef.setInput('family', 'posts');
+        // makePostType without explicit pluralTitle leaves it as the default 'Test Types',
+        // so override to undefined
+        fixture.componentRef.setInput('model', makePostType({ pluralTitle: undefined as unknown as string }));
+        fixture.detectChanges();
+        expect(comp.title()).toBe('');
+    });
+
+    it('postType and postTypeId computeds return undefined for non-posts family (lines 91-94 false branches)', () => {
+        const { fixture, comp } = setup();
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+        // Access private computeds directly to force the false branch evaluation
+        expect((comp as any).postType()).toBeUndefined();
+        expect((comp as any).postTypeId()).toBeUndefined();
+    });
+
+    it('posts ?? [] fallback when PostType.posts is null (line 118 ?? branch)', () => {
+        const { fixture, comp } = setup();
+        const postTypeNullPosts = makePostType({ posts: null as unknown as [] });
+        fixture.componentRef.setInput('family', 'posts');
+        fixture.componentRef.setInput('model', postTypeNullPosts);
+        fixture.detectChanges();
+        // baseModels falls back to [] when posts is null
+        expect(comp.visible()).toHaveLength(0);
+    });
 });
 
 // ---------------------------------------------------------------------------
@@ -191,6 +221,17 @@ describe('ListingComponent — visible / incrementLimit', () => {
         fixture.detectChanges();
         comp.incrementLimit();
         expect(comp.visible()).toHaveLength(25);
+    });
+
+    it('incrementLimit does nothing when all items already visible (line 189 false branch)', () => {
+        const { fixture, comp } = setup();
+        const pages: Page[] = [{ _id: 'p1', id: 1, title: 'A', pageUrl: '/a', rows: [] }];
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', pages);
+        fixture.detectChanges();
+        // limit is 20, only 1 item → baseModels.length <= limit → false branch
+        comp.incrementLimit();
+        expect(comp.visible()).toHaveLength(1);
     });
 
     it('matchCount equals total items when no filters are active', () => {
@@ -404,6 +445,17 @@ describe('ListingComponent — sortBy()', () => {
         comp.sortBy('title');
         expect(sessionStorage.getItem('sorting.pages')).toBe('title');
     });
+
+    it('falls back to family name when postTypeId is undefined (line 184 ?? branch)', () => {
+        const { fixture, comp } = setup();
+        // postType with no id — postTypeId() will be undefined
+        const postTypeNoId = { _id: 'pt1', title: 'T', type: 'articles', pluralTitle: 'A', fields: [], posts: [] };
+        fixture.componentRef.setInput('family', 'posts');
+        fixture.componentRef.setInput('model', postTypeNoId);
+        fixture.detectChanges();
+        comp.sortBy('title');
+        expect(sessionStorage.getItem('sorting.posts')).toBe('title');
+    });
 });
 
 // ---------------------------------------------------------------------------
@@ -601,6 +653,32 @@ describe('ListingComponent — removeDialog() for multiple families', () => {
         expect(mocks.tools.alert).toHaveBeenCalledWith('DB error');
         expect(comp.removeStatus()).toBeUndefined();
     });
+
+    it('shows error.error string when error.error.error is absent (line 254 middle branch)', () => {
+        const mocks = createMocks();
+        mocks.tools.confirm.mockReturnValue(of(true));
+        mocks.pages.remove.mockReturnValue(throwError(() => ({ error: 'Simple error message' })));
+        const { fixture, comp } = setup(mocks);
+        const page: Page = { _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] };
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', [page]);
+        fixture.detectChanges();
+        comp.removeDialog(page);
+        expect(mocks.tools.alert).toHaveBeenCalledWith('Simple error message');
+    });
+
+    it('shows default "Error removing" when error has no message (line 254 last branch)', () => {
+        const mocks = createMocks();
+        mocks.tools.confirm.mockReturnValue(of(true));
+        mocks.pages.remove.mockReturnValue(throwError(() => ({})));
+        const { fixture, comp } = setup(mocks);
+        const page: Page = { _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] };
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', [page]);
+        fixture.detectChanges();
+        comp.removeDialog(page);
+        expect(mocks.tools.alert).toHaveBeenCalledWith('Error removing');
+    });
 });
 
 // ---------------------------------------------------------------------------
@@ -723,6 +801,17 @@ describe('ListingComponent — import() per family', () => {
         (comp as any).import([{ _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] }]);
         expect(mocks.tools.alert).toHaveBeenCalledWith('Import failed');
         expect(comp.importStatus()).toBe(false);
+    });
+
+    it('shows default import error message when error has no nested error (line 319 fallback)', () => {
+        const mocks = createMocks();
+        mocks.pages.importData.mockReturnValue(throwError(() => ({})));
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+        (comp as any).import([{ _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] }]);
+        expect(mocks.tools.alert).toHaveBeenCalledWith('There was an error importing');
     });
 
     it('shows success alert and updates baseModels after pages import', () => {
