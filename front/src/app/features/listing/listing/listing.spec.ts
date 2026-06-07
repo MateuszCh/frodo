@@ -3,6 +3,7 @@ import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { provideLocationMocks } from '@angular/common/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
+import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { of, throwError } from 'rxjs';
 
 import { ListingComponent } from './listing';
@@ -55,7 +56,7 @@ function createMocks() {
 
 function setup(mocks = createMocks()) {
     TestBed.configureTestingModule({
-        imports: [ListingComponent],
+        imports: [ListingComponent, MatIconTestingModule],
         schemas: [NO_ERRORS_SCHEMA],
         providers: [
             provideRouter([]),
@@ -236,6 +237,24 @@ describe('ListingComponent — editLink()', () => {
         const pt = makePostType({ id: 3 });
         expect(comp.editLink(pt)).toEqual(['/post-types', 'edit', 3]);
     });
+
+    it('returns the correct link for components', () => {
+        const { fixture, comp } = setup();
+        fixture.componentRef.setInput('family', 'components');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+        const c = { _id: 'c1', id: 8, title: 'Hero', type: 'hero', fields: [] };
+        expect(comp.editLink(c)).toEqual(['/components', 'edit', 8]);
+    });
+
+    it('returns "/" as fallback for unknown family', () => {
+        const { fixture, comp } = setup();
+        fixture.componentRef.setInput('family', 'unknown');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+        const item = { _id: 'x1', id: 1, title: 'X' };
+        expect(comp.editLink(item as any)).toEqual(['/']);
+    });
 });
 
 // ---------------------------------------------------------------------------
@@ -271,6 +290,16 @@ describe('ListingComponent — add()', () => {
         fixture.detectChanges();
         comp.add();
         expect(navigateSpy).toHaveBeenCalledWith(['/post-types/add']);
+    });
+
+    it('navigates to /components/add for components family', () => {
+        const { fixture, comp, router } = setup();
+        const navigateSpy = vi.spyOn(router, 'navigate');
+        fixture.componentRef.setInput('family', 'components');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+        comp.add();
+        expect(navigateSpy).toHaveBeenCalledWith(['/components/add']);
     });
 });
 
@@ -538,5 +567,178 @@ describe('ListingComponent — removeDialog() for multiple families', () => {
         fixture.detectChanges();
         comp.removeDialog(c);
         expect(mocks.components.remove).toHaveBeenCalledWith('cid');
+    });
+
+    it('immediately removes previously-pending item when a second remove fires', () => {
+        const mocks = createMocks();
+        mocks.tools.confirm.mockReturnValue(of(true));
+        const { fixture, comp } = setup(mocks);
+        const p1: Page = { _id: 'p1', id: 1, title: 'Page 1', pageUrl: '/1', rows: [] };
+        const p2: Page = { _id: 'p2', id: 2, title: 'Page 2', pageUrl: '/2', rows: [] };
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', [p1, p2]);
+        fixture.detectChanges();
+
+        // Remove p1 — starts undo timer
+        comp.removeDialog(p1);
+        expect(comp.baseModels()).toHaveLength(2); // p1 still in undo window
+
+        // Remove p2 before undo timer fires — p1 should be flushed immediately
+        comp.removeDialog(p2);
+        expect(comp.baseModels()).toHaveLength(1); // p1 removed, p2 in undo window
+    });
+
+    it('shows alert and clears removeStatus on remove error', () => {
+        const mocks = createMocks();
+        mocks.tools.confirm.mockReturnValue(of(true));
+        mocks.pages.remove.mockReturnValue(throwError(() => ({ error: { error: 'DB error' } })));
+        const { fixture, comp } = setup(mocks);
+        const page: Page = { _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] };
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', [page]);
+        fixture.detectChanges();
+        comp.removeDialog(page);
+        expect(mocks.tools.alert).toHaveBeenCalledWith('DB error');
+        expect(comp.removeStatus()).toBeUndefined();
+    });
+});
+
+// ---------------------------------------------------------------------------
+// onImportFile()
+// ---------------------------------------------------------------------------
+
+describe('ListingComponent — onImportFile()', () => {
+    it('does nothing when no file is selected', () => {
+        const mocks = createMocks();
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+        const event = { target: { files: null } } as unknown as Event;
+        comp.onImportFile(event);
+        expect(mocks.pages.importData).not.toHaveBeenCalled();
+    });
+
+    it('shows alert when file content is not valid JSON', async () => {
+        const mocks = createMocks();
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+
+        const blob = new Blob(['not json'], { type: 'application/json' });
+        const file = new File([blob], 'import.json');
+        const input = { files: [file], value: '' } as unknown as HTMLInputElement;
+        const event = { target: input } as unknown as Event;
+
+        comp.onImportFile(event);
+        await new Promise((r) => setTimeout(r, 50));
+        expect(mocks.tools.alert).toHaveBeenCalledWith('Wrong file format!');
+    });
+
+    it('shows alert when parsed JSON has no items', async () => {
+        const mocks = createMocks();
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+
+        const blob = new Blob(['[]'], { type: 'application/json' });
+        const file = new File([blob], 'import.json');
+        const input = { files: [file], value: '' } as unknown as HTMLInputElement;
+        const event = { target: input } as unknown as Event;
+
+        comp.onImportFile(event);
+        await new Promise((r) => setTimeout(r, 50));
+        expect(mocks.tools.alert).toHaveBeenCalledWith('There is no correct posts to import');
+    });
+
+    it('calls importData when JSON has items', async () => {
+        const mocks = createMocks();
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+
+        const pages: Page[] = [{ _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] }];
+        const blob = new Blob([JSON.stringify(pages)], { type: 'application/json' });
+        const file = new File([blob], 'import.json');
+        const input = { files: [file], value: '' } as unknown as HTMLInputElement;
+        const event = { target: input } as unknown as Event;
+
+        comp.onImportFile(event);
+        await new Promise((r) => setTimeout(r, 50));
+        expect(mocks.pages.importData).toHaveBeenCalled();
+    });
+});
+
+// ---------------------------------------------------------------------------
+// import() via apiImport() — per-family routing
+// ---------------------------------------------------------------------------
+
+describe('ListingComponent — import() per family', () => {
+    it('calls postsService.importData for posts family', () => {
+        const mocks = createMocks();
+        mocks.posts.importData.mockReturnValue(of({ posts: [makePost()], fields: [] }));
+        const { fixture, comp } = setup(mocks);
+        const postType = makePostType({ type: 'articles', posts: [] });
+        fixture.componentRef.setInput('family', 'posts');
+        fixture.componentRef.setInput('model', postType);
+        fixture.detectChanges();
+        (comp as any).import([makePost()]);
+        expect(mocks.posts.importData).toHaveBeenCalledWith(
+            expect.objectContaining({ postType: 'articles' }),
+        );
+    });
+
+    it('calls postTypesService.importData for postTypes family', () => {
+        const mocks = createMocks();
+        mocks.postTypes.importData.mockReturnValue(of([]));
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'postTypes');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+        (comp as any).import([makePostType()]);
+        expect(mocks.postTypes.importData).toHaveBeenCalled();
+    });
+
+    it('calls componentsService.importData for components family', () => {
+        const mocks = createMocks();
+        mocks.components.importData.mockReturnValue(of([]));
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'components');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+        (comp as any).import([{ _id: 'c1', id: 1, title: 'Hero', type: 'hero', fields: [] }]);
+        expect(mocks.components.importData).toHaveBeenCalled();
+    });
+
+    it('shows alert and clears importStatus on import error', () => {
+        const mocks = createMocks();
+        mocks.pages.importData.mockReturnValue(throwError(() => ({ error: { error: 'Import failed' } })));
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+        (comp as any).import([{ _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] }]);
+        expect(mocks.tools.alert).toHaveBeenCalledWith('Import failed');
+        expect(comp.importStatus()).toBe(false);
+    });
+
+    it('shows success alert and updates baseModels after pages import', () => {
+        const imported: Page[] = [
+            { _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] },
+            { _id: 'p2', id: 2, title: 'About', pageUrl: '/about', rows: [] },
+        ];
+        const mocks = createMocks();
+        mocks.pages.importData.mockReturnValue(of(imported));
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', []);
+        fixture.detectChanges();
+        (comp as any).import(imported);
+        expect(comp.baseModels()).toHaveLength(2);
+        expect(comp.count()).toBe(2);
+        expect(mocks.tools.alert).toHaveBeenCalledWith(expect.stringContaining('2'));
     });
 });

@@ -64,6 +64,47 @@ describe('LayoutService body class effect', () => {
 });
 
 // ---------------------------------------------------------------------------
+// resize event handler (lines 16-19 in layout.service.ts)
+// ---------------------------------------------------------------------------
+
+describe('LayoutService resize handler', () => {
+    it('updates size signal when a resize event fires', () => {
+        let resizeHandler: (() => void) | undefined;
+        const mockDoc = {
+            body: document.body,
+            defaultView: {
+                innerWidth: 1024,
+                addEventListener: vi.fn((event: string, handler: () => void) => {
+                    if (event === 'resize') {
+                        resizeHandler = handler;
+                    }
+                }),
+            },
+        };
+        // The service uses global requestAnimationFrame — call the callback synchronously
+        vi.spyOn(globalThis, 'requestAnimationFrame').mockImplementation((cb) => {
+            cb(0);
+            return 0;
+        });
+        vi.spyOn(globalThis, 'cancelAnimationFrame').mockImplementation(() => {});
+
+        TestBed.configureTestingModule({
+            providers: [LayoutService, { provide: DOCUMENT, useValue: mockDoc }],
+        });
+        const service = TestBed.inject(LayoutService);
+        TestBed.tick();
+
+        // Simulate window resize to a small width
+        mockDoc.defaultView.innerWidth = 400;
+        resizeHandler?.();
+
+        expect(service.size()).toBe('size-s');
+
+        vi.restoreAllMocks();
+    });
+});
+
+// ---------------------------------------------------------------------------
 // sidenav helpers
 // ---------------------------------------------------------------------------
 
