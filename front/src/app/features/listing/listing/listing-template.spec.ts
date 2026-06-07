@@ -430,7 +430,7 @@ describe('listing.html — button click interactions', () => {
     beforeEach(() => installObserverMock());
     afterEach(() => { delete (globalThis as any).IntersectionObserver; });
 
-    it('clicking the Filters button toggles filtersOpen (line 64)', () => {
+    it('clicking the Filters button toggles filtersOpen', () => {
         const mocks = createMocks('size-s');
         const { fixture, comp } = setup(mocks);
         const postType = makePostType({ type: 'articles', posts: [makePost()] });
@@ -446,7 +446,7 @@ describe('listing.html — button click interactions', () => {
         expect(comp.filtersOpen()).toBe(true);
     });
 
-    it('clicking the backdrop closes filtersOpen (line 3)', () => {
+    it('clicking the backdrop closes filtersOpen', () => {
         const mocks = createMocks('size-s');
         const { fixture, comp } = setup(mocks);
         const postType = makePostType({ type: 'articles', posts: [makePost()] });
@@ -463,7 +463,7 @@ describe('listing.html — button click interactions', () => {
         expect(comp.filtersOpen()).toBe(false);
     });
 
-    it('clicking Reset Filters calls resetFilters() (line 128)', () => {
+    it('clicking Reset Filters calls resetFilters()', () => {
         const { fixture, comp } = setup();
         const postType = makePostType({ type: 'articles', posts: [makePost()] });
         fixture.componentRef.setInput('family', 'posts');
@@ -478,7 +478,7 @@ describe('listing.html — button click interactions', () => {
         expect(spy).toHaveBeenCalled();
     });
 
-    it('clicking Delete triggers removeDialog (line 94)', () => {
+    it('clicking Delete triggers removeDialog', () => {
         const mocks = createMocks();
         const { fixture, comp } = setup(mocks);
         const pages: Page[] = [{ _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] }];
@@ -492,8 +492,7 @@ describe('listing.html — button click interactions', () => {
         expect(spy).toHaveBeenCalled();
     });
 
-    it('clicking Add button triggers add() (listing.html line 15)', () => {
-        installObserverMock();
+    it('clicking Add button triggers add()', () => {
         const { fixture, comp } = setup();
         fixture.componentRef.setInput('family', 'pages');
         fixture.componentRef.setInput('model', []);
@@ -507,8 +506,7 @@ describe('listing.html — button click interactions', () => {
         expect(spy).toHaveBeenCalled();
     });
 
-    it('clicking Edit button in posts family triggers editPostType() (listing.html line 20)', () => {
-        installObserverMock();
+    it('clicking Edit button in posts family triggers editPostType()', () => {
         const { fixture, comp } = setup();
         fixture.componentRef.setInput('family', 'posts');
         fixture.componentRef.setInput('model', makePostType({ type: 'articles', posts: [] }));
@@ -526,7 +524,7 @@ describe('listing.html — button click interactions', () => {
         }
     });
 
-    it('file input change event triggers onImportFile() (listing.html line 33)', () => {
+    it('file input change event triggers onImportFile()', () => {
         installObserverMock();
         const { fixture, comp } = setup();
         fixture.componentRef.setInput('family', 'pages');
@@ -539,7 +537,7 @@ describe('listing.html — button click interactions', () => {
         expect(spy).toHaveBeenCalled();
     });
 
-    it('Delete button has busy class while remove is in progress (listing.html line 90)', () => {
+    it('Delete button has busy class while remove is in progress', () => {
         // Use a Subject so the API response is delayed and we can inspect the intermediate state
         const removeSubject = new Subject<string>();
         const mocks = createMocks();
@@ -571,7 +569,7 @@ describe('listing.html — button click interactions', () => {
 describe('listing.html — remaining event handler interactions', () => {
     afterEach(() => { delete (globalThis as any).IntersectionObserver; });
 
-    it('clicking Export triggers export() (line 39)', () => {
+    it('clicking Export triggers export()', () => {
         installObserverMock();
         const mocks = createMocks();
         const { fixture, comp } = setup(mocks);
@@ -588,7 +586,7 @@ describe('listing.html — remaining event handler interactions', () => {
         expect(spy).toHaveBeenCalled();
     });
 
-    it('clicking Import triggers importInput.click() (line 26)', () => {
+    it('clicking Import triggers importInput.click()', () => {
         installObserverMock();
         const { fixture } = setup();
         const pages: Page[] = [{ _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] }];
@@ -606,7 +604,7 @@ describe('listing.html — remaining event handler interactions', () => {
         expect(inputClickSpy).toHaveBeenCalled();
     });
 
-    it('IntersectionObserver firing reached event calls incrementLimit() (line 113)', () => {
+    it('IntersectionObserver firing reached event calls incrementLimit()', () => {
         const observer = installObserverMockWithCallback();
         const { fixture, comp } = setup();
         const pages: Page[] = Array.from({ length: 25 }, (_, i) => ({
@@ -631,7 +629,7 @@ describe('listing-filters.html — ngModelChange interactions', () => {
     beforeEach(() => installObserverMock());
     afterEach(() => { delete (globalThis as any).IntersectionObserver; });
 
-    it('triggers onFilterChange when number inputs change (lines 65 and 74)', () => {
+    it('triggers onFilterChange when number inputs change', () => {
         const { fixture, comp } = setup();
         const postType = makePostType({
             type: 'articles',
@@ -645,18 +643,17 @@ describe('listing-filters.html — ngModelChange interactions', () => {
         const numberInputs: HTMLInputElement[] = Array.from(
             fixture.nativeElement.querySelectorAll('input[type="number"]'),
         );
-        // min input (line 65) and max input (line 74)
+        const tickBefore = comp.filterTick();
         for (const input of numberInputs) {
             input.value = '50';
             input.dispatchEvent(new Event('input'));
             input.dispatchEvent(new Event('change'));
         }
         fixture.detectChanges();
-        expect(comp.filterTick()).toBeGreaterThanOrEqual(0);
+        expect(comp.filterTick()).toBeGreaterThan(tickBefore);
     });
 
-    it('clicking a sort menu item calls sortBy (listing.html line 53)', () => {
-        installObserverMock();
+    it('clicking a sort menu item calls sortBy', () => {
         const { fixture, comp } = setup();
         const pages: Page[] = [{ _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] }];
         fixture.componentRef.setInput('family', 'pages');
@@ -683,10 +680,9 @@ describe('listing-filters.html — ngModelChange interactions', () => {
             // Menu overlay not supported in this env — just verify no error
             expect(comp).toBeTruthy();
         }
-        delete (globalThis as any).IntersectionObserver;
     });
 
-    it('triggers onFilterChange when date inputs change (lines 91 and 105)', () => {
+    it('triggers onFilterChange when date inputs change', () => {
         const { fixture, comp } = setup();
         const postType = makePostType({
             type: 'articles',
@@ -704,12 +700,17 @@ describe('listing-filters.html — ngModelChange interactions', () => {
             el.closest('mat-form-field')?.querySelector('mat-datepicker') !== null,
         ) as HTMLInputElement[];
 
+        const tickBefore = comp.filterTick();
         for (const input of dateInputs) {
             input.value = '6/1/2024';
             input.dispatchEvent(new Event('input'));
             input.dispatchEvent(new Event('change'));
         }
         fixture.detectChanges();
-        expect(comp.filterTick()).toBeGreaterThanOrEqual(0);
+        if (dateInputs.length > 0) {
+            expect(comp.filterTick()).toBeGreaterThan(tickBefore);
+        } else {
+            expect(comp.filterTick()).toBe(tickBefore);
+        }
     });
 });

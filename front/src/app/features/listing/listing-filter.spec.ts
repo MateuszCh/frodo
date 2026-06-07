@@ -66,8 +66,7 @@ describe('buildFilters', () => {
         expect(result.selects!.fields[0].values).toEqual([]);
     });
 
-    it('select field without options falls back to [] (line 105 ?? branch)', () => {
-        // field.options is undefined → field.options ?? [] returns []
+    it('select field without options falls back to []', () => {
         const fields = [makeField('select', 'status', 'Status')]; // no options
         const result = buildFilters(fields, [], 'posts', [])!;
         expect(result.selects!.fields[0].options).toEqual([]);
@@ -81,8 +80,7 @@ describe('buildFilters', () => {
         expect(result.multiselects!.fields[0].values).toEqual([]);
     });
 
-    it('multiselect field without multiOptions falls back to [] (line 110 ?? branch)', () => {
-        // field.multiOptions is undefined → field.multiOptions ?? [] returns []
+    it('multiselect field without multiOptions falls back to []', () => {
         const fields = [makeField('multiselect', 'tags', 'Tags')]; // no multiOptions
         const result = buildFilters(fields, [], 'posts', [])!;
         expect(result.multiselects!.fields[0].multiOptions).toEqual([]);
@@ -102,9 +100,8 @@ describe('buildFilters', () => {
         expect(min < max).toBe(true);
     });
 
-    it('date field with no valid date values: date group stays empty (line 116 false branch)', () => {
+    it('date field with no valid date values: date group stays empty', () => {
         const fields = [makeField('date', 'published', 'Published')];
-        // No posts → setRange returns undefined → if(range) is false → dates.fields stays empty
         const result = buildFilters(fields, [], 'posts', [])!;
         expect(result.dates!.fields).toHaveLength(0);
     });
@@ -242,7 +239,7 @@ describe('applyFilters', () => {
         expect(result).toHaveLength(3);
     });
 
-    it('null item in models uses empty string fallback in textMatches (line 164 ?? branch)', () => {
+    it('null item in models is skipped by text filter', () => {
         const filters: Filters = { textFilter: { type: 'text', value: 'hello' } };
         const items = [null as unknown as Record<string, unknown>, { title: 'hello world' } as Record<string, unknown>];
         const result = applyFilters(items, filters, 'pages');
@@ -299,7 +296,7 @@ describe('applyFilters', () => {
         expect((result[0] as unknown as Post).title).toBe('Beta');
     });
 
-    it('multiselect filter excludes post whose field is an empty array (line 211 return false)', () => {
+    it('multiselect filter excludes post whose field is an empty array', () => {
         const postsWithEmpty: Post[] = [
             makePost({ data: { tags: [] } }),         // empty → excluded
             makePost({ data: { tags: ['red'] } }),    // matches → included
@@ -502,7 +499,7 @@ describe('applySort', () => {
         expect(items).toEqual(copy);
     });
 
-    it('both values null sorts them as equal (line 302)', () => {
+    it('both values null sorts them as equal', () => {
         const bothNull: Record<string, unknown>[] = [
             { title: undefined, created: undefined },
             { title: undefined, created: undefined },
@@ -511,8 +508,7 @@ describe('applySort', () => {
         expect(sorted).toHaveLength(2); // no crash, both null treated as equal
     });
 
-    it('three-item array with one null covers bv==null branch (line 304)', () => {
-        // Three items force compareFn to be called in both directions (A vs null AND null vs A)
+    it('three-item array with one null: null is always sorted first', () => {
         const withNull: Record<string, unknown>[] = [
             { title: 'A' },
             { title: undefined },
@@ -524,8 +520,7 @@ describe('applySort', () => {
         expect(sorted[2]['title']).toBe('C');
     });
 
-    it('equal values leave cmp at 0 — covers else path of av > bv (line 306)', () => {
-        // When av == bv, neither av < bv nor av > bv is true → cmp stays 0
+    it('equal values produce stable sort order', () => {
         const withEqual: Record<string, unknown>[] = [
             { title: 'A', id: 1 },
             { title: 'A', id: 2 },
@@ -536,7 +531,7 @@ describe('applySort', () => {
         expect(sorted[2]['title']).toBe('B');
     });
 
-    it('sorts by data_ field when post.data is undefined (line 293 ?? {} branch)', () => {
+    it('sorts by data_ field when post.data is undefined', () => {
         const withMissingData = [
             { ...makePost(), title: 'B', data: { score: 5 } },
             { ...makePost(), title: 'A', data: undefined as any },

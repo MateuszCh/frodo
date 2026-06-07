@@ -126,7 +126,7 @@ describe('ListingComponent — isPosts / title', () => {
         expect(comp.title()).toBe('Articles');
     });
 
-    it('title falls back to "" when pluralTitle is undefined (line 143 ?? branch)', () => {
+    it('title falls back to "" when pluralTitle is undefined', () => {
         const { fixture, comp } = setup();
         fixture.componentRef.setInput('family', 'posts');
         // makePostType without explicit pluralTitle leaves it as the default 'Test Types',
@@ -136,23 +136,21 @@ describe('ListingComponent — isPosts / title', () => {
         expect(comp.title()).toBe('');
     });
 
-    it('postType and postTypeId computeds return undefined for non-posts family (lines 91-94 false branches)', () => {
+    it('postType and postTypeId computeds return undefined for non-posts family', () => {
         const { fixture, comp } = setup();
         fixture.componentRef.setInput('family', 'pages');
         fixture.componentRef.setInput('model', []);
         fixture.detectChanges();
-        // Access private computeds directly to force the false branch evaluation
         expect((comp as any).postType()).toBeUndefined();
         expect((comp as any).postTypeId()).toBeUndefined();
     });
 
-    it('posts ?? [] fallback when PostType.posts is null (line 118 ?? branch)', () => {
+    it('baseModels falls back to [] when PostType.posts is null', () => {
         const { fixture, comp } = setup();
         const postTypeNullPosts = makePostType({ posts: null as unknown as [] });
         fixture.componentRef.setInput('family', 'posts');
         fixture.componentRef.setInput('model', postTypeNullPosts);
         fixture.detectChanges();
-        // baseModels falls back to [] when posts is null
         expect(comp.visible()).toHaveLength(0);
     });
 });
@@ -223,7 +221,7 @@ describe('ListingComponent — visible / incrementLimit', () => {
         expect(comp.visible()).toHaveLength(25);
     });
 
-    it('incrementLimit does nothing when all items already visible (line 189 false branch)', () => {
+    it('incrementLimit does nothing when all items are already visible', () => {
         const { fixture, comp } = setup();
         const pages: Page[] = [{ _id: 'p1', id: 1, title: 'A', pageUrl: '/a', rows: [] }];
         fixture.componentRef.setInput('family', 'pages');
@@ -446,7 +444,7 @@ describe('ListingComponent — sortBy()', () => {
         expect(sessionStorage.getItem('sorting.pages')).toBe('title');
     });
 
-    it('falls back to family name when postTypeId is undefined (line 184 ?? branch)', () => {
+    it('uses the family name as sessionStorage key when postTypeId is undefined', () => {
         const { fixture, comp } = setup();
         // postType with no id — postTypeId() will be undefined
         const postTypeNoId = { _id: 'pt1', title: 'T', type: 'articles', pluralTitle: 'A', fields: [], posts: [] };
@@ -468,13 +466,11 @@ describe('ListingComponent — resetFilters()', () => {
         fixture.componentRef.setInput('family', 'pages');
         fixture.componentRef.setInput('model', []);
         fixture.detectChanges();
-        // Build a filters object with a text value and reset it
         const filters = comp.filters();
-        if (filters) {
-            filters.textFilter.value = 'search';
-            comp.resetFilters();
-            expect(comp.filters()!.textFilter.value).toBeUndefined();
-        }
+        expect(filters).toBeDefined();
+        filters!.textFilter.value = 'search';
+        comp.resetFilters();
+        expect(comp.filters()!.textFilter.value).toBeUndefined();
     });
 
     it('does not throw when filters is undefined', () => {
@@ -654,7 +650,7 @@ describe('ListingComponent — removeDialog() for multiple families', () => {
         expect(comp.removeStatus()).toBeUndefined();
     });
 
-    it('shows error.error string when error.error.error is absent (line 254 middle branch)', () => {
+    it('shows error.error string when error.error.error is absent', () => {
         const mocks = createMocks();
         mocks.tools.confirm.mockReturnValue(of(true));
         mocks.pages.remove.mockReturnValue(throwError(() => ({ error: 'Simple error message' })));
@@ -667,7 +663,7 @@ describe('ListingComponent — removeDialog() for multiple families', () => {
         expect(mocks.tools.alert).toHaveBeenCalledWith('Simple error message');
     });
 
-    it('shows default "Error removing" when error has no message (line 254 last branch)', () => {
+    it('shows default "Error removing" when error has no message', () => {
         const mocks = createMocks();
         mocks.tools.confirm.mockReturnValue(of(true));
         mocks.pages.remove.mockReturnValue(throwError(() => ({})));
@@ -803,7 +799,7 @@ describe('ListingComponent — import() per family', () => {
         expect(comp.importStatus()).toBe(false);
     });
 
-    it('shows default import error message when error has no nested error (line 319 fallback)', () => {
+    it('shows default import error message when error has no nested error', () => {
         const mocks = createMocks();
         mocks.pages.importData.mockReturnValue(throwError(() => ({})));
         const { fixture, comp } = setup(mocks);
