@@ -58,13 +58,11 @@ export interface Page {
     id?: number;
     title: string;
     pageUrl: string;
-    rows: PageRow[];
+    // the backend schema is `rows: [{}]` (schemaless); each row holds one
+    // component instance directly
+    rows: PageComponent[];
     created?: number;
     url?: string;
-}
-
-export interface PageRow {
-    components: PageComponent[];
 }
 
 export interface PageComponent {

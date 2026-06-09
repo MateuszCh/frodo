@@ -1,4 +1,4 @@
-import { Component, OnInit, forwardRef, input, signal } from '@angular/core';
+import { Component, effect, forwardRef, input, signal } from '@angular/core';
 import { ControlContainer, NgForm } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { Field } from '../../../models/models';
@@ -15,22 +15,28 @@ import { FieldInputComponent } from '../field-input/field-input';
     templateUrl: './repeater.html',
     styleUrl: './repeater.scss',
 })
-export class RepeaterComponent implements OnInit {
+export class RepeaterComponent {
     readonly parentModel = input.required<Record<string, unknown>>();
     readonly field = input.required<Field>();
     readonly namePrefix = input<string>('');
 
     protected readonly rows = signal<Record<string, unknown>[]>([]);
 
-    ngOnInit(): void {
-        const parent = this.parentModel();
-        const id = this.field().id;
-        if (!Array.isArray(parent[id])) {
-            parent[id] = [];
-        }
-        const arr = parent[id] as Record<string, unknown>[];
-        this.checkModel(arr);
-        this.rows.set([...arr]);
+    constructor() {
+        // Re-sync whenever the bound model object is replaced (the post editor
+        // swaps in the server response after a save) — a one-time ngOnInit
+        // snapshot would keep the rendered rows bound to the detached old
+        // object, silently losing any edits made after the save.
+        effect(() => {
+            const parent = this.parentModel();
+            const id = this.field().id;
+            if (!Array.isArray(parent[id])) {
+                parent[id] = [];
+            }
+            const arr = parent[id] as Record<string, unknown>[];
+            this.checkModel(arr);
+            this.rows.set([...arr]);
+        });
     }
 
     private get array(): Record<string, unknown>[] {

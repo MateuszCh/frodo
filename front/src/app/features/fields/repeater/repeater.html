@@ -1,13 +1,16 @@
-@for (row of rows(); track $index) {
+@for (row of rows(); track $index; let rowIndex = $index) {
     <div class="repeater-row">
         @for (rf of field().repeaterFields ?? []; track rf.id) {
+            <!-- use the outer row index: the inner @for shadows $index, which
+                 would give every row the same control-name prefix and make
+                 NgForm merge the rows' ngModels into one control -->
             <app-field
                 [field]="rf"
                 [model]="row"
-                [namePrefix]="namePrefix() + '_' + $index + '_'"
+                [namePrefix]="namePrefix() + '_' + rowIndex + '_'"
             ></app-field>
         }
-        <button mat-raised-button color="warn" type="button" (click)="removeRow($index)">
+        <button mat-raised-button color="warn" type="button" (click)="removeRow(rowIndex)">
             Delete row
         </button>
     </div>
