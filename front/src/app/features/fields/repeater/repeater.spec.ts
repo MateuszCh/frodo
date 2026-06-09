@@ -81,6 +81,16 @@ describe('RepeaterComponent', () => {
         expect(host.model['items']).toEqual([{ name: 'a' }]);
     });
 
+    it('renders rows without fields when the schema has no repeaterFields', () => {
+        host.field = { id: 'items', title: 'Items', type: 'repeater' };
+        host.model = { items: [{ stale: 1 }] };
+        fixture.detectChanges();
+
+        expect(rowInputs()).toHaveLength(0);
+        // with no valid ids every row key is dropped
+        expect(host.model['items']).toEqual([{}]);
+    });
+
     it('addRow appends an empty row to the parent array', () => {
         fixture.detectChanges();
 

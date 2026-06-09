@@ -11,7 +11,13 @@ import { FieldInputComponent } from '../field-input/field-input';
 @Component({
     selector: 'app-repeater',
     viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],
-    imports: [MatButtonModule, forwardRef(() => FieldInputComponent)],
+    imports: [
+        MatButtonModule,
+        // AOT resolves the circular import statically; the arrow only runs
+        // when TestBed recompiles the component
+        /* v8 ignore next */
+        forwardRef(() => FieldInputComponent),
+    ],
     templateUrl: './repeater.html',
     styleUrl: './repeater.scss',
 })

@@ -31,6 +31,9 @@ import { RepeaterComponent } from '../repeater/repeater';
         MatCheckboxModule,
         MatDatepickerModule,
         MatButtonModule,
+        // AOT resolves the circular import statically; the arrow only runs
+        // when TestBed recompiles the component
+        /* v8 ignore next */
         forwardRef(() => RepeaterComponent),
     ],
     templateUrl: './field-input.html',

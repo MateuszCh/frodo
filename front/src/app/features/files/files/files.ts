@@ -79,7 +79,7 @@ export class FilesComponent implements OnInit {
         if (sel !== undefined && !list.includes(sel)) {
             this.selected.set(list.length ? list[0] : undefined);
         }
-    }, { allowSignalWrites: true });
+    });
 
     protected readonly filtered = computed(() => {
         let list = this.files();
