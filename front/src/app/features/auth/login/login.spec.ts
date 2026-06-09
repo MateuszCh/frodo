@@ -6,7 +6,6 @@ import { NgForm, NgModel } from '@angular/forms';
 import { By } from '@angular/platform-browser';
 import { of, throwError } from 'rxjs';
 import { UserService } from '../../../core/user.service';
-import { FilesService } from '../../../core/files.service';
 import { LoginComponent } from './login';
 
 function fakeForm(valid: boolean): NgForm {
@@ -20,12 +19,10 @@ describe('LoginComponent', () => {
     let fixture: ComponentFixture<LoginComponent>;
     let component: LoginComponent;
     let userServiceMock: { login: ReturnType<typeof vi.fn> };
-    let filesServiceMock: { loadCatalogues: ReturnType<typeof vi.fn> };
     let router: Router;
 
     beforeEach(() => {
         userServiceMock = { login: vi.fn() };
-        filesServiceMock = { loadCatalogues: vi.fn().mockReturnValue(of([])) };
         TestBed.configureTestingModule({
             imports: [LoginComponent],
             providers: [
@@ -33,7 +30,6 @@ describe('LoginComponent', () => {
                 provideLocationMocks(),
                 provideNoopAnimations(),
                 { provide: UserService, useValue: userServiceMock },
-                { provide: FilesService, useValue: filesServiceMock },
             ],
         });
         fixture = TestBed.createComponent(LoginComponent);
@@ -87,26 +83,6 @@ describe('LoginComponent', () => {
         userServiceMock.login.mockReturnValue(of({ username: 'alice', id: 1 }));
         component.login(fakeForm(true));
         expect((component as any).actionStatus()).toBe(false);
-    });
-
-    it('reloads file catalogues after successful login (app-init preload ran unauthenticated)', () => {
-        userServiceMock.login.mockReturnValue(of({ username: 'alice', id: 1 }));
-        component.login(fakeForm(true));
-        expect(filesServiceMock.loadCatalogues).toHaveBeenCalledTimes(1);
-    });
-
-    it('does not reload catalogues when login fails', () => {
-        userServiceMock.login.mockReturnValue(throwError(() => ({})));
-        component.login(fakeForm(true));
-        expect(filesServiceMock.loadCatalogues).not.toHaveBeenCalled();
-    });
-
-    it('still navigates to "/" when the catalogue reload fails', () => {
-        userServiceMock.login.mockReturnValue(of({ username: 'alice', id: 1 }));
-        filesServiceMock.loadCatalogues.mockReturnValue(throwError(() => new Error('500')));
-        const navigateSpy = vi.spyOn(router, 'navigate');
-        component.login(fakeForm(true));
-        expect(navigateSpy).toHaveBeenCalledWith(['/']);
     });
 
     it('sets errorMessage from error.error.error on login failure', () => {
