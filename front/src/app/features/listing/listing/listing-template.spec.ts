@@ -578,7 +578,7 @@ describe('listing.html — remaining event handler interactions', () => {
         fixture.componentRef.setInput('model', pages);
         fixture.detectChanges();
 
-        const spy = vi.spyOn(comp, 'export');
+        const spy = vi.spyOn(comp, 'export').mockImplementation(() => {});
         const exportBtn: HTMLButtonElement = Array.from<HTMLButtonElement>(
             fixture.nativeElement.querySelectorAll('button'),
         ).find((b) => b.textContent?.trim() === 'Export')!;
@@ -712,5 +712,30 @@ describe('listing-filters.html — ngModelChange interactions', () => {
         } else {
             expect(comp.filterTick()).toBe(tickBefore);
         }
+    });
+});
+
+// ---------------------------------------------------------------------------
+// listing.html — undo row without a result message
+// ---------------------------------------------------------------------------
+
+describe('listing.html — undo row without a result message', () => {
+    beforeEach(() => installObserverMock());
+    afterEach(() => { delete (globalThis as any).IntersectionObserver; });
+
+    it('renders an empty undo row while removeStatus has no result yet', () => {
+        const { fixture, comp } = setup();
+        const page: Page = { _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] };
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', [page]);
+        fixture.detectChanges();
+
+        comp.lastRemoved.set(page);
+        comp.removeStatus.set({ busy: 'p1' });
+        fixture.detectChanges();
+
+        const undoRow = fixture.nativeElement.querySelector('.listing-item__row.center');
+        expect(undoRow).not.toBeNull();
+        expect(undoRow.querySelector('p')).toBeNull();
     });
 });

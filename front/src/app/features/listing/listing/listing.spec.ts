@@ -504,6 +504,12 @@ describe('ListingComponent — editPostType()', () => {
 // ---------------------------------------------------------------------------
 
 describe('ListingComponent — export()', () => {
+    // jsdom logs "Not implemented: navigation" when the download link is clicked
+    beforeEach(() => {
+        vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
+    });
+    afterEach(() => vi.restoreAllMocks());
+
     it('calls pagesService.exportData() for pages family', () => {
         const mocks = createMocks();
         mocks.pages.exportData.mockReturnValue(of('/export/pages.json'));

@@ -7,7 +7,7 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
-import { ComponentEntity, Page, PageComponent as PageRowModel } from '../../../models/models';
+import { ComponentEntity, Page } from '../../../models/models';
 import { PagesService } from '../../../core/pages.service';
 import { ToolsService } from '../../../core/tools.service';
 import { AddComponentComponent } from '../add-component/add-component';
@@ -38,8 +38,7 @@ export class PageComponent implements OnInit {
     protected readonly currentTitle = signal('');
     protected readonly actionStatus = signal<'' | 'save' | 'remove'>('');
     protected readonly edit = computed(() => !!this.page());
-    // rows as a typed view for the template
-    protected readonly rows = computed(() => this.model().rows as unknown as PageRowModel[]);
+    protected readonly rows = computed(() => this.model().rows);
 
     ngOnInit(): void {
         const existing = this.page();
@@ -55,7 +54,7 @@ export class PageComponent implements OnInit {
     }
 
     addComponent(): void {
-        (this.model().rows as unknown as PageRowModel[]).push({ data: {}, title: '', type: '' });
+        this.model().rows.push({ data: {}, title: '', type: '' });
         this.model.set({ ...this.model() });
     }
 
