@@ -12,6 +12,15 @@ Frodo is a full-stack CMS for managing custom content types, posts, pages, and f
 
 ## Commands
 
+> **Never start a server.** Do not run `npm start`, `npm run watch`, `ng serve`,
+> `./dev.sh up`, `docker compose up`, or any other long-running/dev-server command.
+> The user runs servers themselves — if one is needed, ask them to start it
+> (e.g. by typing `! npm run watch`) and wait. Commands listed below are reference
+> for the user, not an invitation to execute them.
+>
+> One-shot commands that terminate on their own (`ng build`, `ng test`, `npm run lint`)
+> are fine.
+
 ### Backend (root)
 ```bash
 npm start          # Run Express server on port 3000
