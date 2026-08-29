@@ -1,5 +1,6 @@
 const mongoose = require("mongoose"),
-    Schema = mongoose.Schema;
+    Schema = mongoose.Schema,
+    timestamps = require("./tools/timestamps");
 
 const FileSchema = new Schema({
     title: {
@@ -33,13 +34,12 @@ const FileSchema = new Schema({
     id: {
         type: Number
     },
-    created: {
-        type: Number
-    },
     position: {
         type: Number
     }
 });
+
+FileSchema.plugin(timestamps);
 
 const File = mongoose.model("file", FileSchema);
 

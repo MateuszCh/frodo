@@ -3,6 +3,7 @@ const mongoose = require("mongoose"),
     PostTypeAbstractSchema = require("./abstract-schemas/postTypeAbstractSchema"),
     Post = require("./post"),
     format = require("./tools/format"),
+    timestamps = require("./tools/timestamps"),
     extend = require("mongoose-extend-schema");
 
 const PostTypeSchema = extend(
@@ -50,6 +51,8 @@ PostTypeSchema.post("save", function(postType, next) {
         .then(() => next())
         .catch(next);
 });
+
+PostTypeSchema.plugin(timestamps);
 
 const PostType = mongoose.model("post_type", PostTypeSchema);
 
