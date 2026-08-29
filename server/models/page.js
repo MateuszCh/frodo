@@ -12,6 +12,12 @@ const PageSchema = new Schema(
             required: [true, "Url of page is required"],
             index: true
         },
+        seoTitle: {
+            type: String
+        },
+        seoDescription: {
+            type: String
+        },
         rows: {
             type: [{}]
         },

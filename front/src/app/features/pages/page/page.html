@@ -43,6 +43,21 @@
                 <mat-error>This is required</mat-error>
             </mat-form-field>
 
+            <mat-form-field class="full-width">
+                <mat-label>SEO Title</mat-label>
+                <input matInput
+                       name="seoTitle"
+                       [(ngModel)]="model().seoTitle" />
+            </mat-form-field>
+
+            <mat-form-field class="full-width">
+                <mat-label>SEO Description</mat-label>
+                <textarea matInput
+                          rows="2"
+                          name="seoDescription"
+                          [(ngModel)]="model().seoDescription"></textarea>
+            </mat-form-field>
+
             <h2 class="font-2 fs-4 center">Components</h2>
             @if (!rows().length) {
             <p class="center">There are no components yet</p>

@@ -47,6 +47,8 @@ module.exports = {
                     Page.findById(pageProps._id).then(page => {
                         page.title = pageProps.title;
                         page.pageUrl = pageProps.pageUrl;
+                        page.seoTitle = pageProps.seoTitle;
+                        page.seoDescription = pageProps.seoDescription;
                         page.rows = pageProps.rows;
 
                         page.save()
@@ -95,6 +97,8 @@ module.exports = {
                         return {
                             title: page.title,
                             pageUrl: page.pageUrl,
+                            seoTitle: page.seoTitle,
+                            seoDescription: page.seoDescription,
                             rows: page.rows,
                             created: page.created
                         };

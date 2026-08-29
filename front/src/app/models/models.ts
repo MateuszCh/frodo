@@ -58,6 +58,8 @@ export interface Page {
     id?: number;
     title: string;
     pageUrl: string;
+    seoTitle?: string;
+    seoDescription?: string;
     // the backend schema is `rows: [{}]` (schemaless); each row holds one
     // component instance directly
     rows: PageComponent[];
