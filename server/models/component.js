@@ -1,6 +1,7 @@
 const mongoose = require("mongoose"),
     PostTypeAbstractSchema = require("./abstract-schemas/postTypeAbstractSchema"),
     format = require("./tools/format"),
+    timestamps = require("./tools/timestamps"),
     extend = require("mongoose-extend-schema");
 
 const ComponentSchema = extend(
@@ -22,6 +23,8 @@ ComponentSchema.pre("save", function(next) {
     format.formatFieldsIds(PostType.fields);
     next();
 });
+
+ComponentSchema.plugin(timestamps);
 
 const Component = mongoose.model("component", ComponentSchema);
 

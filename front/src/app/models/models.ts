@@ -33,6 +33,7 @@ export interface SchemaEntity {
     type: string;
     fields: Field[];
     created?: number;
+    updated?: number;
     url?: string;
 }
 
@@ -50,6 +51,7 @@ export interface Post {
     type: string;
     data: Record<string, unknown>;
     created?: number;
+    updated?: number;
     url?: string;
 }
 
@@ -64,6 +66,7 @@ export interface Page {
     // component instance directly
     rows: PageComponent[];
     created?: number;
+    updated?: number;
     url?: string;
 }
 
@@ -88,6 +91,7 @@ export interface FileItem {
     catalogues?: string[];
     position?: number;
     created?: number;
+    updated?: number;
 }
 
 export interface User {

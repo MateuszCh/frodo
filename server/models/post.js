@@ -1,5 +1,6 @@
 const mongoose = require("mongoose"),
-    Schema = mongoose.Schema;
+    Schema = mongoose.Schema,
+    timestamps = require("./tools/timestamps");
 
 const PostSchema = new Schema(
     {
@@ -13,9 +14,6 @@ const PostSchema = new Schema(
         },
         data: {
             type: Object
-        },
-        created: {
-            type: Number
         },
         id: {
             type: Number
@@ -31,6 +29,8 @@ const PostSchema = new Schema(
 PostSchema.virtual("url").get(function() {
     return `/posts/${this.type}/edit/${this.id}`;
 });
+
+PostSchema.plugin(timestamps);
 
 const Post = mongoose.model("post", PostSchema);
 

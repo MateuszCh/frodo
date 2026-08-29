@@ -1,5 +1,6 @@
 const mongoose = require("mongoose"),
-    Schema = mongoose.Schema;
+    Schema = mongoose.Schema,
+    timestamps = require("./tools/timestamps");
 
 const PageSchema = new Schema(
     {
@@ -21,9 +22,6 @@ const PageSchema = new Schema(
         rows: {
             type: [{}]
         },
-        created: {
-            type: Number
-        },
         id: {
             type: Number
         }
@@ -38,6 +36,8 @@ const PageSchema = new Schema(
 PageSchema.virtual("url").get(function() {
     return `/pages/edit/${this.id}`;
 });
+
+PageSchema.plugin(timestamps);
 
 const Page = mongoose.model("page", PageSchema);
 
