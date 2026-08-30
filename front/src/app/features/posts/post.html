@@ -25,24 +25,26 @@
         </div>
 
         <div class="editor-body">
-            <mat-form-field class="full-width">
-                <mat-label>Title</mat-label>
-                <input matInput
-                       name="title"
-                       required
-                       [(ngModel)]="model().title" />
-                <mat-error>This is required</mat-error>
-            </mat-form-field>
+            <div class="editor-content">
+                <mat-form-field class="full-width">
+                    <mat-label>Title</mat-label>
+                    <input matInput
+                           name="title"
+                           required
+                           [(ngModel)]="model().title" />
+                    <mat-error>This is required</mat-error>
+                </mat-form-field>
 
-            <h2 class="font-2 fs-4 center">Fields</h2>
-            @if (!fields().length) {
-            <p class="center">There are no fields yet</p>
-            }
+                <h2 class="font-2 fs-4 center">Fields</h2>
+                @if (!fields().length) {
+                <p class="center">There are no fields yet</p>
+                }
 
-            @for (field of fields(); track field.id) {
-            <app-field [field]="field"
-                       [model]="model().data"></app-field>
-            }
+                @for (field of fields(); track field.id) {
+                <app-field [field]="field"
+                           [model]="model().data"></app-field>
+                }
+            </div>
         </div>
     </form>
 </section>

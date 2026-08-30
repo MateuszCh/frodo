@@ -27,52 +27,54 @@
         </div>
 
         <div class="editor-body">
-            <mat-form-field class="full-width">
-                <mat-label>Title</mat-label>
-                <input matInput
-                       name="title"
-                       required
-                       [(ngModel)]="model().title" />
-                <mat-error>This is required</mat-error>
-            </mat-form-field>
+            <div class="editor-content">
+                <mat-form-field class="full-width">
+                    <mat-label>Title</mat-label>
+                    <input matInput
+                           name="title"
+                           required
+                           [(ngModel)]="model().title" />
+                    <mat-error>This is required</mat-error>
+                </mat-form-field>
 
-            @if (!isComponent()) {
-            <mat-form-field class="full-width">
-                <mat-label>Plural Title</mat-label>
-                <input matInput
-                       name="pluralTitle"
-                       required
-                       [(ngModel)]="model().pluralTitle" />
-                <mat-error>This is required</mat-error>
-            </mat-form-field>
-            }
+                @if (!isComponent()) {
+                <mat-form-field class="full-width">
+                    <mat-label>Plural Title</mat-label>
+                    <input matInput
+                           name="pluralTitle"
+                           required
+                           [(ngModel)]="model().pluralTitle" />
+                    <mat-error>This is required</mat-error>
+                </mat-form-field>
+                }
 
-            <mat-form-field class="full-width">
-                <mat-label>Type</mat-label>
-                <input matInput
-                       name="type"
-                       required
-                       [(ngModel)]="model().type"
-                       (ngModelChange)="formatType()" />
-                <mat-error>This is required</mat-error>
-            </mat-form-field>
+                <mat-form-field class="full-width">
+                    <mat-label>Type</mat-label>
+                    <input matInput
+                           name="type"
+                           required
+                           [(ngModel)]="model().type"
+                           (ngModelChange)="formatType()" />
+                    <mat-error>This is required</mat-error>
+                </mat-form-field>
 
-            <h2 class="font-2 fs-4 center">Fields</h2>
-            @if (!model().fields.length) {
-            <p class="center">There are no fields yet</p>
-            }
+                <h2 class="font-2 fs-4 center">Fields</h2>
+                @if (!model().fields.length) {
+                <p class="center">There are no fields yet</p>
+                }
 
-            @for (field of model().fields; track field; let i = $index) {
-            <app-add-field [field]="field"
-                           (remove)="removeField(i)"></app-add-field>
-            }
+                @for (field of model().fields; track field; let i = $index) {
+                <app-add-field [field]="field"
+                               (remove)="removeField(i)"></app-add-field>
+                }
 
-            <button mat-raised-button
-                    color="primary"
-                    type="button"
-                    (click)="addField()">
-                Add new field
-            </button>
+                <button mat-raised-button
+                        color="primary"
+                        type="button"
+                        (click)="addField()">
+                    Add new field
+                </button>
+            </div>
         </div>
     </form>
 </section>

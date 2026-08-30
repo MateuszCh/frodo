@@ -25,68 +25,70 @@
         </div>
 
         <div class="editor-body">
-            <mat-form-field class="full-width">
-                <mat-label>Title</mat-label>
-                <input matInput
-                       name="title"
-                       required
-                       [(ngModel)]="model().title" />
-                <mat-error>This is required</mat-error>
-            </mat-form-field>
+            <div class="editor-content">
+                <mat-form-field class="full-width">
+                    <mat-label>Title</mat-label>
+                    <input matInput
+                           name="title"
+                           required
+                           [(ngModel)]="model().title" />
+                    <mat-error>This is required</mat-error>
+                </mat-form-field>
 
-            <mat-form-field class="full-width">
-                <mat-label>Url</mat-label>
-                <input matInput
-                       name="pageUrl"
-                       required
-                       [(ngModel)]="model().pageUrl" />
-                <mat-error>This is required</mat-error>
-            </mat-form-field>
+                <mat-form-field class="full-width">
+                    <mat-label>Url</mat-label>
+                    <input matInput
+                           name="pageUrl"
+                           required
+                           [(ngModel)]="model().pageUrl" />
+                    <mat-error>This is required</mat-error>
+                </mat-form-field>
 
-            <mat-form-field class="full-width">
-                <mat-label>SEO Title</mat-label>
-                <input matInput
-                       name="seoTitle"
-                       [(ngModel)]="model().seoTitle" />
-            </mat-form-field>
+                <mat-form-field class="full-width">
+                    <mat-label>SEO Title</mat-label>
+                    <input matInput
+                           name="seoTitle"
+                           [(ngModel)]="model().seoTitle" />
+                </mat-form-field>
 
-            <mat-form-field class="full-width">
-                <mat-label>SEO Description</mat-label>
-                <textarea matInput
-                          rows="2"
-                          name="seoDescription"
-                          [(ngModel)]="model().seoDescription"></textarea>
-            </mat-form-field>
+                <mat-form-field class="full-width">
+                    <mat-label>SEO Description</mat-label>
+                    <textarea matInput
+                              rows="2"
+                              name="seoDescription"
+                              [(ngModel)]="model().seoDescription"></textarea>
+                </mat-form-field>
 
-            <h2 class="font-2 fs-4 center">Components</h2>
-            @if (!rows().length) {
-            <p class="center">There are no components yet</p>
-            }
-
-            <ul class="rows"
-                cdkDropList
-                (cdkDropListDropped)="drop($event)">
-                @for (row of rows(); track row; let i = $index) {
-                <li class="row"
-                    cdkDrag>
-                    <div class="row__handle"
-                         cdkDragHandle>
-                        <mat-icon svgIcon="hand-black"></mat-icon>
-                    </div>
-                    <app-add-component [components]="components()"
-                                       [model]="row"
-                                       [order]="i"
-                                       (remove)="removeComponent(i)"></app-add-component>
-                </li>
+                <h2 class="font-2 fs-4 center">Components</h2>
+                @if (!rows().length) {
+                <p class="center">There are no components yet</p>
                 }
-            </ul>
 
-            <button mat-raised-button
-                    color="primary"
-                    type="button"
-                    (click)="addComponent()">
-                Add new component
-            </button>
+                <ul class="rows"
+                    cdkDropList
+                    (cdkDropListDropped)="drop($event)">
+                    @for (row of rows(); track row; let i = $index) {
+                    <li class="row"
+                        cdkDrag>
+                        <div class="row__handle"
+                             cdkDragHandle>
+                            <mat-icon svgIcon="hand-black"></mat-icon>
+                        </div>
+                        <app-add-component [components]="components()"
+                                           [model]="row"
+                                           [order]="i"
+                                           (remove)="removeComponent(i)"></app-add-component>
+                    </li>
+                    }
+                </ul>
+
+                <button mat-raised-button
+                        color="primary"
+                        type="button"
+                        (click)="addComponent()">
+                    Add new component
+                </button>
+            </div>
         </div>
     </form>
 </section>

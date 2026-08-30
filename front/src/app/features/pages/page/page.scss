@@ -49,6 +49,9 @@ form {
     overflow-y: scroll;
     scrollbar-gutter: stable;
     padding: 16px;
+}
+
+.editor-content {
     max-width: 720px;
     width: 100%;
     margin: 0 auto;
@@ -56,7 +59,7 @@ form {
     flex-direction: column;
 }
 
-.editor-body > [mat-raised-button] {
+.editor-content > [mat-raised-button] {
     align-self: flex-start;
     min-height: 40px;
     flex-shrink: 0;
