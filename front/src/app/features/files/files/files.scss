@@ -59,7 +59,7 @@
 .files-select {
     display: flex;
     gap: 0;
-    margin-top: 16px;
+    padding-top: 16px;
     height: 100%;
     min-height: 0;
     overflow: hidden;
@@ -305,11 +305,6 @@
 .busy {
     opacity: 0.6;
     pointer-events: none;
-}
-
-.sentinel {
-    grid-column: 1 / -1;
-    height: 1px;
 }
 
 @media (max-width: 959px) {

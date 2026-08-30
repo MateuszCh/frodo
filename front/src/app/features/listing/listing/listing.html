@@ -1,6 +1,7 @@
 <section class="listing-section">
     @if (!isDesktop() && filtersOpen()) {
-    <div class="filters-backdrop" (click)="filtersOpen.set(false)"></div>
+    <div class="filters-backdrop"
+         (click)="filtersOpen.set(false)"></div>
     }
 
     <div class="listing-header">
@@ -69,7 +70,10 @@
     </div>
 
     <div class="listing-body">
-        <div class="listing-list">
+        <div class="listing-list"
+             appInfiniteScroll
+             (reached)="incrementLimit()"
+             [enabled]="visible().length < filtered().length">
             @if (!baseModels().length) {
             <p class="center">There are no {{ title() }} yet</p>
             } @else if (matchCount() === 0) {
@@ -108,14 +112,11 @@
                 }
             </mat-list>
 
-            @if (visible().length < filtered().length) {
-            <div appInfiniteScroll
-                 (reached)="incrementLimit()"
-                 class="sentinel"></div>
-            }
+
         </div>
 
-        <aside class="listing-drawer" [class.listing-drawer--open]="filtersOpen()">
+        <aside class="listing-drawer"
+               [class.listing-drawer--open]="filtersOpen()">
             @if (baseModels().length) {
             <app-listing-filters [filters]="filters()"
                                  [type]="family()"

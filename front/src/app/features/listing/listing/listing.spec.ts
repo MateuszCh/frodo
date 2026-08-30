@@ -35,6 +35,7 @@ class StubListingFilters {
 
 @Directive({ selector: '[appInfiniteScroll]', standalone: true })
 class StubInfiniteScroll {
+    readonly enabled = input(true);
     readonly reached = output<void>();
 }
 
