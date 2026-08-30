@@ -1,27 +1,25 @@
-const Page = require("../models/page"),
-    Counter = require("../models/counter"),
-    fs = require("fs"),
-    mongoose = require("mongoose");
+const Page = require('../models/page'),
+    Counter = require('../models/counter'),
+    fs = require('fs'),
+    mongoose = require('mongoose');
 
 module.exports = {
     create(req, res, next) {
         const pageProps = req.body;
         Page.findOne({ pageUrl: pageProps.pageUrl })
-            .then(existingPage => {
+            .then((existingPage) => {
                 if (existingPage === null) {
                     Counter.findOne({})
-                        .then(counter => {
+                        .then((counter) => {
                             pageProps.id = counter.counter;
                             pageProps.created = Date.now();
                             Page.create(pageProps)
-                                .then(page => {
+                                .then((page) => {
                                     res.send(page);
                                     Counter.update(counter, {
-                                        $inc: { counter: 1 }
+                                        $inc: { counter: 1 },
                                     })
-                                        .then(() =>
-                                            console.log("Counter incremented")
-                                        )
+                                        .then(() => console.log('Counter incremented'))
                                         .catch(next);
                                 })
                                 .catch(next);
@@ -29,9 +27,7 @@ module.exports = {
                         .catch(next);
                 } else {
                     res.status(422).send({
-                        error: `There already is page with "${
-                            pageProps.pageUrl
-                        }" url.`
+                        error: `There already is page with "${pageProps.pageUrl}" url.`,
                     });
                 }
             })
@@ -42,9 +38,9 @@ module.exports = {
         const id = mongoose.Types.ObjectId(pageProps._id);
 
         Page.findOne({ pageUrl: pageProps.pageUrl, _id: { $ne: id } })
-            .then(existingPage => {
+            .then((existingPage) => {
                 if (existingPage === null) {
-                    Page.findById(pageProps._id).then(page => {
+                    Page.findById(pageProps._id).then((page) => {
                         page.title = pageProps.title;
                         page.pageUrl = pageProps.pageUrl;
                         page.seoTitle = pageProps.seoTitle;
@@ -52,14 +48,12 @@ module.exports = {
                         page.rows = pageProps.rows;
 
                         page.save()
-                            .then(page => res.send(page))
+                            .then((page) => res.send(page))
                             .catch(next);
                     });
                 } else {
                     res.status(422).send({
-                        error: `There already is page with "${
-                            pageProps.pageUrl
-                        }" url.`
+                        error: `There already is page with "${pageProps.pageUrl}" url.`,
                     });
                 }
             })
@@ -67,17 +61,16 @@ module.exports = {
     },
     getAll(req, res, next) {
         Page.find({})
-            .then(pages => res.send(pages))
+            .then((pages) => res.send(pages))
             .catch(next);
     },
     getById(req, res, next) {
-        if (isNaN(req.params.id))
-            return res.status(404).send({ error: "Invalid page id" });
+        if (isNaN(req.params.id)) return res.status(404).send({ error: 'Invalid page id' });
         Page.findOne({ id: req.params.id })
-            .then(page => {
+            .then((page) => {
                 if (!page) {
                     res.status(404).send({
-                        error: `There is no page with id ${req.params.id}`
+                        error: `There is no page with id ${req.params.id}`,
                     });
                 }
                 res.send(page);
@@ -86,42 +79,38 @@ module.exports = {
     },
     delete(req, res, next) {
         Page.findByIdAndRemove(req.params.id)
-            .then(() => res.status(200).send("Page removed successfully"))
+            .then(() => res.status(200).send('Page removed successfully'))
             .catch(next);
     },
     exportPages(req, res, next) {
         Page.find({})
-            .then(pages => {
+            .then((pages) => {
                 const formattedPages = JSON.stringify(
-                    pages.map(page => {
+                    pages.map((page) => {
                         return {
                             title: page.title,
                             pageUrl: page.pageUrl,
                             seoTitle: page.seoTitle,
                             seoDescription: page.seoDescription,
                             rows: page.rows,
-                            created: page.created
+                            created: page.created,
                         };
                     }),
                     null,
-                    4
+                    4,
                 );
 
-                fs.writeFile(
-                    `${__dirname}/../../pages.json`,
-                    formattedPages,
-                    err => {
-                        if (err) next();
-                        res.send("/export/pages.json");
-                    }
-                );
+                fs.writeFile(`${__dirname}/../../pages.json`, formattedPages, (err) => {
+                    if (err) next();
+                    res.send('/export/pages.json');
+                });
             })
             .catch(next);
     },
     importPages(req, res, next) {
         const pagesUrls = [];
 
-        const correctPages = req.body.posts.filter(page => {
+        const correctPages = req.body.posts.filter((page) => {
             if (!page.title || !page.pageUrl) {
                 return false;
             }
@@ -129,25 +118,25 @@ module.exports = {
             return {
                 title: page.title,
                 pageUrl: page.pageUrl,
-                rows: page.rows || []
+                rows: page.rows || [],
             };
         });
 
         if (new Set(pagesUrls).size !== pagesUrls.length) {
-            res.status(422).send({ error: "Duplicate urls" });
+            res.status(422).send({ error: 'Duplicate urls' });
         }
 
         if (correctPages.length) {
             Promise.all([Counter.findOne({}), Page.find({})])
-                .then(response => {
+                .then((response) => {
                     const counter = response[0];
-                    const currentPagesUrls = response[1].map(page => {
+                    const currentPagesUrls = response[1].map((page) => {
                         return page.pageUrl;
                     });
                     const allPagesUrls = currentPagesUrls.concat(pagesUrls);
                     if (new Set(allPagesUrls).size !== allPagesUrls.length) {
                         res.status(422).send({
-                            error: "One of imported pages has already used url"
+                            error: 'One of imported pages has already used url',
                         });
                     } else {
                         const pagesModels = [];
@@ -159,14 +148,14 @@ module.exports = {
                         });
 
                         Page.create(pagesModels)
-                            .then(pages => {
+                            .then((pages) => {
                                 Counter.update(counter, {
-                                    $inc: { counter: pagesModels.length }
+                                    $inc: { counter: pagesModels.length },
                                 })
                                     .then(() => {
-                                        console.log("Counter incremented");
+                                        console.log('Counter incremented');
                                         Page.find({})
-                                            .then(pages => res.send(pages))
+                                            .then((pages) => res.send(pages))
                                             .catch(next);
                                     })
                                     .catch(next);
@@ -176,7 +165,7 @@ module.exports = {
                 })
                 .catch(next);
         } else {
-            res.status(422).send({ error: "There is no valid page to import" });
+            res.status(422).send({ error: 'There is no valid page to import' });
         }
-    }
+    },
 };

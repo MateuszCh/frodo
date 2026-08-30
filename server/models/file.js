@@ -1,46 +1,46 @@
-const mongoose = require("mongoose"),
+const mongoose = require('mongoose'),
     Schema = mongoose.Schema,
-    timestamps = require("./tools/timestamps");
+    timestamps = require('./tools/timestamps');
 
 const FileSchema = new Schema({
     title: {
-        type: String
+        type: String,
     },
     filename: {
         type: String,
-        required: [true, "Filename is required"]
+        required: [true, 'Filename is required'],
     },
     src: {
-        type: String
+        type: String,
     },
     description: {
-        type: String
+        type: String,
     },
     author: {
-        type: String
+        type: String,
     },
     place: {
-        type: String
+        type: String,
     },
     type: {
-        type: String
+        type: String,
     },
     size: {
-        type: Number
+        type: Number,
     },
     catalogues: {
-        type: [String]
+        type: [String],
     },
     id: {
-        type: Number
+        type: Number,
     },
     position: {
-        type: Number
-    }
+        type: Number,
+    },
 });
 
 FileSchema.plugin(timestamps);
 
-const File = mongoose.model("file", FileSchema);
+const File = mongoose.model('file', FileSchema);
 
 module.exports = File;
