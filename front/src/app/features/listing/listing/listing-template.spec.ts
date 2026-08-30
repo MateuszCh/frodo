@@ -3,7 +3,7 @@
  * so that V8 coverage can map execution back to listing.html and listing-filters.html.
  * Behavioural assertions live in listing.spec.ts — these tests just exercise branches.
  */
-import { TestBed } from '@angular/core/testing';
+import { TestBed, type ComponentFixture } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideLocationMocks } from '@angular/common/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
@@ -26,24 +26,18 @@ import type { Page } from '../../../models/models';
 // Shared helpers
 // ---------------------------------------------------------------------------
 
-function installObserverMock() {
-    const mo = { observe: vi.fn(), disconnect: vi.fn() };
-    (globalThis as any).IntersectionObserver = vi.fn().mockImplementation(
-        function (this: any) { Object.assign(this, mo); },
-    );
-    return mo;
-}
-
-function installObserverMockWithCallback() {
-    let callback: ((entries: Partial<IntersectionObserverEntry>[]) => void) | undefined;
-    const mo = { observe: vi.fn(), disconnect: vi.fn() };
-    (globalThis as any).IntersectionObserver = vi.fn().mockImplementation(
-        function (this: any, cb: (entries: Partial<IntersectionObserverEntry>[]) => void) {
-            callback = cb;
-            Object.assign(this, mo);
-        },
-    );
-    return { fire: (intersecting: boolean) => callback?.([{ isIntersecting: intersecting }]) };
+/** Scrolls the listing container to the bottom — jsdom does no layout, so the
+ *  scroll geometry has to be faked. */
+function scrollListToBottom(fixture: ComponentFixture<ListingComponent>): void {
+    const list: HTMLElement = fixture.nativeElement.querySelector('.listing-list');
+    for (const [prop, value] of Object.entries({
+        scrollTop: 950,
+        scrollHeight: 1100,
+        clientHeight: 100,
+    })) {
+        Object.defineProperty(list, prop, { value, configurable: true });
+    }
+    list.dispatchEvent(new Event('scroll'));
 }
 
 function createMocks(sizeValue = 'size-x') {
@@ -101,9 +95,6 @@ function setup(mocks = createMocks()) {
 // ---------------------------------------------------------------------------
 
 describe('listing.html — empty model', () => {
-    beforeEach(() => installObserverMock());
-    afterEach(() => { delete (globalThis as any).IntersectionObserver; });
-
     it('renders "no pages yet" for empty pages list', () => {
         const { fixture } = setup();
         fixture.componentRef.setInput('family', 'pages');
@@ -134,9 +125,6 @@ describe('listing.html — empty model', () => {
 // ---------------------------------------------------------------------------
 
 describe('listing.html — pages with items', () => {
-    beforeEach(() => installObserverMock());
-    afterEach(() => { delete (globalThis as any).IntersectionObserver; });
-
     it('renders item titles and Delete buttons', () => {
         const { fixture } = setup();
         const pages: Page[] = [
@@ -174,9 +162,6 @@ describe('listing.html — pages with items', () => {
 // ---------------------------------------------------------------------------
 
 describe('listing.html — posts family', () => {
-    beforeEach(() => installObserverMock());
-    afterEach(() => { delete (globalThis as any).IntersectionObserver; });
-
     it('renders Edit and Filters buttons for posts family', () => {
         const { fixture } = setup();
         const postType = makePostType({ type: 'articles', posts: [makePost()] });
@@ -206,9 +191,6 @@ describe('listing.html — posts family', () => {
 // ---------------------------------------------------------------------------
 
 describe('listing.html — mobile filters backdrop', () => {
-    beforeEach(() => installObserverMock());
-    afterEach(() => { delete (globalThis as any).IntersectionObserver; });
-
     it('shows backdrop when on mobile and filtersOpen is true', () => {
         const mocks = createMocks('size-s'); // mobile
         const { fixture, comp } = setup(mocks);
@@ -239,33 +221,49 @@ describe('listing.html — mobile filters backdrop', () => {
 });
 
 // ---------------------------------------------------------------------------
-// listing.html — infinite scroll sentinel (@if visible < filtered)
+// listing.html — infinite scroll on the scrolling list container
 // ---------------------------------------------------------------------------
 
-describe('listing.html — infinite scroll sentinel', () => {
-    beforeEach(() => installObserverMock());
-    afterEach(() => { delete (globalThis as any).IntersectionObserver; });
-
-    it('renders the sentinel div when visible < total', () => {
-        const { fixture } = setup();
-        const pages: Page[] = Array.from({ length: 25 }, (_, i) => ({
+describe('listing.html — infinite scroll container', () => {
+    function makePages(count: number): Page[] {
+        return Array.from({ length: count }, (_, i) => ({
             _id: `p${i}`, id: i, title: `Page ${i}`, pageUrl: `/${i}`, rows: [],
         }));
+    }
+
+    it('carries the infinite-scroll directive on the scrolling list', () => {
+        const { fixture } = setup();
         fixture.componentRef.setInput('family', 'pages');
-        fixture.componentRef.setInput('model', pages);
+        fixture.componentRef.setInput('model', makePages(25));
         fixture.detectChanges();
-        expect(fixture.nativeElement.querySelector('.sentinel')).not.toBeNull();
+        expect(
+            fixture.nativeElement.querySelector('.listing-list[appInfiniteScroll]'),
+        ).not.toBeNull();
     });
 
-    it('does not render the sentinel when all items are visible', () => {
-        const { fixture } = setup();
-        const pages: Page[] = Array.from({ length: 5 }, (_, i) => ({
-            _id: `p${i}`, id: i, title: `Page ${i}`, pageUrl: `/${i}`, rows: [],
-        }));
+    it('scrolling the list loads more items while visible < total', () => {
+        const { fixture, comp } = setup();
         fixture.componentRef.setInput('family', 'pages');
-        fixture.componentRef.setInput('model', pages);
+        fixture.componentRef.setInput('model', makePages(25));
         fixture.detectChanges();
-        expect(fixture.nativeElement.querySelector('.sentinel')).toBeNull();
+
+        expect(comp.visible()).toHaveLength(20);
+        scrollListToBottom(fixture); // triggers reached → incrementLimit()
+        fixture.detectChanges();
+        expect(comp.visible()).toHaveLength(25);
+    });
+
+    it('scrolling does nothing when all items are already visible (enabled = false)', () => {
+        const { fixture, comp } = setup();
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', makePages(5));
+        fixture.detectChanges();
+
+        const spy = vi.spyOn(comp, 'incrementLimit');
+        scrollListToBottom(fixture);
+        fixture.detectChanges();
+        expect(spy).not.toHaveBeenCalled();
+        expect(comp.visible()).toHaveLength(5);
     });
 });
 
@@ -276,11 +274,9 @@ describe('listing.html — infinite scroll sentinel', () => {
 describe('listing.html — undo / removeStatus row', () => {
     beforeEach(() => {
         vi.useFakeTimers();
-        installObserverMock();
     });
     afterEach(() => {
         vi.useRealTimers();
-        delete (globalThis as any).IntersectionObserver;
     });
 
     it('renders the undo row with result message after a successful delete', () => {
@@ -330,9 +326,6 @@ describe('listing.html — undo / removeStatus row', () => {
 // ---------------------------------------------------------------------------
 
 describe('listing-filters.html — filter branches', () => {
-    beforeEach(() => installObserverMock());
-    afterEach(() => { delete (globalThis as any).IntersectionObserver; });
-
     it('renders checkbox radio buttons for checkbox fields', () => {
         const { fixture } = setup();
         const postType = makePostType({
@@ -427,9 +420,6 @@ describe('listing-filters.html — filter branches', () => {
 // ---------------------------------------------------------------------------
 
 describe('listing.html — button click interactions', () => {
-    beforeEach(() => installObserverMock());
-    afterEach(() => { delete (globalThis as any).IntersectionObserver; });
-
     it('clicking the Filters button toggles filtersOpen', () => {
         const mocks = createMocks('size-s');
         const { fixture, comp } = setup(mocks);
@@ -525,7 +515,6 @@ describe('listing.html — button click interactions', () => {
     });
 
     it('file input change event triggers onImportFile()', () => {
-        installObserverMock();
         const { fixture, comp } = setup();
         fixture.componentRef.setInput('family', 'pages');
         fixture.componentRef.setInput('model', []);
@@ -563,14 +552,11 @@ describe('listing.html — button click interactions', () => {
 });
 
 // ---------------------------------------------------------------------------
-// listing.html — Export / Import click + Sort menu item + InfiniteScroll reached
+// listing.html — Export / Import click + Sort menu item
 // ---------------------------------------------------------------------------
 
 describe('listing.html — remaining event handler interactions', () => {
-    afterEach(() => { delete (globalThis as any).IntersectionObserver; });
-
     it('clicking Export triggers export()', () => {
-        installObserverMock();
         const mocks = createMocks();
         const { fixture, comp } = setup(mocks);
         const pages: Page[] = [{ _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] }];
@@ -587,7 +573,6 @@ describe('listing.html — remaining event handler interactions', () => {
     });
 
     it('clicking Import triggers importInput.click()', () => {
-        installObserverMock();
         const { fixture } = setup();
         const pages: Page[] = [{ _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] }];
         fixture.componentRef.setInput('family', 'pages');
@@ -603,22 +588,6 @@ describe('listing.html — remaining event handler interactions', () => {
         importBtn.click();
         expect(inputClickSpy).toHaveBeenCalled();
     });
-
-    it('IntersectionObserver firing reached event calls incrementLimit()', () => {
-        const observer = installObserverMockWithCallback();
-        const { fixture, comp } = setup();
-        const pages: Page[] = Array.from({ length: 25 }, (_, i) => ({
-            _id: `p${i}`, id: i, title: `Page ${i}`, pageUrl: `/${i}`, rows: [],
-        }));
-        fixture.componentRef.setInput('family', 'pages');
-        fixture.componentRef.setInput('model', pages);
-        fixture.detectChanges();
-
-        expect(comp.visible()).toHaveLength(20);
-        observer.fire(true); // triggers reached → incrementLimit()
-        fixture.detectChanges();
-        expect(comp.visible()).toHaveLength(25);
-    });
 });
 
 // ---------------------------------------------------------------------------
@@ -626,9 +595,6 @@ describe('listing.html — remaining event handler interactions', () => {
 // ---------------------------------------------------------------------------
 
 describe('listing-filters.html — ngModelChange interactions', () => {
-    beforeEach(() => installObserverMock());
-    afterEach(() => { delete (globalThis as any).IntersectionObserver; });
-
     it('triggers onFilterChange when number inputs change', () => {
         const { fixture, comp } = setup();
         const postType = makePostType({
@@ -720,9 +686,6 @@ describe('listing-filters.html — ngModelChange interactions', () => {
 // ---------------------------------------------------------------------------
 
 describe('listing.html — undo row without a result message', () => {
-    beforeEach(() => installObserverMock());
-    afterEach(() => { delete (globalThis as any).IntersectionObserver; });
-
     it('renders an empty undo row while removeStatus has no result yet', () => {
         const { fixture, comp } = setup();
         const page: Page = { _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] };

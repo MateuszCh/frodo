@@ -1,52 +1,52 @@
-const mongoose = require("mongoose"),
+const mongoose = require('mongoose'),
     Schema = mongoose.Schema,
-    PostTypeAbstractSchema = require("./abstract-schemas/postTypeAbstractSchema"),
-    Post = require("./post"),
-    format = require("./tools/format"),
-    timestamps = require("./tools/timestamps"),
-    extend = require("mongoose-extend-schema");
+    PostTypeAbstractSchema = require('./abstract-schemas/postTypeAbstractSchema'),
+    Post = require('./post'),
+    format = require('./tools/format'),
+    timestamps = require('./tools/timestamps'),
+    extend = require('mongoose-extend-schema');
 
 const PostTypeSchema = extend(
     PostTypeAbstractSchema,
     {
         pluralTitle: {
             type: String,
-            required: [true, "plural title of post type is required"]
+            required: [true, 'plural title of post type is required'],
         },
         posts: [
             {
                 type: Schema.Types.ObjectId,
-                ref: "post"
-            }
-        ]
+                ref: 'post',
+            },
+        ],
     },
     {
         toJSON: {
-            virtuals: true
-        }
-    }
+            virtuals: true,
+        },
+    },
 );
 
-PostTypeSchema.virtual("url").get(function() {
+PostTypeSchema.virtual('url').get(function () {
     return `/post-types/edit/${this.id}`;
 });
 
-PostTypeSchema.pre("remove", function(next) {
-    const Post = mongoose.model("post");
+PostTypeSchema.pre('remove', function (next) {
+    const Post = mongoose.model('post');
     Post.remove({ _id: { $in: this.posts } }).then(() => next());
 });
 
-PostTypeSchema.pre("save", function(next) {
+PostTypeSchema.pre('save', function (next) {
     let PostType = this;
     format.formatFieldsIds(PostType.fields);
     next();
 });
 
-PostTypeSchema.post("save", function(postType, next) {
+PostTypeSchema.post('save', function (postType, next) {
     Post.update(
         { _id: { $in: postType.posts } },
         { $set: { type: postType.type } },
-        { multi: true }
+        { multi: true },
     )
         .then(() => next())
         .catch(next);
@@ -54,6 +54,6 @@ PostTypeSchema.post("save", function(postType, next) {
 
 PostTypeSchema.plugin(timestamps);
 
-const PostType = mongoose.model("post_type", PostTypeSchema);
+const PostType = mongoose.model('post_type', PostTypeSchema);
 
 module.exports = PostType;

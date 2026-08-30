@@ -5,18 +5,19 @@
 module.exports = function timestamps(schema) {
     schema.add({
         created: {
-            type: Number
+            type: Number,
         },
         updated: {
-            type: Number
-        }
+            type: Number,
+        },
     });
 
-    schema.pre("save", function(next) {
+    schema.pre('save', function (next) {
+        const now = Date.now();
         if (!this.created) {
-            this.created = Date.now();
+            this.created = now;
         }
-        this.updated = this.isNew ? this.created : Date.now();
+        this.updated = now;
         next();
     });
 };

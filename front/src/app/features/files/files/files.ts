@@ -1,4 +1,14 @@
-import { Component, OnInit, computed, effect, inject, input, output, signal, viewChild } from '@angular/core';
+import {
+    Component,
+    OnInit,
+    computed,
+    effect,
+    inject,
+    input,
+    output,
+    signal,
+    viewChild,
+} from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpEventType } from '@angular/common/http';
@@ -57,7 +67,7 @@ export class FilesComponent implements OnInit {
     protected readonly catalogues = signal<string[]>([]);
     protected readonly searchText = signal('');
     protected readonly searchCatalogues = signal<string[]>([]);
-    protected readonly limit = signal(80);
+    protected readonly limit = signal(120);
     protected readonly selected = signal<FileItem | undefined>(undefined);
     protected readonly newCatalogue = signal('');
     protected readonly newCataloguePending = signal('');

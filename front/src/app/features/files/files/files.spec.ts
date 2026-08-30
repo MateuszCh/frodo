@@ -83,6 +83,24 @@ function buttonByText(fixture: ComponentFixture<FilesComponent>, text: string): 
     return buttons.find((b) => b.textContent?.trim() === text)!;
 }
 
+/** Scrolls one of the scrolling containers to the bottom — jsdom does no layout,
+ *  so the scroll geometry has to be faked. `.files-grid-pane` scrolls on desktop,
+ *  `.files-select` below 960px (see files.scss). */
+function scrollToBottom(
+    fixture: ComponentFixture<FilesComponent>,
+    selector: '.files-grid-pane' | '.files-select' = '.files-grid-pane',
+): void {
+    const container: HTMLElement = fixture.nativeElement.querySelector(selector);
+    for (const [prop, value] of Object.entries({
+        scrollTop: 950,
+        scrollHeight: 1100,
+        clientHeight: 100,
+    })) {
+        Object.defineProperty(container, prop, { value, configurable: true });
+    }
+    container.dispatchEvent(new Event('scroll'));
+}
+
 /** NgModel directives inside a css scope, in template order. */
 function ngModelsIn(fixture: ComponentFixture<FilesComponent>, scope: string): NgModel[] {
     return fixture.debugElement
@@ -97,16 +115,6 @@ beforeEach(() => {
         (f: File) => `blob:${f.name}`,
     );
     (URL as { revokeObjectURL?: unknown }).revokeObjectURL = vi.fn();
-    // ...nor IntersectionObserver (used by the appInfiniteScroll sentinel)
-    (globalThis as { IntersectionObserver?: unknown }).IntersectionObserver = class {
-        observe(): void {}
-        unobserve(): void {}
-        disconnect(): void {}
-    };
-});
-
-afterEach(() => {
-    delete (globalThis as { IntersectionObserver?: unknown }).IntersectionObserver;
 });
 
 // ---------------------------------------------------------------------------
@@ -176,17 +184,17 @@ describe('FilesComponent — filtering and paging', () => {
     });
 
     it('visible respects the limit and incrementLimit raises it', () => {
-        const files = Array.from({ length: 85 }, () => makeFile());
+        const files = Array.from({ length: 125 }, () => makeFile());
         const { comp } = setup(files);
-        expect(comp.visible()).toHaveLength(80);
+        expect(comp.visible()).toHaveLength(120);
         comp.incrementLimit();
-        expect(comp.visible()).toHaveLength(85);
+        expect(comp.visible()).toHaveLength(125);
     });
 
     it('incrementLimit does nothing when everything is already visible', () => {
         const { comp } = setup([makeFile()]);
         comp.incrementLimit();
-        expect(comp.limit()).toBe(80);
+        expect(comp.limit()).toBe(120);
     });
 
     it('moves the selection to the first match when the selected file is filtered out', () => {
@@ -971,23 +979,35 @@ describe('files.html — event handlers', () => {
         expect(fixture.nativeElement.querySelector('.files-upload__edit')).toBeNull();
     });
 
-    it('the infinite-scroll sentinel loads more files when reached', () => {
-        let observerCallback: (entries: Partial<IntersectionObserverEntry>[]) => void = () => {};
-        (globalThis as { IntersectionObserver?: unknown }).IntersectionObserver = class {
-            constructor(cb: (entries: Partial<IntersectionObserverEntry>[]) => void) {
-                observerCallback = cb;
-            }
-            observe(): void {}
-            unobserve(): void {}
-            disconnect(): void {}
-        };
-        const files = Array.from({ length: 85 }, () => makeFile());
+    it('scrolling the grid pane loads more files', () => {
+        const files = Array.from({ length: 125 }, () => makeFile());
         const { fixture, comp } = setup(files);
 
-        expect(comp.visible()).toHaveLength(80);
-        observerCallback([{ isIntersecting: true }]);
+        expect(comp.visible()).toHaveLength(120);
+        scrollToBottom(fixture);
         fixture.detectChanges();
-        expect(comp.visible()).toHaveLength(85);
+        expect(comp.visible()).toHaveLength(125);
+    });
+
+    it('scrolling the select pane loads more files (mobile scroll container)', () => {
+        const files = Array.from({ length: 125 }, () => makeFile());
+        const { fixture, comp } = setup(files);
+
+        expect(comp.visible()).toHaveLength(120);
+        scrollToBottom(fixture, '.files-select');
+        fixture.detectChanges();
+        expect(comp.visible()).toHaveLength(125);
+    });
+
+    it('scrolling the grid pane does nothing when all files are visible (enabled = false)', () => {
+        const { fixture, comp } = setup([makeFile()]);
+        const spy = vi.spyOn(comp, 'incrementLimit');
+
+        scrollToBottom(fixture);
+        fixture.detectChanges();
+
+        expect(spy).not.toHaveBeenCalled();
+        expect(comp.visible()).toHaveLength(1);
     });
 });
 

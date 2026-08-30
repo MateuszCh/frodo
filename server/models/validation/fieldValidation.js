@@ -1,6 +1,6 @@
 module.exports = {
     validateRepeater: function validate(fields, prop) {
-        return fields.some(field => {
+        return fields.some((field) => {
             if (!field[prop]) {
                 return true;
             }
@@ -17,7 +17,7 @@ module.exports = {
 
         const ids = [];
         const repeaterFields = [];
-        fields.forEach(field => {
+        fields.forEach((field) => {
             ids.push(field.id);
             repeaterFields.push(field.repeaterFields);
         });
@@ -27,7 +27,7 @@ module.exports = {
         }
 
         if (repeaterFields && repeaterFields.length) {
-            return repeaterFields.some(fields => {
+            return repeaterFields.some((fields) => {
                 return validate(fields);
             });
         }
@@ -39,9 +39,9 @@ module.exports = {
         }
 
         const ids = [];
-        fields.forEach(field => {
+        fields.forEach((field) => {
             ids.push(field.id);
         });
         return new Set(ids).size === ids.length;
-    }
+    },
 };
