@@ -90,4 +90,13 @@ All Angular components are **standalone** (no NgModules). Routing is configured 
 }
 ```
 
+### Public site cache (geosilesia)
+
+After every successful write to pages, posts, post types or files (imports included)
+`server/content-version.js` increments `version` in the `meta` collection, document
+`{ _id: "content" }`. The public site (geosilesia) reads the same database, polls that
+counter every few seconds in each of its processes and drops its cached pages and
+server-rendered HTML when it changes. A failed bump is only logged – the site then
+refreshes after its cache TTL.
+
 The frontend proxy (`front/proxy.conf.json`) forwards `/api`, `/uploads`, `/user`, and `/export` to `http://localhost:3000`.
