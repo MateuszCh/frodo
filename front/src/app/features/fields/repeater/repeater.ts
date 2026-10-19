@@ -19,7 +19,6 @@ import { FieldInputComponent } from '../field-input/field-input';
         forwardRef(() => FieldInputComponent),
     ],
     templateUrl: './repeater.html',
-    styleUrl: './repeater.scss',
 })
 export class RepeaterComponent {
     readonly parentModel = input.required<Record<string, unknown>>();

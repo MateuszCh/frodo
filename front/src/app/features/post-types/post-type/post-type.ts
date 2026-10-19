@@ -18,7 +18,6 @@ type Schema = PostType & ComponentEntity;
     selector: 'app-post-type',
     imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, AddFieldComponent],
     templateUrl: './post-type.html',
-    styleUrl: './post-type.scss',
 })
 export class PostTypeComponent implements OnInit {
     // resolved (edit) + route data

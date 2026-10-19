@@ -14,7 +14,6 @@ import { FormsModule } from '@angular/forms';
 import { HttpEventType } from '@angular/common/http';
 import { MatTabGroup, MatTabsModule } from '@angular/material/tabs';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
@@ -41,7 +40,6 @@ interface PendingUpload {
         FormsModule,
         MatTabsModule,
         MatButtonModule,
-        MatIconModule,
         MatFormFieldModule,
         MatInputModule,
         MatSelectModule,
@@ -52,7 +50,6 @@ interface PendingUpload {
         InfiniteScrollDirective,
     ],
     templateUrl: './files.html',
-    styleUrl: './files.scss',
 })
 export class FilesComponent implements OnInit {
     readonly allFiles = input<FileItem[]>([]);

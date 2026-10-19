@@ -11,7 +11,6 @@ import { User } from '../../../models/models';
     selector: 'app-account',
     imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatInputModule],
     templateUrl: './account.html',
-    styleUrl: './account.scss',
 })
 export class AccountComponent implements OnInit {
     readonly user = input<User>();

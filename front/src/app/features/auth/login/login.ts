@@ -10,7 +10,6 @@ import { UserService } from '../../../core/user.service';
     selector: 'app-login',
     imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatInputModule],
     templateUrl: './login.html',
-    styleUrl: './login.scss',
 })
 export class LoginComponent {
     readonly exist = input<boolean>(false);

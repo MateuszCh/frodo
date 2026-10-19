@@ -2,10 +2,7 @@ import { Component, computed, effect, inject, input, signal } from '@angular/cor
 import { Router, RouterLink } from '@angular/router';
 import { Observable } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatMenuModule } from '@angular/material/menu';
-import { MatListModule } from '@angular/material/list';
-import { MatTooltipModule } from '@angular/material/tooltip';
 
 import { ComponentEntity, Page, Post, PostType } from '../../../models/models';
 import { PagesService } from '../../../core/pages.service';
@@ -41,16 +38,12 @@ interface RemoveStatus {
     selector: 'app-listing',
     imports: [
         MatButtonModule,
-        MatIconModule,
         MatMenuModule,
-        MatListModule,
-        MatTooltipModule,
         InfiniteScrollDirective,
         ListingFiltersComponent,
         RouterLink,
     ],
     templateUrl: './listing.html',
-    styleUrl: './listing.scss',
 })
 export class ListingComponent {
     // resolve + route data, bound via withComponentInputBinding()

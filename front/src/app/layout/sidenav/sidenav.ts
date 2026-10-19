@@ -1,6 +1,5 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { UserService } from '../../core/user.service';
 import { PostTypesService } from '../../core/post-types.service';
@@ -16,9 +15,8 @@ interface NavItem {
 /** Port of sidenav.component.js — main navigation menu. */
 @Component({
     selector: 'app-sidenav',
-    imports: [RouterLink, MatListModule, MatButtonModule],
+    imports: [RouterLink, MatButtonModule],
     templateUrl: './sidenav.html',
-    styleUrl: './sidenav.scss',
 })
 export class SidenavComponent implements OnInit {
     protected userService = inject(UserService);

@@ -25,7 +25,6 @@ let uidCounter = 0;
         forwardRef(() => AddFieldComponent),
     ],
     templateUrl: './add-field.html',
-    styleUrl: './add-field.scss',
 })
 export class AddFieldComponent {
     readonly field = input.required<Field>();

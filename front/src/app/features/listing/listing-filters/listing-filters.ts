@@ -4,7 +4,6 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatRadioModule } from '@angular/material/radio';
-import { MatSliderModule } from '@angular/material/slider';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { provideNativeDateAdapter } from '@angular/material/core';
 import { Filters } from '../listing-filter';
@@ -19,11 +18,9 @@ import { Filters } from '../listing-filter';
         MatInputModule,
         MatSelectModule,
         MatRadioModule,
-        MatSliderModule,
         MatDatepickerModule,
     ],
     templateUrl: './listing-filters.html',
-    styleUrl: './listing-filters.scss',
 })
 export class ListingFiltersComponent {
     readonly filters = input<Filters>();

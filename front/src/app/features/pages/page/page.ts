@@ -3,7 +3,6 @@ import { Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
@@ -18,13 +17,11 @@ import { AddComponentComponent } from '../add-component/add-component';
         FormsModule,
         DragDropModule,
         MatButtonModule,
-        MatIconModule,
         MatFormFieldModule,
         MatInputModule,
         AddComponentComponent,
     ],
     templateUrl: './page.html',
-    styleUrl: './page.scss',
 })
 export class PageComponent implements OnInit {
     readonly components = input<ComponentEntity[]>([]);

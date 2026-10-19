@@ -68,9 +68,7 @@ html {
     --mat-sys-on-error-container: var(--color-error);
 
     // ---- buttons ---------------------------------------------------------------
-    // filled = primary (one per screen), outlined = secondary, text = ghost,
-    // protected (raised) = kept looking like primary until the last raised
-    // buttons leave the templates.
+    // filled = primary (one per screen), outlined = secondary, text = ghost
     @include mat.button-overrides(
         (
             filled-container-color: var(--color-accent),
@@ -88,25 +86,6 @@ html {
             filled-pressed-state-layer-opacity: 0,
             filled-ripple-color: transparent,
             filled-touch-target-display: none,
-            protected-container-color: var(--color-accent),
-            protected-label-text-color: var(--color-text-on-accent),
-            protected-disabled-container-color: var(--color-fill-pressed),
-            protected-disabled-label-text-color: var(--color-text-disabled),
-            protected-container-elevation-shadow: none,
-            protected-hover-container-elevation-shadow: none,
-            protected-focus-container-elevation-shadow: none,
-            protected-pressed-container-elevation-shadow: none,
-            protected-container-shape: var(--radius-full),
-            protected-container-height: var(--control-h),
-            protected-horizontal-padding: var(--space-5),
-            protected-label-text-size: var(--text-sm),
-            protected-label-text-weight: var(--weight-semibold),
-            protected-label-text-tracking: var(--tracking-normal),
-            protected-hover-state-layer-opacity: 0,
-            protected-focus-state-layer-opacity: 0,
-            protected-pressed-state-layer-opacity: 0,
-            protected-ripple-color: transparent,
-            protected-touch-target-display: none,
             outlined-label-text-color: var(--color-text),
             outlined-outline-color: var(--color-border-control),
             outlined-outline-width: 1px,
@@ -414,17 +393,6 @@ html {
             scrim-color: var(--color-backdrop),
         )
     );
-
-    @include mat.list-overrides(
-        (
-            list-item-container-color: transparent,
-            list-item-label-text-color: var(--color-text),
-            list-item-label-text-size: var(--text-md),
-            list-item-label-text-tracking: var(--tracking-normal),
-            list-item-hover-state-layer-opacity: 0,
-            list-item-focus-state-layer-opacity: 0,
-        )
-    );
 }
 
 // ---- button states without a token -------------------------------------------
@@ -436,16 +404,12 @@ html {
     outline-offset: 2px;
 }
 
-.mat-mdc-unelevated-button:not(:disabled):hover,
-.mat-mdc-raised-button:not(:disabled):hover {
+.mat-mdc-unelevated-button:not(:disabled):hover {
     --mat-button-filled-container-color: var(--color-accent-hover);
-    --mat-button-protected-container-color: var(--color-accent-hover);
 }
 
-.mat-mdc-unelevated-button:not(:disabled):active,
-.mat-mdc-raised-button:not(:disabled):active {
+.mat-mdc-unelevated-button:not(:disabled):active {
     --mat-button-filled-container-color: var(--color-accent-pressed);
-    --mat-button-protected-container-color: var(--color-accent-pressed);
 }
 
 // MDC: the outlined button has a transparent container by default

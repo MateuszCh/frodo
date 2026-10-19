@@ -20,7 +20,6 @@ import { FieldInputComponent } from '../fields/field-input/field-input';
         FieldInputComponent,
     ],
     templateUrl: './post.html',
-    styleUrl: './post.scss',
 })
 export class PostComponent implements OnInit {
     readonly type = input<string>('');

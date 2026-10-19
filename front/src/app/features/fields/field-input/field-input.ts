@@ -37,7 +37,6 @@ import { RepeaterComponent } from '../repeater/repeater';
         forwardRef(() => RepeaterComponent),
     ],
     templateUrl: './field-input.html',
-    styleUrl: './field-input.scss',
 })
 export class FieldInputComponent implements OnInit {
     readonly field = input.required<Field>();

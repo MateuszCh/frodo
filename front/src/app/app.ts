@@ -1,28 +1,20 @@
 import { Component, computed, effect, inject, viewChild } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { MatSidenavContent, MatSidenavModule } from '@angular/material/sidenav';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { HeaderComponent } from './layout/header/header';
 import { SidenavComponent } from './layout/sidenav/sidenav';
 import { LayoutService } from './core/layout.service';
 import { injectRouteState } from './core/router-state';
-import { registerAppIcons } from './core/icons';
 
 @Component({
     selector: 'app-root',
     imports: [
         RouterOutlet,
         MatSidenavModule,
-        MatButtonModule,
-        MatIconModule,
-        MatTooltipModule,
         HeaderComponent,
         SidenavComponent,
     ],
     templateUrl: './app.html',
-    styleUrl: './app.scss',
 })
 export class App {
     protected layout = inject(LayoutService);
@@ -38,8 +30,6 @@ export class App {
     );
 
     constructor() {
-        registerAppIcons();
-
         // close the over-mode sidenav after navigating on small screens
         effect(() => {
             this.route();
