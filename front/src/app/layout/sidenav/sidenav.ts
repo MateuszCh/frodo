@@ -5,6 +5,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { UserService } from '../../core/user.service';
 import { PostTypesService } from '../../core/post-types.service';
 import { injectRouteState } from '../../core/router-state';
+import { ThemeService } from '../../core/theme.service';
 
 interface NavItem {
     title: string;
@@ -24,6 +25,7 @@ export class SidenavComponent implements OnInit {
     private postTypesService = inject(PostTypesService);
     private router = inject(Router);
     protected route = injectRouteState();
+    protected theme = inject(ThemeService);
 
     protected readonly postTypes = this.postTypesService.menu;
     protected readonly logoutStatus = signal(false);

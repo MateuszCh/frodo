@@ -11,6 +11,16 @@
         <link rel="manifest" href="site.webmanifest" />
         <meta name="theme-color" content="#F3F4F1" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#1F2522" media="(prefers-color-scheme: dark)" />
+        <script>
+            // Apply the saved Light / Dark choice (ThemeService) before Angular starts,
+            // so a dark page does not flash light. Without a choice the system decides.
+            try {
+                var theme = localStorage.getItem('frodo.theme');
+                if (theme === 'light' || theme === 'dark') {
+                    document.documentElement.dataset.theme = theme;
+                }
+            } catch (e) {}
+        </script>
     </head>
     <body>
         <app-root></app-root>
