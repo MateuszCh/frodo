@@ -44,20 +44,31 @@ describe('MessageDialogComponent', () => {
         expect(title).toBeNull();
     });
 
-    it('renders Yes/No buttons in confirm mode', () => {
+    it('renders the fixed "Confirm deletion" title in confirm mode', () => {
+        const fixture = setup({ message: 'Delete?', confirm: true });
+        const title = fixture.nativeElement.querySelector('[mat-dialog-title]');
+        expect(title?.textContent?.trim()).toBe('Confirm deletion');
+    });
+
+    it('keeps a title passed in data in confirm mode', () => {
+        const fixture = setup({ message: 'Delete?', title: 'Remove file', confirm: true });
+        const title = fixture.nativeElement.querySelector('[mat-dialog-title]');
+        expect(title?.textContent?.trim()).toBe('Remove file');
+    });
+
+    it('renders Cancel/Delete buttons in confirm mode', () => {
         const fixture = setup({ message: 'Delete?', confirm: true });
         const buttons: NodeListOf<HTMLButtonElement> =
             fixture.nativeElement.querySelectorAll('mat-dialog-actions button');
         const texts = Array.from(buttons).map((b) => b.textContent?.trim());
-        expect(texts).toContain('No');
-        expect(texts).toContain('Yes');
+        expect(texts).toEqual(['Cancel', 'Delete']);
     });
 
-    it('renders only an Ok button in alert mode', () => {
+    it('renders only an OK button in alert mode', () => {
         const fixture = setup({ message: 'Done!', confirm: false });
         const buttons: NodeListOf<HTMLButtonElement> =
             fixture.nativeElement.querySelectorAll('mat-dialog-actions button');
         expect(buttons).toHaveLength(1);
-        expect(buttons[0].textContent?.trim()).toBe('Ok');
+        expect(buttons[0].textContent?.trim()).toBe('OK');
     });
 });

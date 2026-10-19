@@ -1,0 +1,156 @@
+// Listing (design/components.css, 11 + 26): list card, toolbar, rows.
+
+// list beside the filter panel from 960 px
+.listing {
+    display: grid;
+    gap: var(--space-6);
+    align-items: start;
+}
+
+@media (min-width: 960px) {
+    .listing {
+        grid-template-columns: minmax(0, 1fr) var(--layout-filters-w);
+        gap: var(--space-8);
+    }
+
+    .listing.listing--single {
+        grid-template-columns: minmax(0, 1fr);
+    }
+}
+
+.list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+
+// the whole row is a link (stretched ::after); the delete button sits above it
+.list__row {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-height: 60px;
+    padding: var(--space-1) var(--space-2) var(--space-1) var(--space-5);
+    border-top: 1px solid var(--color-border);
+    transition: background-color var(--duration-instant) var(--ease-standard);
+
+    &:first-child {
+        border-top: 0;
+    }
+
+    &:hover {
+        background: var(--color-surface-hover);
+    }
+
+    &:has(.list__link:focus-visible) {
+        outline: 2px solid var(--color-focus-ring);
+        outline-offset: -2px;
+    }
+
+    > .mat-mdc-icon-button {
+        --mat-icon-button-icon-color: var(--color-text-subtle);
+        position: relative;
+        z-index: var(--z-raised);
+    }
+
+    &.is-busy .list__link {
+        color: var(--color-text-subtle);
+    }
+}
+
+.list__link {
+    flex: 1;
+    min-width: 0;
+    color: var(--color-text);
+    font-weight: var(--weight-medium);
+    text-decoration: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+    }
+
+    &:focus-visible {
+        outline: none;
+    }
+}
+
+// "removed" row: the server message on a success background for 2 s
+.list__row--removed {
+    gap: var(--space-2);
+    background: var(--color-success-bg);
+    color: var(--color-success);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-semibold);
+
+    &:hover {
+        background: var(--color-success-bg);
+    }
+
+    > .icon {
+        width: 18px;
+        height: 18px;
+    }
+}
+
+// toolbar: search, sort, filters (mobile); the search takes the first row on mobile
+.list-card > .list-toolbar {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-2);
+    padding: var(--space-3);
+    border-bottom: 1px solid var(--color-border);
+
+    > .control--search {
+        grid-column: 1 / -1;
+    }
+
+    > .mat-mdc-button-base {
+        width: 100%;
+    }
+
+    // mat-menu host stays out of the grid
+    > mat-menu {
+        display: contents;
+    }
+}
+
+// current sort comes from the logic in lower case ("newest")
+.sort-toggle__label {
+    display: inline-block;
+
+    &::first-letter {
+        text-transform: uppercase;
+    }
+}
+
+@media (min-width: 960px) {
+    .list-card > .list-toolbar {
+        display: flex;
+        align-items: center;
+        padding: var(--space-3) var(--space-3) var(--space-3) var(--space-4);
+
+        > .control--search {
+            flex: 0 1 360px;
+            margin-right: auto;
+        }
+
+        > .mat-mdc-button-base {
+            width: auto;
+            margin-left: auto;
+        }
+
+        > .control--search + .mat-mdc-button-base {
+            margin-left: 0;
+        }
+
+        > .filters-toggle {
+            display: none;
+        }
+    }
+}

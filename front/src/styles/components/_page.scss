@@ -1,0 +1,94 @@
+// Screen header (design/components.css, 13).
+// Mobile: title, counter and the primary action in one row, text actions below in a
+// horizontally scrolling row. From 960 px everything sits in one row.
+
+.page-header {
+    display: grid;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+}
+
+.page-header__top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+}
+
+.page-heading {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    margin-right: auto;
+}
+
+.page-title {
+    font-size: var(--text-2xl);
+    line-height: var(--leading-2xl);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-tight);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    // titles from the logic come in lower case ("pages", "post types")
+    &::first-letter {
+        text-transform: uppercase;
+    }
+}
+
+.page-header__secondary {
+    display: flex;
+    gap: var(--space-1);
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: calc(var(--layout-gutter) * -1);
+    padding-inline: var(--layout-gutter);
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    &:empty {
+        display: none;
+    }
+
+    > .mat-mdc-button-base {
+        flex: none;
+    }
+}
+
+@media (min-width: 960px) {
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin-bottom: var(--space-8);
+    }
+
+    .page-header__top {
+        display: contents;
+    }
+
+    .page-heading {
+        order: 1;
+    }
+
+    .page-header__secondary {
+        order: 2;
+        margin: 0;
+        padding: 0;
+        overflow: visible;
+    }
+
+    .page-header__top > .mat-mdc-unelevated-button {
+        order: 3;
+        margin-left: var(--space-2);
+    }
+
+    .page-title {
+        font-size: var(--text-3xl);
+        line-height: var(--leading-3xl);
+    }
+}

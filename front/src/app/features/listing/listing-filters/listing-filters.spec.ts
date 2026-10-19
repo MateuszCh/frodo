@@ -46,10 +46,23 @@ describe('ListingFiltersComponent — inputs and rendering', () => {
         expect(setup().componentInstance.type()).toBe('');
     });
 
-    it('renders a text input when filters is provided', () => {
+    it('renders no search field: the search lives in the listing toolbar', () => {
         const fixture = setup(makeFilters());
-        const input = fixture.nativeElement.querySelector('input');
-        expect(input).not.toBeNull();
+        expect(fixture.nativeElement.querySelector('input[type="search"]')).toBeNull();
+        expect(fixture.nativeElement.textContent).not.toContain('Search');
+    });
+
+    it('renders the filter groups in the usual order', () => {
+        const fixture = setup(makeFilters());
+        const labels = Array.from<HTMLElement>(
+            fixture.nativeElement.querySelectorAll('.filters__body > * > .field__label'),
+        ).map((el) => el.textContent?.trim());
+        expect(labels).toEqual(['Active', 'Category', 'Tags', 'Photo', 'Score', 'Published']);
+    });
+
+    it('shows an empty state when there is nothing to filter by', () => {
+        const fixture = setup({ textFilter: { type: 'text', value: undefined } });
+        expect(fixture.nativeElement.textContent).toContain('Nothing to filter by');
     });
 });
 
@@ -58,12 +71,12 @@ describe('ListingFiltersComponent — inputs and rendering', () => {
 // ---------------------------------------------------------------------------
 
 describe('ListingFiltersComponent — ngModelChange handlers (line 7, 14, 25, 36, 47)', () => {
-    it('fires changed when text search input changes (line 7)', () => {
+    it('fires changed when a number range input changes', () => {
         const fixture = setup(makeFilters());
         const changedSpy = vi.fn();
         fixture.componentInstance.changed.subscribe(changedSpy);
 
-        const input: HTMLInputElement = fixture.nativeElement.querySelector('mat-form-field:first-of-type input');
+        const input: HTMLInputElement = fixture.nativeElement.querySelector('input[type="number"]');
         input.value = 'hello';
         input.dispatchEvent(new Event('input', { bubbles: true }));
         fixture.detectChanges();

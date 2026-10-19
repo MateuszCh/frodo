@@ -1,31 +1,67 @@
-<section class="listing-section">
-    @if (!isDesktop() && filtersOpen()) {
-    <div class="filters-backdrop"
-         (click)="filtersOpen.set(false)"></div>
-    }
+@let t = title();
+@let f = filters();
+<div class="page">
+    <header class="page-header">
+        <div class="page-header__top">
+            <div class="page-heading">
+                <h1 class="page-title">{{ t }}</h1>
+                <span class="badge">{{ matchCount() }}<span class="visually-hidden"> items</span></span>
+            </div>
+            <button mat-flat-button
+                    type="button"
+                    (click)="add()">
+                <svg matButtonIcon
+                     class="icon"
+                     aria-hidden="true">
+                    <use href="icons.svg#i-plus" />
+                </svg>
+                @switch (family()) {
+                @case ('posts') {
+                New {{ $any(model())?.title?.toLowerCase() }}
+                }
+                @case ('pages') {
+                New page
+                }
+                @case ('components') {
+                New component
+                }
+                @case ('postTypes') {
+                New post type
+                }
+                }
+            </button>
+        </div>
 
-    <div class="listing-header">
-        <h2 class="center">
-            <span>{{ title() }}</span>
-            <span>({{ matchCount() }})</span>
-        </h2>
-
-        <div class="listing-actions">
-            <button mat-raised-button
-                    color="primary"
-                    (click)="add()">Add</button>
-
+        <div class="page-header__secondary">
             @if (isPosts()) {
-            <button mat-raised-button
-                    color="primary"
-                    (click)="editPostType()">Edit</button>
+            <button mat-button
+                    type="button"
+                    (click)="editPostType()">
+                <svg matButtonIcon
+                     class="icon"
+                     aria-hidden="true">
+                    <use href="icons.svg#i-pencil" />
+                </svg>
+                Edit type
+            </button>
             }
 
-            <button mat-raised-button
-                    color="primary"
-                    [class.busy]="importStatus()"
+            <button mat-button
+                    type="button"
+                    [attr.aria-busy]="importStatus()"
                     (click)="importInput.click()">
-                Import
+                @if (importStatus()) {
+                <span matButtonIcon
+                      class="spinner"
+                      aria-hidden="true"></span>
+                } @else {
+                <svg matButtonIcon
+                     class="icon"
+                     aria-hidden="true">
+                    <use href="icons.svg#i-upload" />
+                </svg>
+                }
+                {{ importStatus() ? 'Importing…' : 'Import' }}
             </button>
             <input #importInput
                    type="file"
@@ -34,106 +70,226 @@
                    (change)="onImportFile($event)" />
 
             @if (baseModels().length) {
-            <button mat-raised-button
-                    color="primary"
-                    [class.busy]="exportStatus()"
+            <button mat-button
+                    type="button"
+                    [attr.aria-busy]="exportStatus()"
                     (click)="export()">
-                Export
-            </button>
-
-            <button mat-raised-button
-                    color="primary"
-                    [matMenuTriggerFor]="sortMenu"
-                    aria-label="Sort by">
-                <mat-icon svgIcon="sort"></mat-icon>
-            </button>
-            <mat-menu #sortMenu="matMenu">
-                @for (sort of sortTypes(); track sort.varName) {
-                <button mat-menu-item
-                        [class.active]="sortCurrent() === sort.varName"
-                        (click)="sortBy(sort.varName)">
-                    {{ sort.name }}
-                </button>
+                @if (exportStatus()) {
+                <span matButtonIcon
+                      class="spinner"
+                      aria-hidden="true"></span>
+                } @else {
+                <svg matButtonIcon
+                     class="icon"
+                     aria-hidden="true">
+                    <use href="icons.svg#i-download" />
+                </svg>
                 }
-            </mat-menu>
-            }
-
-            @if (isPosts()) {
-            <button mat-raised-button
-                    color="primary"
-                    class="filters-toggle"
-                    (click)="filtersOpen.set(!filtersOpen())">
-                Filters
+                {{ exportStatus() ? 'Exporting…' : 'Export' }}
             </button>
             }
         </div>
-    </div>
+    </header>
 
-    <div class="listing-body">
-        <div class="listing-list"
-             appInfiniteScroll
-             (reached)="incrementLimit()"
-             [enabled]="visible().length < filtered().length">
-            @if (!baseModels().length) {
-            <p class="center">There are no {{ title() }} yet</p>
-            } @else if (matchCount() === 0) {
-            <p class="center">There are no {{ title() }} matching your selection</p>
-            }
+    <div class="listing"
+         [class.listing--single]="!isPosts()">
+        <section class="card list-card listing-list"
+                 aria-label="List"
+                 appInfiniteScroll
+                 (reached)="incrementLimit()"
+                 [enabled]="visible().length < filtered().length">
+            @if (f || baseModels().length || isPosts()) {
+            <div class="list-toolbar">
+                @if (f) {
+                <label class="control control--search">
+                    <span class="visually-hidden">Search</span>
+                    <svg class="icon control__icon"
+                         aria-hidden="true">
+                        <use href="icons.svg#i-search" />
+                    </svg>
+                    <input class="input"
+                           type="search"
+                           [placeholder]="'Search ' + t"
+                           [value]="f.textFilter.value ?? ''"
+                           (input)="f.textFilter.value = $any($event.target).value; onFilterChange()" />
+                </label>
+                }
 
-            <mat-list>
-                @for (model of visible(); track model._id) {
-                <mat-list-item class="listing-item">
-                    @if (lastRemoved() !== model) {
-                    <div class="listing-item__row">
-                        <a class="listing-item__link"
-                           [routerLink]="editLink(model)">{{
-                            model.title
-                            }}</a>
-                        <button mat-raised-button
-                                color="warn"
-                                [class.busy]="
-                                        removeStatus()?.busy === model._id &&
-                                        !removeStatus()?.status
-                                    "
-                                (click)="removeDialog(model)">
-                            Delete
-                        </button>
-                    </div>
-                    } @else {
-                    <div class="listing-item__row center">
-                        @if (removeStatus()?.result) {
-                        <p [class.col-ok]="removeStatus()?.status === 200">
-                            {{ removeStatus()?.result }}
-                        </p>
-                        }
-                    </div>
+                @if (baseModels().length) {
+                <button mat-stroked-button
+                        type="button"
+                        class="sort-toggle"
+                        [matMenuTriggerFor]="sortMenu">
+                    <svg matButtonIcon
+                         class="icon"
+                         aria-hidden="true">
+                        <use href="icons.svg#i-sort" />
+                    </svg>
+                    @for (sort of sortTypes(); track sort.varName) {
+                    @if (sortCurrent() === sort.varName) {
+                    <span class="sort-toggle__label">{{ sort.name }}</span>
                     }
-                </mat-list-item>
-                }
-            </mat-list>
-
-
-        </div>
-
-        <aside class="listing-drawer"
-               [class.listing-drawer--open]="filtersOpen()">
-            @if (baseModels().length) {
-            <app-listing-filters [filters]="filters()"
-                                 [type]="family()"
-                                 (changed)="onFilterChange()"></app-listing-filters>
-
-            @if (isPosts()) {
-            <div class="center">
-                <button mat-raised-button
-                        color="primary"
-                        (click)="resetFilters()">
-                    Reset Filters
+                    }
                 </button>
+                <mat-menu #sortMenu="matMenu"
+                          aria-label="Sort by">
+                    @for (sort of sortTypes(); track sort.varName; let i = $index) {
+                    @if (i === 3) {
+                    <p class="menu__label">Fields</p>
+                    }
+                    <button mat-menu-item
+                            type="button"
+                            role="menuitemradio"
+                            [attr.aria-checked]="sortCurrent() === sort.varName"
+                            (click)="sortBy(sort.varName)">
+                        <span class="menu__text">{{ sort.name }}</span>
+                        <svg class="icon menu__check"
+                             aria-hidden="true">
+                            <use href="icons.svg#i-check" />
+                        </svg>
+                    </button>
+                    }
+                </mat-menu>
+                }
+
+                @if (isPosts()) {
+                <button mat-stroked-button
+                        type="button"
+                        class="filters-toggle"
+                        [attr.aria-expanded]="filtersOpen()"
+                        (click)="filtersOpen.set(!filtersOpen())">
+                    <svg matButtonIcon
+                         class="icon"
+                         aria-hidden="true">
+                        <use href="icons.svg#i-sliders" />
+                    </svg>
+                    Filters
+                </button>
+                }
             </div>
             }
+
+            @if (!baseModels().length) {
+            <div class="empty">
+                <span class="empty__icon">
+                    <svg class="icon icon--lg"
+                         aria-hidden="true">
+                        @switch (family()) {
+                        @case ('pages') {
+                        <use href="icons.svg#i-layout" />
+                        }
+                        @case ('postTypes') {
+                        <use href="icons.svg#i-braces" />
+                        }
+                        @case ('components') {
+                        <use href="icons.svg#i-blocks" />
+                        }
+                        @default {
+                        <use href="icons.svg#i-doc" />
+                        }
+                        }
+                    </svg>
+                </span>
+                <p class="empty__title">No {{ t }} yet</p>
+                <p class="empty__text">Create the first one or import a JSON file.</p>
+            </div>
+            } @else if (matchCount() === 0) {
+            <div class="empty">
+                <span class="empty__icon">
+                    <svg class="icon icon--lg"
+                         aria-hidden="true">
+                        <use href="icons.svg#i-search" />
+                    </svg>
+                </span>
+                <p class="empty__title">No {{ t }} match your search</p>
+                <p class="empty__text">
+                    {{ isPosts() ? 'Change the search text or reset the filters.' : 'Change the search text.' }}
+                </p>
+            </div>
             } @else {
-            <p class="center">There are no {{ title() }} to filter</p>
+            <ul class="list">
+                @for (model of visible(); track model._id) {
+                @if (lastRemoved() !== model) {
+                @let busy = removeStatus()?.busy === model._id && !removeStatus()?.status;
+                <li class="list__row"
+                    [class.is-busy]="busy">
+                    <a class="list__link"
+                       [routerLink]="editLink(model)">{{ model.title }}</a>
+                    <button mat-icon-button
+                            type="button"
+                            [attr.aria-label]="'Delete ' + model.title"
+                            [attr.aria-busy]="busy"
+                            (click)="removeDialog(model)">
+                        @if (busy) {
+                        <span class="spinner"
+                              aria-hidden="true"></span>
+                        } @else {
+                        <svg class="icon"
+                             aria-hidden="true">
+                            <use href="icons.svg#i-trash" />
+                        </svg>
+                        }
+                    </button>
+                </li>
+                } @else {
+                <li class="list__row list__row--removed"
+                    role="status">
+                    @if (removeStatus()?.result) {
+                    <svg class="icon"
+                         aria-hidden="true">
+                        <use href="icons.svg#i-check-circle" />
+                    </svg>
+                    <p>{{ removeStatus()?.result }}</p>
+                    }
+                </li>
+                }
+                }
+            </ul>
+            }
+        </section>
+
+        @if (isPosts()) {
+        <aside class="filters"
+               [class.is-open]="filtersOpen()"
+               aria-label="Filters">
+            <div class="sheet__grabber"
+                 aria-hidden="true"></div>
+            <div class="filters__head">
+                <h2 class="filters__title">Filters</h2>
+                @if (baseModels().length) {
+                <button mat-button
+                        type="button"
+                        class="btn--sm"
+                        (click)="resetFilters()">Reset</button>
+                }
+                <button mat-icon-button
+                        type="button"
+                        class="btn--sm filters__close"
+                        aria-label="Close filters"
+                        (click)="filtersOpen.set(false)">
+                    <svg class="icon"
+                         aria-hidden="true">
+                        <use href="icons.svg#i-x" />
+                    </svg>
+                </button>
+            </div>
+            @if (baseModels().length) {
+            <app-listing-filters [filters]="f"
+                                 [type]="family()"
+                                 (changed)="onFilterChange()"></app-listing-filters>
+            } @else {
+            <div class="empty empty--compact">
+                <p class="empty__title">Nothing to filter yet</p>
+                <p class="empty__text">Filters appear when this list has posts.</p>
+            </div>
             }
         </aside>
+        }
     </div>
-</section>
+</div>
+
+@if (isPosts() && !isDesktop()) {
+<div class="backdrop filters-backdrop"
+     [class.is-open]="filtersOpen()"
+     (click)="filtersOpen.set(false)"></div>
+}

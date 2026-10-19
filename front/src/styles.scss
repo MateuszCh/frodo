@@ -9,17 +9,18 @@
 @use './styles/components/button';
 @use './styles/components/layout';
 @use './styles/components/nav';
+@use './styles/components/page';
+@use './styles/components/card';
+@use './styles/components/badge';
+@use './styles/components/message';
+@use './styles/components/form';
+@use './styles/components/segmented';
+@use './styles/components/menu';
+@use './styles/components/list';
+@use './styles/components/filters';
+@use './styles/components/dialog';
 
 // ---- legacy, replaced by the redesigned views -----------------------------------
-
-// Data-entry field wrapper used by the post/component dynamic fields.
-.field {
-    display: block;
-    padding: 16px;
-    margin-bottom: 16px;
-    background-color: var(--color-surface);
-    box-shadow: inset 0 0 0 1px var(--color-border);
-}
 
 .repeater-title {
     display: block;

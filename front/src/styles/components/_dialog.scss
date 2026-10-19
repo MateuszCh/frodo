@@ -1,0 +1,22 @@
+// Dialogs (design/components.css, 24): MatDialog, styled through mat.dialog-overrides
+// in _material.scss. Below 600 px the buttons stack, the confirming action on top.
+
+// MDC: Material spaces the buttons with a margin; use the gap instead
+.mat-mdc-dialog-actions.mat-mdc-dialog-actions {
+    gap: var(--space-2);
+
+    .mat-mdc-button-base + .mat-mdc-button-base {
+        margin-left: 0;
+    }
+}
+
+@media (max-width: 599px) {
+    .mat-mdc-dialog-actions.mat-mdc-dialog-actions {
+        flex-direction: column-reverse;
+        align-items: stretch;
+
+        > .mat-mdc-button-base {
+            width: 100%;
+        }
+    }
+}

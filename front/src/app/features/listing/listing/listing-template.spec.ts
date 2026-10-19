@@ -100,7 +100,7 @@ describe('listing.html — empty model', () => {
         fixture.componentRef.setInput('family', 'pages');
         fixture.componentRef.setInput('model', []);
         fixture.detectChanges();
-        expect(fixture.nativeElement.textContent).toContain('There are no pages yet');
+        expect(fixture.nativeElement.textContent).toContain('No pages yet');
     });
 
     it('renders "no components yet" for empty components list', () => {
@@ -108,7 +108,7 @@ describe('listing.html — empty model', () => {
         fixture.componentRef.setInput('family', 'components');
         fixture.componentRef.setInput('model', []);
         fixture.detectChanges();
-        expect(fixture.nativeElement.textContent).toContain('There are no components yet');
+        expect(fixture.nativeElement.textContent).toContain('No components yet');
     });
 
     it('renders "no post types yet" for empty postTypes list', () => {
@@ -116,7 +116,7 @@ describe('listing.html — empty model', () => {
         fixture.componentRef.setInput('family', 'postTypes');
         fixture.componentRef.setInput('model', []);
         fixture.detectChanges();
-        expect(fixture.nativeElement.textContent).toContain('There are no post types yet');
+        expect(fixture.nativeElement.textContent).toContain('No post types yet');
     });
 });
 
@@ -136,7 +136,8 @@ describe('listing.html — pages with items', () => {
         fixture.detectChanges();
         expect(fixture.nativeElement.textContent).toContain('Home');
         expect(fixture.nativeElement.textContent).toContain('About');
-        expect(fixture.nativeElement.querySelector('button[color="warn"]')).not.toBeNull();
+        expect(fixture.nativeElement.querySelector('button[aria-label="Delete Home"]')).not.toBeNull();
+        expect(fixture.nativeElement.querySelector('button[aria-label="Delete About"]')).not.toBeNull();
     });
 
     it('shows the "no matching" message when all items are filtered out', () => {
@@ -153,7 +154,7 @@ describe('listing.html — pages with items', () => {
             comp.filterTick.update((n: number) => n + 1);
             fixture.detectChanges();
         }
-        expect(fixture.nativeElement.textContent).toContain('matching your selection');
+        expect(fixture.nativeElement.textContent).toContain('No pages match your search');
     });
 });
 
@@ -162,7 +163,7 @@ describe('listing.html — pages with items', () => {
 // ---------------------------------------------------------------------------
 
 describe('listing.html — posts family', () => {
-    it('renders Edit and Filters buttons for posts family', () => {
+    it('renders Edit type and Filters buttons for posts family', () => {
         const { fixture } = setup();
         const postType = makePostType({ type: 'articles', posts: [makePost()] });
         fixture.componentRef.setInput('family', 'posts');
@@ -172,17 +173,47 @@ describe('listing.html — posts family', () => {
             fixture.nativeElement.querySelectorAll('button'),
         );
         const texts = buttons.map((b) => b.textContent?.trim());
-        expect(texts).toContain('Edit');
+        expect(texts).toContain('Edit type');
         expect(texts).toContain('Filters');
     });
 
-    it('renders Reset Filters button inside the filter drawer', () => {
+    it('renders the Reset button inside the filter panel', () => {
         const { fixture } = setup();
         const postType = makePostType({ type: 'articles', posts: [makePost()] });
         fixture.componentRef.setInput('family', 'posts');
         fixture.componentRef.setInput('model', postType);
         fixture.detectChanges();
-        expect(fixture.nativeElement.textContent).toContain('Reset Filters');
+        const panel: HTMLElement = fixture.nativeElement.querySelector('aside.filters');
+        const texts = Array.from(panel.querySelectorAll('button')).map((b) => b.textContent?.trim());
+        expect(texts).toContain('Reset');
+    });
+
+    it('renders the "New" action with the post type title', () => {
+        const { fixture } = setup();
+        const postType = makePostType({ title: 'Marker', type: 'marker', posts: [makePost()] });
+        fixture.componentRef.setInput('family', 'posts');
+        fixture.componentRef.setInput('model', postType);
+        fixture.detectChanges();
+        const texts = Array.from<HTMLButtonElement>(fixture.nativeElement.querySelectorAll('button')).map((b) =>
+            b.textContent?.trim(),
+        );
+        expect(texts).toContain('New marker');
+    });
+
+    it('shows "Nothing to filter yet" in the panel when the post type has no posts', () => {
+        const { fixture } = setup();
+        fixture.componentRef.setInput('family', 'posts');
+        fixture.componentRef.setInput('model', makePostType({ type: 'articles', posts: [] }));
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('aside.filters')?.textContent).toContain('Nothing to filter yet');
+    });
+
+    it('renders no filter panel for pages', () => {
+        const { fixture } = setup();
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', [{ _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] }]);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('aside.filters')).toBeNull();
     });
 });
 
@@ -202,7 +233,10 @@ describe('listing.html — mobile filters backdrop', () => {
         comp.filtersOpen.set(true);
         fixture.detectChanges();
 
-        expect(fixture.nativeElement.querySelector('.filters-backdrop')).not.toBeNull();
+        const backdrop: HTMLElement | null = fixture.nativeElement.querySelector('.filters-backdrop');
+        expect(backdrop).not.toBeNull();
+        expect(backdrop?.classList.contains('is-open')).toBe(true);
+        expect(fixture.nativeElement.querySelector('aside.filters')?.classList.contains('is-open')).toBe(true);
     });
 
     it('does not show backdrop on desktop', () => {
@@ -295,13 +329,12 @@ describe('listing.html — undo / removeStatus row', () => {
         expect(comp.removeStatus()?.status).toBe(200);
 
         // The <p> element with the result text should be in the DOM (covers @if removeStatus()?.result)
-        const resultP: HTMLElement | null = fixture.nativeElement.querySelector('.listing-item__row.center p');
+        const resultP: HTMLElement | null = fixture.nativeElement.querySelector('.list__row--removed p');
         expect(resultP).not.toBeNull();
-        // status === 200 → col-ok class present (covers [class.col-ok] binding)
-        expect(resultP?.classList.contains('col-ok')).toBe(true);
+        expect(resultP?.textContent?.trim()).toBe('ok');
     });
 
-    it('renders undo row without col-ok when status is not 200 (covers false branch of [class.col-ok])', () => {
+    it('renders the removed row with whatever result message the server sent', () => {
         const mocks = createMocks();
         // Override remove to return an error so status stays undefined, then manually set state
         const { fixture, comp } = setup(mocks);
@@ -315,9 +348,9 @@ describe('listing.html — undo / removeStatus row', () => {
         comp.removeStatus.set({ busy: 'p2', result: 'Error', status: 500 });
         fixture.detectChanges();
 
-        const resultP: HTMLElement | null = fixture.nativeElement.querySelector('.listing-item__row.center p');
+        const resultP: HTMLElement | null = fixture.nativeElement.querySelector('.list__row--removed p');
         expect(resultP).not.toBeNull();
-        expect(resultP?.classList.contains('col-ok')).toBe(false);
+        expect(resultP?.textContent?.trim()).toBe('Error');
     });
 });
 
@@ -453,7 +486,7 @@ describe('listing.html — button click interactions', () => {
         expect(comp.filtersOpen()).toBe(false);
     });
 
-    it('clicking Reset Filters calls resetFilters()', () => {
+    it('clicking Reset calls resetFilters()', () => {
         const { fixture, comp } = setup();
         const postType = makePostType({ type: 'articles', posts: [makePost()] });
         fixture.componentRef.setInput('family', 'posts');
@@ -462,7 +495,7 @@ describe('listing.html — button click interactions', () => {
 
         const resetBtn: HTMLButtonElement = Array.from<HTMLButtonElement>(
             fixture.nativeElement.querySelectorAll('button'),
-        ).find((b) => b.textContent?.trim() === 'Reset Filters')!;
+        ).find((b) => b.textContent?.trim() === 'Reset')!;
         const spy = vi.spyOn(comp, 'resetFilters');
         resetBtn.click();
         expect(spy).toHaveBeenCalled();
@@ -476,13 +509,13 @@ describe('listing.html — button click interactions', () => {
         fixture.componentRef.setInput('model', pages);
         fixture.detectChanges();
 
-        const deleteBtn: HTMLButtonElement = fixture.nativeElement.querySelector('button[color="warn"]');
+        const deleteBtn: HTMLButtonElement = fixture.nativeElement.querySelector('button[aria-label="Delete Home"]');
         const spy = vi.spyOn(comp, 'removeDialog');
         deleteBtn.click();
         expect(spy).toHaveBeenCalled();
     });
 
-    it('clicking Add button triggers add()', () => {
+    it('clicking New page triggers add()', () => {
         const { fixture, comp } = setup();
         fixture.componentRef.setInput('family', 'pages');
         fixture.componentRef.setInput('model', []);
@@ -490,13 +523,13 @@ describe('listing.html — button click interactions', () => {
 
         const addBtn: HTMLButtonElement = Array.from<HTMLButtonElement>(
             fixture.nativeElement.querySelectorAll('button'),
-        ).find((b) => b.textContent?.trim() === 'Add')!;
+        ).find((b) => b.textContent?.trim() === 'New page')!;
         const spy = vi.spyOn(comp, 'add').mockImplementation(() => {});
         addBtn.click();
         expect(spy).toHaveBeenCalled();
     });
 
-    it('clicking Edit button in posts family triggers editPostType()', () => {
+    it('clicking Edit type in posts family triggers editPostType()', () => {
         const { fixture, comp } = setup();
         fixture.componentRef.setInput('family', 'posts');
         fixture.componentRef.setInput('model', makePostType({ type: 'articles', posts: [] }));
@@ -504,7 +537,7 @@ describe('listing.html — button click interactions', () => {
 
         const editBtn: HTMLButtonElement | undefined = Array.from<HTMLButtonElement>(
             fixture.nativeElement.querySelectorAll('button'),
-        ).find((b) => b.textContent?.trim() === 'Edit');
+        ).find((b) => b.textContent?.trim() === 'Edit type');
         if (editBtn) {
             const spy = vi.spyOn(comp, 'editPostType').mockImplementation(() => {});
             editBtn.click();
@@ -526,7 +559,7 @@ describe('listing.html — button click interactions', () => {
         expect(spy).toHaveBeenCalled();
     });
 
-    it('Delete button has busy class while remove is in progress', () => {
+    it('Delete button is aria-busy while remove is in progress', () => {
         // Use a Subject so the API response is delayed and we can inspect the intermediate state
         const removeSubject = new Subject<string>();
         const mocks = createMocks();
@@ -541,9 +574,10 @@ describe('listing.html — button click interactions', () => {
         comp.removeDialog(pages[0]);
         fixture.detectChanges();
 
-        const deleteBtn: HTMLButtonElement = fixture.nativeElement.querySelector('button[color="warn"]');
-        // busy class is present while remove is in progress
-        expect(deleteBtn.classList.contains('busy')).toBe(true);
+        const deleteBtn: HTMLButtonElement = fixture.nativeElement.querySelector('button[aria-label="Delete Home"]');
+        // aria-busy (and the spinner) while remove is in progress
+        expect(deleteBtn.getAttribute('aria-busy')).toBe('true');
+        expect(deleteBtn.querySelector('.spinner')).not.toBeNull();
 
         // Complete the remove to clean up
         removeSubject.next('ok');
@@ -591,6 +625,44 @@ describe('listing.html — remaining event handler interactions', () => {
 });
 
 // ---------------------------------------------------------------------------
+// listing.html — search in the list toolbar and the sort button label
+// ---------------------------------------------------------------------------
+
+describe('listing.html — list toolbar', () => {
+    it('typing in the search field updates the text filter and the list', () => {
+        const { fixture, comp } = setup();
+        const pages: Page[] = [
+            { _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] },
+            { _id: 'p2', id: 2, title: 'About', pageUrl: '/about', rows: [] },
+        ];
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', pages);
+        fixture.detectChanges();
+
+        const search: HTMLInputElement = fixture.nativeElement.querySelector('.list-toolbar input[type="search"]');
+        expect(search.placeholder).toBe('Search pages');
+        search.value = 'abo';
+        search.dispatchEvent(new Event('input'));
+        fixture.detectChanges();
+
+        expect(comp.filters().textFilter.value).toBe('abo');
+        expect(comp.matchCount()).toBe(1);
+    });
+
+    it('shows the name of the current sort on the sort button', () => {
+        const { fixture, comp } = setup();
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', [{ _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] }]);
+        fixture.detectChanges();
+
+        comp.sortCurrent.set('title');
+        fixture.detectChanges();
+        const sortBtn: HTMLButtonElement = fixture.nativeElement.querySelector('.sort-toggle');
+        expect(sortBtn.textContent?.trim()).toBe('title');
+    });
+});
+
+// ---------------------------------------------------------------------------
 // listing-filters.html — ngModelChange interactions (covers event-handler lines)
 // ---------------------------------------------------------------------------
 
@@ -629,7 +701,7 @@ describe('listing-filters.html — ngModelChange interactions', () => {
         // Open the sort menu
         const sortBtn: HTMLButtonElement | null = Array.from<HTMLButtonElement>(
             fixture.nativeElement.querySelectorAll('button'),
-        ).find((b) => b.getAttribute('aria-label') === 'Sort by') ?? null;
+        ).find((b) => b.getAttribute('aria-haspopup') === 'menu') ?? null;
         sortBtn?.click();
         fixture.detectChanges();
 
@@ -697,7 +769,7 @@ describe('listing.html — undo row without a result message', () => {
         comp.removeStatus.set({ busy: 'p1' });
         fixture.detectChanges();
 
-        const undoRow = fixture.nativeElement.querySelector('.listing-item__row.center');
+        const undoRow = fixture.nativeElement.querySelector('.list__row--removed');
         expect(undoRow).not.toBeNull();
         expect(undoRow.querySelector('p')).toBeNull();
     });
