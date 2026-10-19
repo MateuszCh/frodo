@@ -1,0 +1,135 @@
+// Upload tab (design/components.css, 22 and 23).
+
+.upload-empty {
+    display: grid;
+    justify-items: center;
+    gap: var(--space-3);
+    padding: var(--space-12) var(--space-6);
+    text-align: center;
+    border: 1.5px dashed var(--color-border-control);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+}
+
+.upload-empty__icon {
+    width: 56px;
+    height: 56px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--color-accent-subtle);
+    color: var(--color-accent-subtle-text);
+}
+
+.upload-empty__title {
+    font-size: var(--text-lg);
+    line-height: var(--leading-lg);
+    font-weight: var(--weight-semibold);
+}
+
+.upload-empty__hint {
+    font-size: var(--text-sm);
+    line-height: var(--leading-sm);
+    color: var(--color-text-muted);
+    max-width: 44ch;
+}
+
+.upload-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+}
+
+.upload-layout {
+    display: grid;
+    gap: var(--space-5);
+    align-items: start;
+}
+
+@media (min-width: 960px) {
+    .upload-layout {
+        grid-template-columns: minmax(0, 1fr) var(--layout-details-w);
+    }
+}
+
+.pending {
+    display: grid;
+    gap: 2px;
+    padding: var(--space-1);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+}
+
+.pending__item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    width: 100%;
+    min-height: 52px;
+    padding: var(--space-2) var(--space-3);
+    border: 0;
+    border-radius: var(--radius-md);
+    background: transparent;
+    color: var(--color-text);
+    text-align: left;
+    cursor: pointer;
+
+    &:hover {
+        background: var(--color-fill-hover);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-focus-ring);
+        outline-offset: -2px;
+    }
+
+    &.current {
+        background: var(--color-surface-selected);
+        color: var(--color-accent-subtle-text);
+    }
+}
+
+.pending__thumb {
+    width: 36px;
+    height: 36px;
+    flex: none;
+    overflow: hidden;
+    border-radius: var(--radius-xs);
+    background: var(--color-surface-sunken);
+
+    > img {
+        display: block;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+}
+
+.pending__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+}
+
+// progress: label above a mat-progress-bar (track and bar from _material.scss)
+.progress {
+    display: grid;
+    gap: var(--space-2);
+    margin-bottom: var(--space-5);
+}
+
+.progress__label {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    font-size: var(--text-sm);
+    line-height: var(--leading-sm);
+    color: var(--color-text-muted);
+    font-variant-numeric: tabular-nums;
+}

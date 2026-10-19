@@ -711,19 +711,24 @@ describe('FilesComponent — template', () => {
         const thumbs: HTMLImageElement[] = Array.from(
             fixture.nativeElement.querySelectorAll('.files-grid__item img'),
         );
-        expect(thumbs.map((i) => i.getAttribute('src'))).toEqual([
-            '/uploads/photo.jpg',
-            'images/pdf-placeholder.png',
-        ]);
+        expect(thumbs.map((i) => i.getAttribute('src'))).toEqual(['/uploads/photo.jpg']);
+        // PDFs get a tile with the file icon instead of an image
+        const tiles: HTMLElement[] = Array.from(
+            fixture.nativeElement.querySelectorAll('.files-grid__item .thumb__file'),
+        );
+        expect(tiles.map((t) => t.textContent?.trim())).toEqual(['PDF']);
+        expect(fixture.nativeElement.querySelector('.files-grid__item.current')?.getAttribute('aria-label')).toBe(
+            'photo.jpg',
+        );
         expect(fixture.nativeElement.querySelector('.files-edit__name').textContent).toContain(
             'photo.jpg',
         );
 
-        // a selected PDF gets the placeholder preview in the edit panel
+        // a selected PDF gets the file tile as its preview in the edit panel
         comp.select(pdf);
         fixture.detectChanges();
-        const preview = fixture.nativeElement.querySelector('.files-edit__preview img');
-        expect(preview.getAttribute('src')).toBe('images/pdf-placeholder.png');
+        expect(fixture.nativeElement.querySelector('.files-edit__preview img')).toBeNull();
+        expect(fixture.nativeElement.querySelector('.files-edit__preview .thumb__file')).not.toBeNull();
     });
 
     it('selects a file when its grid item is clicked', () => {
@@ -749,12 +754,44 @@ describe('FilesComponent — template', () => {
         expect(fixture.nativeElement.querySelector('.files-upload__edit')).not.toBeNull();
     });
 
+    it('labels the upload button with the number of pending files', () => {
+        const { fixture, comp } = setup([]);
+        comp.onFilesSelect(
+            fileInputEvent([
+                new File(['1'], 'a.jpg', { type: 'image/jpeg' }),
+                new File(['2'], 'b.pdf', { type: 'application/pdf' }),
+            ]),
+        );
+        comp.tabs().selectedIndex = 1;
+        fixture.detectChanges();
+
+        expect(buttonByText(fixture, 'Upload 2 files')).toBeDefined();
+        expect(buttonByText(fixture, 'Clear list')).toBeDefined();
+        // the PDF gets a file tile, not the placeholder image
+        const thumbs = fixture.nativeElement.querySelectorAll('.pending__thumb');
+        expect(thumbs[0].querySelector('img')).not.toBeNull();
+        expect(thumbs[1].querySelector('img')).toBeNull();
+    });
+
+    it('shows the upload empty state before any file is selected', async () => {
+        const { fixture, comp } = setup([]);
+        comp.tabs().selectedIndex = 1;
+        fixture.detectChanges();
+        // the tab body attaches its content in a follow-up CD pass
+        await fixture.whenStable();
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('.upload-empty')?.textContent).toContain(
+            'Upload images or PDF files',
+        );
+    });
+
     it('hides the header actions in popup mode and shows the close button', () => {
         const mocks = createMocks();
         mocks.files.getAllFiles.mockReturnValue(of([]));
         const { fixture } = setup([], true, mocks);
         expect(fixture.nativeElement.querySelector('.files-actions')).toBeNull();
         expect(fixture.nativeElement.querySelector('.files-popup-close')).not.toBeNull();
+        expect(fixture.nativeElement.querySelector('.dialog__title')?.textContent?.trim()).toBe('Choose a file');
     });
 
     it('shows the empty state and skips meta rows for a file without metadata', () => {
@@ -767,11 +804,11 @@ describe('FilesComponent — template', () => {
         const { fixture, comp } = setup([bare]);
         comp.select(bare);
         fixture.detectChanges();
-        expect(fixture.nativeElement.querySelectorAll('.files-edit__meta li')).toHaveLength(0);
+        expect(fixture.nativeElement.querySelectorAll('.files-edit__meta dt')).toHaveLength(0);
 
         comp.files.set([]);
         fixture.detectChanges();
-        expect(fixture.nativeElement.textContent).toContain('There are no files yet');
+        expect(fixture.nativeElement.textContent).toContain('No files yet');
     });
 });
 
@@ -935,16 +972,16 @@ describe('files.html — event handlers', () => {
         fixture.detectChanges();
         expect(comp.pending()[1].meta.catalogues).toContain('prints');
 
-        // remove the selected pending file via its Delete button
+        // remove the selected pending file via its Remove button (first in the panel)
         const editAside = fixture.debugElement.query(By.css('.files-upload__edit'));
         (editAside.nativeElement.querySelector('button') as HTMLButtonElement).click();
         fixture.detectChanges();
         expect(comp.pending()).toHaveLength(1);
 
-        buttonByText(fixture, 'Upload').click();
+        buttonByText(fixture, 'Upload 1 file').click();
         expect(mocks.files.upload).toHaveBeenCalled();
 
-        buttonByText(fixture, 'Delete files').click();
+        buttonByText(fixture, 'Clear list').click();
         fixture.detectChanges();
         expect(comp.pending()).toEqual([]);
         vi.restoreAllMocks();
@@ -960,10 +997,11 @@ describe('files.html — event handlers', () => {
         comp.tabs().selectedIndex = 1;
         fixture.detectChanges();
 
-        buttonByText(fixture, 'Upload').click();
+        buttonByText(fixture, 'Upload 1 file').click();
         fixture.detectChanges();
 
         expect(fixture.nativeElement.querySelector('mat-progress-bar')).not.toBeNull();
+        expect(fixture.nativeElement.querySelector('.progress__label')?.textContent).toContain('25%');
     });
 
     it('hides the pending edit panel when no pending file is selected', async () => {

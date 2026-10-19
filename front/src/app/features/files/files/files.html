@@ -1,18 +1,36 @@
-<section class="files">
-    <div class="files-header">
-        @if (!isPopup()) {
-        <h2 class="center">
-            <span>Files</span>
-            <span>({{ files().length }})</span>
-        </h2>
-        }
-        @if (!isPopup()) {
-        <div class="files-actions">
-            <button mat-raised-button
-                    color="primary"
-                    [class.busy]="importStatus()"
+@let popup = isPopup();
+@let saving = actionStatus() === 'save';
+@let deleting = actionStatus() === 'delete';
+@let uploading = actionStatus() === 'upload';
+@let pendingCount = pending().length;
+<section class="files"
+         [class.page]="!popup"
+         [class.files--popup]="popup">
+    @if (!popup) {
+    <header class="page-header files-header">
+        <div class="page-header__top">
+            <div class="page-heading">
+                <h1 class="page-title">Files</h1>
+                <span class="badge">{{ files().length }}<span class="visually-hidden"> files</span></span>
+            </div>
+        </div>
+        <div class="page-header__secondary files-actions">
+            <button mat-button
+                    type="button"
+                    [attr.aria-busy]="importStatus()"
                     (click)="importInput.click()">
-                Import
+                @if (importStatus()) {
+                <span matButtonIcon
+                      class="spinner"
+                      aria-hidden="true"></span>
+                } @else {
+                <svg matButtonIcon
+                     class="icon"
+                     aria-hidden="true">
+                    <use href="icons.svg#i-upload" />
+                </svg>
+                }
+                {{ importStatus() ? 'Importing…' : 'Import' }}
             </button>
             <input #importInput
                    type="file"
@@ -20,47 +38,76 @@
                    hidden
                    (change)="onImportFile($event)" />
             @if (files().length) {
-            <button mat-raised-button
-                    color="primary"
-                    [class.busy]="exportStatus()"
+            <button mat-button
+                    type="button"
+                    [attr.aria-busy]="exportStatus()"
                     (click)="export()">
-                Export
+                @if (exportStatus()) {
+                <span matButtonIcon
+                      class="spinner"
+                      aria-hidden="true"></span>
+                } @else {
+                <svg matButtonIcon
+                     class="icon"
+                     aria-hidden="true">
+                    <use href="icons.svg#i-download" />
+                </svg>
+                }
+                {{ exportStatus() ? 'Exporting…' : 'Export' }}
             </button>
             }
         </div>
-        }
+    </header>
+    } @else {
+    <div class="dialog__header">
+        <h2 class="dialog__title">Choose a file</h2>
+        <button mat-icon-button
+                type="button"
+                class="files-popup-close"
+                mat-dialog-close
+                aria-label="Close">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-x" />
+            </svg>
+        </button>
     </div>
-
-    @if (isPopup()) {
-    <button class="files-popup-close"
-            mat-icon-button
-            mat-dialog-close
-            aria-label="close">
-        <mat-icon svgIcon="closeB"></mat-icon>
-    </button>
     }
 
-    <mat-tab-group #tabs>
-        <!-- Select file -->
-        <mat-tab label="SELECT FILE">
-            <div class="files-select">
+    <mat-tab-group #tabs
+                   class="files-tabs">
+        <!-- Library -->
+        <mat-tab label="Library">
+            <div class="tab-panel files-select"
+                 [class.picker]="popup"
+                 [class.picker--selected]="popup && !!selected()"
+                 [class.library]="!popup"
+                 [class.library--selected]="!popup && !!selected()">
                 <div class="files-grid-pane"
+                     [class.picker__main]="popup"
                      appInfiniteScroll
                      (reached)="incrementLimit()"
                      [enabled]="visible().length < filtered().length">
-
-
-                    <div class="files-filters">
-                        <mat-form-field subscriptSizing="dynamic">
-                            <mat-label>Search</mat-label>
-                            <input matInput
+                    @if (files().length) {
+                    <div class="library__toolbar files-filters">
+                        <label class="control control--search">
+                            <span class="visually-hidden">Search files</span>
+                            <svg class="icon control__icon"
+                                 aria-hidden="true">
+                                <use href="icons.svg#i-search" />
+                            </svg>
+                            <input class="input"
+                                   type="search"
+                                   placeholder="Search files"
                                    [ngModel]="searchText()"
                                    (ngModelChange)="searchText.set($event)" />
-                        </mat-form-field>
+                        </label>
                         @if (catalogues().length) {
-                        <mat-form-field subscriptSizing="dynamic">
-                            <mat-label>Select catalogue</mat-label>
+                        <mat-form-field appearance="outline"
+                                        subscriptSizing="dynamic">
                             <mat-select multiple
+                                        aria-label="Catalogues"
+                                        placeholder="All catalogues"
                                         [ngModel]="searchCatalogues()"
                                         (ngModelChange)="searchCatalogues.set($event)">
                                 @for (catalogue of catalogues(); track catalogue) {
@@ -70,144 +117,266 @@
                         </mat-form-field>
                         }
                     </div>
-
-                    @if (!files().length) {
-                    <p class="center">There are no files yet</p>
                     }
 
-                    <div class="files-grid">
+                    @if (!files().length) {
+                    <div class="card">
+                        <div class="empty">
+                            <span class="empty__icon">
+                                <svg class="icon icon--lg"
+                                     aria-hidden="true">
+                                    <use href="icons.svg#i-image" />
+                                </svg>
+                            </span>
+                            <p class="empty__title">No files yet</p>
+                            <p class="empty__text">Upload images or PDF files in the Upload tab, or import a JSON file.</p>
+                        </div>
+                    </div>
+                    } @else if (!filtered().length) {
+                    <div class="card">
+                        <div class="empty">
+                            <span class="empty__icon">
+                                <svg class="icon icon--lg"
+                                     aria-hidden="true">
+                                    <use href="icons.svg#i-search" />
+                                </svg>
+                            </span>
+                            <p class="empty__title">No files match your search</p>
+                            <p class="empty__text">Change the search text or choose another catalogue.</p>
+                        </div>
+                    </div>
+                    }
+
+                    <div class="thumbs files-grid">
                         @for (file of visible(); track file._id) {
                         <button type="button"
-                                class="files-grid__item"
+                                class="thumb files-grid__item"
                                 appImgLoaded
                                 [class.current]="selected() === file"
+                                [attr.aria-pressed]="selected() === file"
+                                [attr.aria-label]="file.filename"
                                 (click)="select(file)">
                             @if (isImage(file)) {
                             <img [src]="file.src"
                                  [alt]="file.filename" />
                             } @else {
-                            <img src="images/pdf-placeholder.png"
-                                 [alt]="file.filename" />
+                            <span class="thumb__file">
+                                <svg class="icon icon--lg"
+                                     aria-hidden="true">
+                                    <use href="icons.svg#i-file" />
+                                </svg>
+                                PDF
+                            </span>
                             }
+                            <span class="thumb__check">
+                                <svg class="icon"
+                                     aria-hidden="true">
+                                    <use href="icons.svg#i-check" />
+                                </svg>
+                            </span>
                         </button>
                         }
-
                     </div>
                 </div>
 
-                <!-- edit panel -->
+                <!-- details of the selected file -->
                 @if (selected(); as file) {
-                <aside class="files-edit">
-                    <p class="files-edit__name">{{ file.filename }}</p>
-                    <div class="files-edit__actions">
-                        <button mat-raised-button
-                                color="primary"
-                                [class.busy]="actionStatus() === 'save'"
-                                (click)="saveFile()">
-                            Save
-                        </button>
-                        <button mat-raised-button
-                                color="warn"
-                                [class.busy]="actionStatus() === 'delete'"
-                                (click)="deleteDialog()">
-                            Delete
-                        </button>
-                        @if (isPopup()) {
-                        <button mat-raised-button
-                                color="primary"
-                                (click)="chooseSelected()">
-                            Choose
-                        </button>
-                        }
-                    </div>
-                    <hr class="files-edit__divider" />
-                    <ul class="files-edit__meta">
-                        @if (file.created) {
-                        <li>
-                            <span class="files-edit__meta-label">Date</span>
-                            <span>{{ file.created | date:'MMM d, y h:mm:ss a' }}</span>
-                        </li>
-                        }
-                        @if (file.src) {
-                        <li>
-                            <span class="files-edit__meta-label">URL</span>
-                            <span class="files-edit__meta-url">{{ file.src }}</span>
-                        </li>
-                        }
-                        @if (file.type) {
-                        <li>
-                            <span class="files-edit__meta-label">Type</span>
-                            <span>{{ file.type }}</span>
-                        </li>
-                        }
-                        @if (file.size) {
-                        <li>
-                            <span class="files-edit__meta-label">Size</span>
-                            <span>{{ file.size | bytes }}</span>
-                        </li>
-                        }
-                    </ul>
-                    <div class="files-edit__preview">
-                        @if (isImage(file)) {
-                        <img [src]="file.src"
-                             [alt]="file.filename" />
-                        } @else {
-                        <img src="images/pdf-placeholder.png"
-                             [alt]="file.filename" />
-                        }
-                    </div>
-                    <hr class="files-edit__divider" />
-                    <mat-form-field class="full-width">
-                        <mat-label>Title</mat-label>
-                        <input matInput
-                               [(ngModel)]="file.title" />
-                    </mat-form-field>
-                    <mat-form-field class="full-width">
-                        <mat-label>Description</mat-label>
-                        <textarea matInput
-                                  rows="2"
-                                  [(ngModel)]="file.description"></textarea>
-                    </mat-form-field>
-                    <mat-form-field class="full-width">
-                        <mat-label>Author</mat-label>
-                        <input matInput
-                               [(ngModel)]="file.author" />
-                    </mat-form-field>
-                    <mat-form-field class="full-width">
-                        <mat-label>Place</mat-label>
-                        <input matInput
-                               [(ngModel)]="file.place" />
-                    </mat-form-field>
-                    <mat-form-field class="full-width">
-                        <mat-label>Position</mat-label>
-                        <input matInput
-                               type="number"
-                               [(ngModel)]="file.position" />
-                    </mat-form-field>
-                    @if (catalogues().length) {
-                    <mat-form-field class="full-width">
-                        <mat-label>Select catalogue</mat-label>
-                        <mat-select multiple
-                                    [(ngModel)]="file.catalogues">
-                            @for (catalogue of catalogues(); track catalogue) {
-                            <mat-option [value]="catalogue">{{ catalogue }}</mat-option>
+                <aside class="files-edit"
+                       [class.picker__details]="popup"
+                       [class.library__details]="!popup"
+                       aria-label="File details">
+                    <div class="details">
+                        <p class="details__name files-edit__name">{{ file.filename }}</p>
+                        <div class="details__actions">
+                            @if (popup) {
+                            <button mat-flat-button
+                                    type="button"
+                                    (click)="chooseSelected()">
+                                <svg matButtonIcon
+                                     class="icon"
+                                     aria-hidden="true">
+                                    <use href="icons.svg#i-check" />
+                                </svg>
+                                Choose
+                            </button>
+                            <button mat-stroked-button
+                                    type="button"
+                                    [attr.aria-busy]="saving"
+                                    (click)="saveFile()">
+                                @if (saving) {
+                                <span matButtonIcon
+                                      class="spinner"
+                                      aria-hidden="true"></span>
+                                }
+                                {{ saving ? 'Saving…' : 'Save' }}
+                            </button>
+                            <button mat-icon-button
+                                    type="button"
+                                    [attr.aria-label]="'Delete ' + file.filename"
+                                    [attr.aria-busy]="deleting"
+                                    (click)="deleteDialog()">
+                                @if (deleting) {
+                                <span class="spinner"
+                                      aria-hidden="true"></span>
+                                } @else {
+                                <svg class="icon"
+                                     aria-hidden="true">
+                                    <use href="icons.svg#i-trash" />
+                                </svg>
+                                }
+                            </button>
+                            } @else {
+                            <button mat-flat-button
+                                    type="button"
+                                    [attr.aria-busy]="saving"
+                                    (click)="saveFile()">
+                                @if (saving) {
+                                <span matButtonIcon
+                                      class="spinner"
+                                      aria-hidden="true"></span>
+                                }
+                                {{ saving ? 'Saving…' : 'Save' }}
+                            </button>
+                            <button mat-button
+                                    type="button"
+                                    [attr.aria-busy]="deleting"
+                                    (click)="deleteDialog()">
+                                @if (deleting) {
+                                <span matButtonIcon
+                                      class="spinner"
+                                      aria-hidden="true"></span>
+                                } @else {
+                                <svg matButtonIcon
+                                     class="icon"
+                                     aria-hidden="true">
+                                    <use href="icons.svg#i-trash" />
+                                </svg>
+                                }
+                                {{ deleting ? 'Deleting…' : 'Delete' }}
+                            </button>
                             }
-                        </mat-select>
-                    </mat-form-field>
-                    }
-                    <div class="files-edit__new-catalogue">
-                        <mat-form-field subscriptSizing="dynamic">
-                            <mat-label>Add new catalogue</mat-label>
-                            <input matInput
-                                   [ngModel]="newCatalogue()"
-                                   (ngModelChange)="newCatalogue.set($event)" />
-                        </mat-form-field>
-                        <button mat-raised-button
-                                color="primary"
-                                type="button"
-                                (click)="addCatalogue()">
-                            Add
-                        </button>
+                        </div>
+                        <div class="details__preview files-edit__preview">
+                            @if (isImage(file)) {
+                            <img [src]="file.src"
+                                 [alt]="'Preview of ' + file.filename" />
+                            } @else {
+                            <span class="thumb__file"
+                                  role="img"
+                                  [attr.aria-label]="'Preview of ' + file.filename">
+                                <svg class="icon icon--lg"
+                                     aria-hidden="true">
+                                    <use href="icons.svg#i-file" />
+                                </svg>
+                                PDF
+                            </span>
+                            }
+                        </div>
+                        <dl class="meta files-edit__meta">
+                            @if (file.created) {
+                            <dt>Date</dt>
+                            <dd>{{ file.created | date:'MMM d, y h:mm:ss a' }}</dd>
+                            }
+                            @if (file.src) {
+                            <dt>URL</dt>
+                            <dd class="mono">{{ file.src }}</dd>
+                            }
+                            @if (file.type) {
+                            <dt>Type</dt>
+                            <dd>{{ file.type }}</dd>
+                            }
+                            @if (file.size) {
+                            <dt>Size</dt>
+                            <dd class="tabular">{{ file.size | bytes }}</dd>
+                            }
+                        </dl>
+                        <hr class="divider" />
+                        <div class="form-stack">
+                            <div class="field">
+                                <label class="field__label"
+                                       for="file-title">Title</label>
+                                <mat-form-field appearance="outline"
+                                                subscriptSizing="dynamic">
+                                    <input matInput
+                                           id="file-title"
+                                           [(ngModel)]="file.title" />
+                                </mat-form-field>
+                            </div>
+                            <div class="field">
+                                <label class="field__label"
+                                       for="file-description">Description</label>
+                                <mat-form-field appearance="outline"
+                                                subscriptSizing="dynamic">
+                                    <textarea matInput
+                                              rows="2"
+                                              id="file-description"
+                                              [(ngModel)]="file.description"></textarea>
+                                </mat-form-field>
+                            </div>
+                            <div class="field">
+                                <label class="field__label"
+                                       for="file-author">Author</label>
+                                <mat-form-field appearance="outline"
+                                                subscriptSizing="dynamic">
+                                    <input matInput
+                                           id="file-author"
+                                           [(ngModel)]="file.author" />
+                                </mat-form-field>
+                            </div>
+                            <div class="field">
+                                <label class="field__label"
+                                       for="file-place">Place</label>
+                                <mat-form-field appearance="outline"
+                                                subscriptSizing="dynamic">
+                                    <input matInput
+                                           id="file-place"
+                                           [(ngModel)]="file.place" />
+                                </mat-form-field>
+                            </div>
+                            <div class="field">
+                                <label class="field__label"
+                                       for="file-position">Position</label>
+                                <mat-form-field appearance="outline"
+                                                subscriptSizing="dynamic">
+                                    <input matInput
+                                           type="number"
+                                           id="file-position"
+                                           [(ngModel)]="file.position" />
+                                </mat-form-field>
+                            </div>
+                            @if (catalogues().length) {
+                            <div class="field">
+                                <span class="field__label"
+                                      id="file-catalogues-label">Catalogues</span>
+                                <mat-form-field appearance="outline"
+                                                subscriptSizing="dynamic">
+                                    <mat-select multiple
+                                                aria-labelledby="file-catalogues-label"
+                                                [(ngModel)]="file.catalogues">
+                                        @for (catalogue of catalogues(); track catalogue) {
+                                        <mat-option [value]="catalogue">{{ catalogue }}</mat-option>
+                                        }
+                                    </mat-select>
+                                </mat-form-field>
+                            </div>
+                            }
+                            <div class="field">
+                                <label class="field__label"
+                                       for="file-new-catalogue">New catalogue</label>
+                                <div class="field-row">
+                                    <mat-form-field appearance="outline"
+                                                    subscriptSizing="dynamic">
+                                        <input matInput
+                                               id="file-new-catalogue"
+                                               [ngModel]="newCatalogue()"
+                                               (ngModelChange)="newCatalogue.set($event)" />
+                                    </mat-form-field>
+                                    <button mat-stroked-button
+                                            type="button"
+                                            (click)="addCatalogue()">Add</button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </aside>
                 }
@@ -215,7 +384,7 @@
         </mat-tab>
 
         <!-- Upload -->
-        <mat-tab label="ADD NEW FILES">
+        <mat-tab label="Upload">
             <input #uploadInput
                    type="file"
                    multiple
@@ -223,119 +392,217 @@
                    hidden
                    (change)="onFilesSelect($event)" />
 
-            <div class="files-upload"
-                 [class.files-upload--active]="pending().length">
-                <!-- left: action buttons -->
-                <div class="files-upload__actions">
-                    <div class="files-upload__actions-btns">
-                        <button mat-raised-button
-                                color="primary"
-                                (click)="uploadInput.click()">
-                            Select files
-                        </button>
-                        @if (pending().length) {
-                        <button mat-raised-button
-                                color="primary"
-                                [class.busy]="actionStatus() === 'upload'"
-                                (click)="upload()">
-                            Upload
-                        </button>
-                        <button mat-raised-button
-                                color="warn"
-                                (click)="clearPending()">
-                            Delete files
+            <div class="tab-panel files-upload">
+                @if (!pendingCount) {
+                <div class="upload-empty">
+                    <span class="upload-empty__icon">
+                        <svg class="icon icon--lg"
+                             aria-hidden="true">
+                            <use href="icons.svg#i-upload" />
+                        </svg>
+                    </span>
+                    <p class="upload-empty__title">Upload images or PDF files</p>
+                    <p class="upload-empty__hint">
+                        JPG, PNG, GIF or PDF. You can select several files at once and describe each one before
+                        uploading.
+                    </p>
+                    <button mat-flat-button
+                            type="button"
+                            (click)="uploadInput.click()">Select files</button>
+                </div>
+                } @else {
+                <div class="upload-bar files-upload__actions">
+                    <button mat-stroked-button
+                            type="button"
+                            (click)="uploadInput.click()">Select files</button>
+                    <button mat-flat-button
+                            type="button"
+                            [attr.aria-busy]="uploading"
+                            (click)="upload()">
+                        @if (uploading) {
+                        <span matButtonIcon
+                              class="spinner"
+                              aria-hidden="true"></span>
+                        } @else {
+                        <svg matButtonIcon
+                             class="icon"
+                             aria-hidden="true">
+                            <use href="icons.svg#i-upload" />
+                        </svg>
+                        }
+                        {{ uploading ? 'Uploading…' : 'Upload ' + pendingCount + (pendingCount === 1 ? ' file' : ' files') }}
+                    </button>
+                    <button mat-button
+                            type="button"
+                            (click)="clearPending()">Clear list</button>
+                </div>
+
+                @if (progress() > 0 && uploading) {
+                <div class="progress">
+                    <div class="progress__label">
+                        <span>Uploading {{ pendingCount }} {{ pendingCount === 1 ? 'file' : 'files' }}…</span>
+                        <span>{{ progress() }}%</span>
+                    </div>
+                    <mat-progress-bar mode="determinate"
+                                      aria-label="Uploading files"
+                                      [value]="progress()"></mat-progress-bar>
+                </div>
+                }
+
+                <div class="upload-layout">
+                    <div class="pending files-upload__list"
+                         role="listbox"
+                         aria-label="Files to upload">
+                        @for (item of pending(); track item.file.name; let i = $index) {
+                        <button type="button"
+                                class="pending__item upload-list-item"
+                                role="option"
+                                [class.current]="selectedPending() === i"
+                                [attr.aria-selected]="selectedPending() === i"
+                                (click)="selectPending(i)">
+                            <span class="pending__thumb">
+                                @if (item.file.type.startsWith('image/')) {
+                                <img [src]="item.previewUrl"
+                                     alt="" />
+                                } @else {
+                                <span class="thumb__file">
+                                    <svg class="icon icon--sm"
+                                         aria-hidden="true">
+                                        <use href="icons.svg#i-file" />
+                                    </svg>
+                                </span>
+                                }
+                            </span>
+                            <span class="pending__name">{{ item.file.name }}</span>
                         </button>
                         }
                     </div>
-                    @if (progress() > 0 && actionStatus() === 'upload') {
-                    <mat-progress-bar mode="determinate"
-                                      [value]="progress()"></mat-progress-bar>
+
+                    <!-- description of the selected pending file -->
+                    @if (selectedPendingItem(); as item) {
+                    <aside class="library__details files-upload__edit"
+                           aria-label="Selected file">
+                        <div class="details">
+                            <p class="details__name">{{ item.file.name }}</p>
+                            <p class="field__hint">Size: {{ item.file.size | bytes }}</p>
+                            <div class="details__actions">
+                                <button mat-button
+                                        type="button"
+                                        (click)="removePending(selectedPending()!)">
+                                    <svg matButtonIcon
+                                         class="icon"
+                                         aria-hidden="true">
+                                        <use href="icons.svg#i-x" />
+                                    </svg>
+                                    Remove
+                                </button>
+                            </div>
+                            <div class="details__preview">
+                                @if (item.file.type.startsWith('image/')) {
+                                <img [src]="item.previewUrl"
+                                     [alt]="'Preview of ' + item.file.name" />
+                                } @else {
+                                <span class="thumb__file"
+                                      role="img"
+                                      [attr.aria-label]="'Preview of ' + item.file.name">
+                                    <svg class="icon icon--lg"
+                                         aria-hidden="true">
+                                        <use href="icons.svg#i-file" />
+                                    </svg>
+                                    PDF
+                                </span>
+                                }
+                            </div>
+                            <div class="form-stack">
+                                <div class="field">
+                                    <label class="field__label"
+                                           for="pending-title">Title</label>
+                                    <mat-form-field appearance="outline"
+                                                    subscriptSizing="dynamic">
+                                        <input matInput
+                                               id="pending-title"
+                                               [(ngModel)]="item.meta.title" />
+                                    </mat-form-field>
+                                </div>
+                                <div class="field">
+                                    <label class="field__label"
+                                           for="pending-description">Description</label>
+                                    <mat-form-field appearance="outline"
+                                                    subscriptSizing="dynamic">
+                                        <textarea matInput
+                                                  rows="2"
+                                                  id="pending-description"
+                                                  [(ngModel)]="item.meta.description"></textarea>
+                                    </mat-form-field>
+                                </div>
+                                <div class="field">
+                                    <label class="field__label"
+                                           for="pending-author">Author</label>
+                                    <mat-form-field appearance="outline"
+                                                    subscriptSizing="dynamic">
+                                        <input matInput
+                                               id="pending-author"
+                                               [(ngModel)]="item.meta.author" />
+                                    </mat-form-field>
+                                </div>
+                                <div class="field">
+                                    <label class="field__label"
+                                           for="pending-place">Place</label>
+                                    <mat-form-field appearance="outline"
+                                                    subscriptSizing="dynamic">
+                                        <input matInput
+                                               id="pending-place"
+                                               [(ngModel)]="item.meta.place" />
+                                    </mat-form-field>
+                                </div>
+                                <div class="field">
+                                    <label class="field__label"
+                                           for="pending-position">Position</label>
+                                    <mat-form-field appearance="outline"
+                                                    subscriptSizing="dynamic">
+                                        <input matInput
+                                               type="number"
+                                               id="pending-position"
+                                               [(ngModel)]="item.meta.position" />
+                                    </mat-form-field>
+                                </div>
+                                @if (catalogues().length) {
+                                <div class="field">
+                                    <span class="field__label"
+                                          id="pending-catalogues-label">Catalogues</span>
+                                    <mat-form-field appearance="outline"
+                                                    subscriptSizing="dynamic">
+                                        <mat-select multiple
+                                                    aria-labelledby="pending-catalogues-label"
+                                                    [(ngModel)]="item.meta.catalogues">
+                                            @for (catalogue of catalogues(); track catalogue) {
+                                            <mat-option [value]="catalogue">{{ catalogue }}</mat-option>
+                                            }
+                                        </mat-select>
+                                    </mat-form-field>
+                                </div>
+                                }
+                                <div class="field">
+                                    <label class="field__label"
+                                           for="pending-new-catalogue">New catalogue</label>
+                                    <div class="field-row">
+                                        <mat-form-field appearance="outline"
+                                                        subscriptSizing="dynamic">
+                                            <input matInput
+                                                   id="pending-new-catalogue"
+                                                   [ngModel]="newCataloguePending()"
+                                                   (ngModelChange)="newCataloguePending.set($event)" />
+                                        </mat-form-field>
+                                        <button mat-stroked-button
+                                                type="button"
+                                                (click)="addCataloguePending()">Add</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </aside>
                     }
                 </div>
-
-                <!-- middle: list of pending files -->
-                @if (pending().length) {
-                <div class="files-upload__list">
-                    @for (item of pending(); track item.file.name; let i = $index) {
-                    <button type="button"
-                            class="upload-list-item"
-                            [class.current]="selectedPending() === i"
-                            (click)="selectPending(i)">
-                        {{ item.file.name }}
-                    </button>
-                    }
-                </div>
-
-                <!-- right: edit panel for selected pending file -->
-                @if (selectedPendingItem(); as item) {
-                <aside class="files-upload__edit">
-                    <p class="files-edit__name">{{ item.file.name }}</p>
-                    <p class="files-edit__size">Size: {{ item.file.size | bytes }}</p>
-                    <div class="files-edit__actions files-edit__actions--center">
-                        <button mat-raised-button
-                                color="warn"
-                                (click)="removePending(selectedPending()!)">
-                            Delete
-                        </button>
-                    </div>
-                    <div class="files-upload__preview">
-                        <img [src]="item.previewUrl"
-                             [alt]="item.file.name" />
-                    </div>
-                    <mat-form-field class="full-width">
-                        <mat-label>Title</mat-label>
-                        <input matInput
-                               [(ngModel)]="item.meta.title" />
-                    </mat-form-field>
-                    <mat-form-field class="full-width">
-                        <mat-label>Description</mat-label>
-                        <textarea matInput
-                                  rows="2"
-                                  [(ngModel)]="item.meta.description"></textarea>
-                    </mat-form-field>
-                    <mat-form-field class="full-width">
-                        <mat-label>Author</mat-label>
-                        <input matInput
-                               [(ngModel)]="item.meta.author" />
-                    </mat-form-field>
-                    <mat-form-field class="full-width">
-                        <mat-label>Place</mat-label>
-                        <input matInput
-                               [(ngModel)]="item.meta.place" />
-                    </mat-form-field>
-                    <mat-form-field class="full-width">
-                        <mat-label>Position</mat-label>
-                        <input matInput
-                               type="number"
-                               [(ngModel)]="item.meta.position" />
-                    </mat-form-field>
-                    @if (catalogues().length) {
-                    <mat-form-field class="full-width">
-                        <mat-label>Select catalogue</mat-label>
-                        <mat-select multiple
-                                    [(ngModel)]="item.meta.catalogues">
-                            @for (catalogue of catalogues(); track catalogue) {
-                            <mat-option [value]="catalogue">{{ catalogue }}</mat-option>
-                            }
-                        </mat-select>
-                    </mat-form-field>
-                    }
-                    <div class="files-edit__new-catalogue">
-                        <mat-form-field subscriptSizing="dynamic">
-                            <mat-label>Add new catalogue</mat-label>
-                            <input matInput
-                                   [ngModel]="newCataloguePending()"
-                                   (ngModelChange)="newCataloguePending.set($event)" />
-                        </mat-form-field>
-                        <button mat-raised-button
-                                color="primary"
-                                type="button"
-                                (click)="addCataloguePending()">
-                            Add
-                        </button>
-                    </div>
-                </aside>
-                }
                 }
             </div>
         </mat-tab>
