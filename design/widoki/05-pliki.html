@@ -1,0 +1,214 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Frodo biblioteka plików</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="mock-states" content="biblioteka=Biblioteka: wybrany plik | bez-zaznaczenia=Biblioteka bez zaznaczenia | zapis=Zapis opisu w toku | usuwanie=Potwierdzenie usunięcia | brak-wynikow=Brak wyników | pusta=Pusta biblioteka | wysylanie-start=Upload: wybór plików | wysylanie=Upload: opis plików | postep=Upload w toku | wyslano=Wysłano (alert)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<style>
+  .details > .field__hint { margin-top: calc(var(--space-4) * -1); }
+</style>
+</head>
+<body>
+<script src="../icons.js"></script>
+
+<div class="app">
+  <aside class="sidebar" aria-label="Main">
+    <a class="brand" href="#"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></a>
+    <nav class="nav">
+      <p class="nav__group">Content</p>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-layout"/></svg><span class="nav__label">Pages</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Markers</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Wydarzenia</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Icons</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Navigation</span></a>
+      <p class="nav__group">Media</p>
+      <a class="nav__item is-active" href="#" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg><span class="nav__label">Files</span></a>
+      <p class="nav__group">Structure</p>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-braces"/></svg><span class="nav__label">Post types</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-blocks"/></svg><span class="nav__label">Components</span></a>
+    </nav>
+    <div class="sidebar__theme"><span class="sidebar__theme-label" id="theme-label">Theme</span>
+      <div class="theme-switch" role="radiogroup" aria-labelledby="theme-label">
+        <label class="theme-switch__option" title="Light"><input type="radio" name="theme" value="light" checked aria-label="Light theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg></span></label>
+        <label class="theme-switch__option" title="Dark"><input type="radio" name="theme" value="dark" aria-label="Dark theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg></span></label>
+      </div>
+    </div>
+    <div class="sidebar__footer">
+      <a class="user" href="#"><span class="avatar" aria-hidden="true">b</span><span style="min-width:0"><span class="user__name">bilbo</span><span class="user__meta">Account settings</span></span></a>
+      <button class="btn btn--ghost btn--icon" type="button" aria-label="Log out"><svg class="icon" aria-hidden="true"><use href="#i-logout"/></svg></button>
+    </div>
+  </aside>
+
+  <div class="main" id="scroll">
+    <header class="topbar">
+      <button class="btn btn--ghost btn--icon js-nav" type="button" aria-label="Open menu"><svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg></button>
+      <a class="brand" href="#"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></a>
+    </header>
+
+    <div class="canvas">
+      <div class="page">
+        <header class="page-header">
+          <div class="page-header__top">
+            <div class="page-heading"><h1 class="page-title">Files</h1>
+              <span class="badge"><span data-except="pusta wyslano">214</span><span data-only="wyslano">217</span><span data-only="pusta">0</span><span class="visually-hidden"> files</span></span></div>
+          </div>
+          <div class="page-header__secondary">
+            <button class="btn btn--ghost" type="button"><svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>Import</button>
+            <button class="btn btn--ghost" type="button" data-except="pusta"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>Export</button>
+          </div>
+        </header>
+
+        <div class="tabs" role="tablist" aria-label="Files">
+          <button class="tab" role="tab" type="button" data-on="biblioteka bez-zaznaczenia zapis usuwanie brak-wynikow pusta wyslano:is-selected">Library</button>
+          <button class="tab" role="tab" type="button" data-on="wysylanie-start wysylanie postep:is-selected">Upload</button>
+        </div>
+
+        <!-- ================= LIBRARY ================= -->
+        <div class="tab-panel" role="tabpanel" data-only="biblioteka bez-zaznaczenia zapis usuwanie brak-wynikow pusta wyslano">
+          <div class="library__toolbar" data-except="pusta">
+            <label class="control control--search"><span class="visually-hidden">Search files</span><svg class="icon control__icon" aria-hidden="true"><use href="#i-search"/></svg>
+              <input class="input" type="search" placeholder="Search files" data-except="brak-wynikow"><input class="input" type="search" value="ruda śląska" data-only="brak-wynikow"></label>
+            <span class="control control--select"><button class="input" type="button" aria-label="Catalogues"><span class="select__value select__placeholder" data-except="brak-wynikow">All catalogues</span><span class="select__value" data-only="brak-wynikow">haldy</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
+          </div>
+
+          <div class="card" data-only="pusta"><div class="empty">
+            <span class="empty__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-image"/></svg></span>
+            <p class="empty__title">No files yet</p>
+            <p class="empty__text">Upload images or PDF files in the Upload tab, or import a JSON file.</p>
+          </div></div>
+          <div class="card" data-only="brak-wynikow"><div class="empty">
+            <span class="empty__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-search"/></svg></span>
+            <p class="empty__title">No files match your search</p>
+            <p class="empty__text">Change the search text or choose another catalogue.</p>
+          </div></div>
+
+          <div class="library" data-except="pusta brak-wynikow" data-on="biblioteka zapis usuwanie wyslano:library--selected">
+            <div class="thumbs">
+              <button class="thumb img-loaded" type="button" aria-label="kopalnia-guido-poziom-320.jpg" data-on="biblioteka zapis usuwanie wyslano:current"><span class="ph ph--mine"></span><span class="thumb__check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span></button>
+              <button class="thumb img-loaded" type="button" aria-label="sztolnia-krolowa-luiza-lodzie.jpg"><span class="ph ph--water"></span></button>
+              <button class="thumb img-loaded" type="button" aria-label="halda-szarlota-panorama.jpg"><span class="ph ph--heap"></span></button>
+              <button class="thumb img-loaded" type="button" aria-label="segiet-wapienie-triasowe.jpg"><span class="ph ph--strata"></span></button>
+              <button class="thumb img-loaded" type="button" aria-label="gora-zborow-skalki.jpg"><span class="ph ph--quarry"></span></button>
+              <button class="thumb img-loaded" type="button" aria-label="przewodnik-geostanowiska-2026.pdf"><span class="thumb__file"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-file"/></svg>PDF</span></button>
+              <button class="thumb img-loaded" type="button" aria-label="skaly-rzedkowickie.jpg"><span class="ph ph--forest"></span></button>
+              <button class="thumb img-loaded" type="button" aria-label="kamieniolom-grodek.jpg"><span class="ph ph--water"></span></button>
+              <button class="thumb img-loaded" type="button" aria-label="pustynia-bledowska.jpg"><span class="ph ph--quarry"></span></button>
+              <button class="thumb img-loaded" type="button" aria-label="kopalnia-srebra-chodnik.jpg"><span class="ph ph--mine"></span></button>
+              <button class="thumb img-loaded" type="button" aria-label="sztolnia-czarnego-pstraga.jpg"><span class="ph ph--water"></span></button>
+              <button class="thumb img-loaded" type="button" aria-label="gora-birow.jpg"><span class="ph ph--strata"></span></button>
+              <button class="thumb img-loaded" type="button" aria-label="mapa-geostanowisk.pdf"><span class="thumb__file"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-file"/></svg>PDF</span></button>
+              <button class="thumb img-loaded" type="button" aria-label="park-grodziec.jpg"><span class="ph ph--forest"></span></button>
+              <button class="thumb img-loaded" type="button" aria-label="halda-skalny-szczyt.jpg"><span class="ph ph--heap"></span></button>
+              <button class="thumb" type="button" aria-label="wawoz-ryczowek.jpg"><span class="ph ph--strata"></span></button>
+              <button class="thumb" type="button" aria-label="guido-szyb-wydobywczy.jpg"><span class="ph ph--mine"></span></button>
+              <button class="thumb" type="button" aria-label="segiet-buczyna.jpg"><span class="ph ph--forest"></span></button>
+            </div>
+
+            <!-- szczegóły zaznaczonego pliku -->
+            <aside class="library__details" aria-label="File details" data-only="biblioteka zapis usuwanie wyslano">
+              <div class="details">
+                <p class="details__name">kopalnia-guido-poziom-320.jpg</p>
+                <div class="details__actions">
+                  <button class="btn btn--primary" type="button" data-except="zapis">Save</button>
+                  <button class="btn btn--primary is-busy" type="button" aria-busy="true" data-only="zapis"><span class="spinner" aria-hidden="true"></span>Saving…</button>
+                  <button class="btn btn--ghost" type="button" data-on="usuwanie:is-focus"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Delete</button>
+                </div>
+                <div class="details__preview"><span class="ph ph--mine" role="img" aria-label="Preview of kopalnia-guido-poziom-320.jpg"></span></div>
+                <dl class="meta">
+                  <dt>Date</dt><dd>Oct 18, 2026 2:14:05 PM</dd>
+                  <dt>URL</dt><dd class="mono">/uploads/kopalnia-guido-poziom-320.jpg</dd>
+                  <dt>Type</dt><dd>image/jpeg</dd>
+                  <dt>Size</dt><dd class="tabular">1.8 MB</dd>
+                </dl>
+                <hr class="divider">
+                <div class="form-stack">
+                  <label class="field"><span class="field__label">Title</span><input class="input" value="Kopalnia Guido, poziom 320"></label>
+                  <label class="field"><span class="field__label">Description</span><textarea class="input" rows="2">Chodnik z obudową stalową na poziomie 320 m.</textarea></label>
+                  <label class="field"><span class="field__label">Author</span><input class="input" value="Anna Nowak"></label>
+                  <label class="field"><span class="field__label">Place</span><input class="input" value="Zabrze"></label>
+                  <label class="field"><span class="field__label">Position</span><input class="input" type="number" value="3"></label>
+                  <div class="field"><span class="field__label">Catalogues</span><span class="control control--select"><button class="input" type="button"><span class="select__value">kopalnie, galeria</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+                  <div class="field"><label class="field__label" for="newcat">New catalogue</label><div class="field-row"><span class="control"><input class="input" id="newcat"></span><button class="btn btn--secondary" type="button">Add</button></div></div>
+                </div>
+              </div>
+            </aside>
+          </div>
+        </div>
+
+        <!-- ================= UPLOAD ================= -->
+        <div class="tab-panel" role="tabpanel" data-only="wysylanie-start wysylanie postep">
+          <div class="upload-empty" data-only="wysylanie-start">
+            <span class="upload-empty__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-upload"/></svg></span>
+            <p class="upload-empty__title">Upload images or PDF files</p>
+            <p class="upload-empty__hint">JPG, PNG, GIF or PDF. You can select several files at once and describe each one before uploading.</p>
+            <button class="btn btn--primary" type="button">Select files</button>
+          </div>
+
+          <div data-only="wysylanie postep">
+            <div class="upload-bar">
+              <button class="btn btn--secondary" type="button">Select files</button>
+              <button class="btn btn--primary" type="button" data-only="wysylanie"><svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>Upload 3 files</button>
+              <button class="btn btn--primary is-busy" type="button" aria-busy="true" data-only="postep"><span class="spinner" aria-hidden="true"></span>Uploading…</button>
+              <button class="btn btn--ghost" type="button" data-only="wysylanie">Clear list</button>
+            </div>
+            <div class="progress" role="progressbar" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100" aria-label="Uploading files" data-only="postep" style="margin-bottom:var(--space-5)">
+              <div class="progress__label"><span>Uploading 3 files…</span><span>64%</span></div>
+              <div class="progress__track"><div class="progress__bar" style="width:64%"></div></div>
+            </div>
+            <div class="upload-layout">
+              <div class="pending" role="listbox" aria-label="Files to upload">
+                <button class="pending__item" type="button" role="option" aria-selected="false"><span class="pending__thumb"><span class="ph ph--heap"></span></span><span class="pending__name">halda-szarlota-zachod-slonca.jpg</span></button>
+                <button class="pending__item current" type="button" role="option" aria-selected="true"><span class="pending__thumb"><span class="ph ph--strata"></span></span><span class="pending__name">segiet-wapienie-triasowe-2.jpg</span></button>
+                <button class="pending__item" type="button" role="option" aria-selected="false"><span class="pending__thumb"><span class="thumb__file"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-file"/></svg></span></span><span class="pending__name">przewodnik-geostanowiska-2027.pdf</span></button>
+              </div>
+              <aside class="library__details" aria-label="Selected file">
+                <div class="details">
+                  <p class="details__name">segiet-wapienie-triasowe-2.jpg</p>
+                  <p class="field__hint">Size: 2.4 MB</p>
+                  <div class="details__actions"><button class="btn btn--ghost" type="button"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>Remove</button></div>
+                  <div class="details__preview"><span class="ph ph--strata" role="img" aria-label="Preview of segiet-wapienie-triasowe-2.jpg"></span></div>
+                  <div class="form-stack">
+                    <label class="field"><span class="field__label">Title</span><input class="input" value="Rezerwat Segiet, ściana wapienia"></label>
+                    <label class="field"><span class="field__label">Description</span><textarea class="input" rows="2"></textarea></label>
+                    <label class="field"><span class="field__label">Author</span><input class="input" value="Piotr Kowalski"></label>
+                    <label class="field"><span class="field__label">Place</span><input class="input" value="Bytom"></label>
+                    <label class="field"><span class="field__label">Position</span><input class="input" type="number"></label>
+                    <div class="field"><span class="field__label">Catalogues</span><span class="control control--select"><button class="input" type="button"><span class="select__value">skaly</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+                    <div class="field"><label class="field__label" for="newcat2">New catalogue</label><div class="field-row"><span class="control"><input class="input" id="newcat2"></span><button class="btn btn--secondary" type="button">Add</button></div></div>
+                  </div>
+                </div>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="backdrop js-backdrop js-close"></div>
+
+<!-- ============ dialogi ============ -->
+<div class="dialog-layer" data-only="usuwanie">
+  <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="del-title" aria-describedby="del-body">
+    <h2 class="dialog__title" id="del-title">Confirm deletion</h2>
+    <p class="dialog__body" id="del-body">Are you sure you want to delete kopalnia-guido-poziom-320.jpg?</p>
+    <div class="dialog__actions"><button class="btn btn--secondary" type="button">Cancel</button><button class="btn btn--danger" type="button">Delete</button></div>
+  </div>
+</div>
+<div class="dialog-layer" data-only="wyslano">
+  <div class="dialog" role="dialog" aria-modal="true" aria-describedby="up-body">
+    <p class="dialog__body" id="up-body" style="color:var(--color-text)">Files uploaded successfully</p>
+    <div class="dialog__actions"><button class="btn btn--primary" type="button">OK</button></div>
+  </div>
+</div>
+
+<script src="mock.js"></script>
+</body>
+</html>

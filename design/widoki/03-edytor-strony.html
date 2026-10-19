@@ -1,0 +1,284 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Frodo edytor strony</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="mock-states" content="edycja=Edycja strony | przeciaganie=Przeciąganie komponentu | nowy-komponent=Nowy komponent bez typu | wybor-pliku=Wybór pliku (dialog) | nowa=Nowa strona | blad=Błąd walidacji | zapis=Zapis w toku | blad-serwera=Błąd serwera (alert)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<style>
+  .blocks { position: relative; }
+  .block-card__toggle.is-collapsed > .icon { transform: none; }
+  .block-card--preview { position: relative; z-index: 5; counter-increment: none; margin: calc(var(--space-10) * -1) var(--space-3) 0 var(--space-6); }
+  .card__header > .badge { margin-top: 2px; }
+</style>
+</head>
+<body>
+<script src="../icons.js"></script>
+
+<div class="app">
+  <aside class="sidebar" aria-label="Main">
+    <a class="brand" href="#"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></a>
+    <nav class="nav">
+      <p class="nav__group">Content</p>
+      <a class="nav__item is-active" href="#" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#i-layout"/></svg><span class="nav__label">Pages</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Markers</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Wydarzenia</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Icons</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Navigation</span></a>
+      <p class="nav__group">Media</p>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg><span class="nav__label">Files</span></a>
+      <p class="nav__group">Structure</p>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-braces"/></svg><span class="nav__label">Post types</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-blocks"/></svg><span class="nav__label">Components</span></a>
+    </nav>
+    <div class="sidebar__theme"><span class="sidebar__theme-label" id="theme-label">Theme</span>
+      <div class="theme-switch" role="radiogroup" aria-labelledby="theme-label">
+        <label class="theme-switch__option" title="Light"><input type="radio" name="theme" value="light" checked aria-label="Light theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg></span></label>
+        <label class="theme-switch__option" title="Dark"><input type="radio" name="theme" value="dark" aria-label="Dark theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg></span></label>
+      </div>
+    </div>
+    <div class="sidebar__footer">
+      <a class="user" href="#"><span class="avatar" aria-hidden="true">b</span><span style="min-width:0"><span class="user__name">bilbo</span><span class="user__meta">Account settings</span></span></a>
+      <button class="btn btn--ghost btn--icon" type="button" aria-label="Log out"><svg class="icon" aria-hidden="true"><use href="#i-logout"/></svg></button>
+    </div>
+  </aside>
+
+  <div class="main" id="scroll">
+    <header class="topbar">
+      <button class="btn btn--ghost btn--icon js-nav" type="button" aria-label="Open menu"><svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg></button>
+      <a class="brand" href="#"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></a>
+    </header>
+
+    <form class="canvas" novalidate>
+      <div class="editor-bar">
+        <div class="editor-bar__heading">
+          <span class="editor-bar__eyebrow" data-except="nowa">Edit page</span>
+          <span class="editor-bar__eyebrow" data-only="nowa">New page</span>
+          <h1 class="editor-bar__title" data-except="nowa">Strona główna</h1>
+          <h1 class="editor-bar__title is-placeholder" data-only="nowa">Untitled</h1>
+        </div>
+        <div class="editor-bar__actions">
+          <button class="btn btn--ghost" type="button" data-except="nowa"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Delete</button>
+          <button class="btn btn--primary" type="submit" data-except="zapis">Save</button>
+          <button class="btn btn--primary is-busy" type="submit" aria-busy="true" data-only="zapis"><span class="spinner" aria-hidden="true"></span>Saving…</button>
+        </div>
+      </div>
+
+      <div class="page page--form">
+        <div class="form-stack">
+          <!-- ============ dane podstawowe ============ -->
+          <section class="card">
+            <header class="card__header"><div class="card__heading"><h2 class="card__title">Basic information</h2><p class="card__desc">Title and address of the page on the public site.</p></div></header>
+            <div class="card__body">
+              <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span>
+                <input class="input" required value="Strona główna" data-except="nowa"><input class="input" required data-only="nowa"></label>
+              <label class="field"><span class="field__label">Url<span class="field__req" aria-hidden="true">*</span></span>
+                <input class="input" required value="home" data-except="nowa blad">
+                <input class="input" required data-only="nowa">
+                <input class="input is-invalid" required aria-invalid="true" aria-describedby="url-err" data-only="blad">
+                <span class="field__error" id="url-err" data-only="blad"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>This field is required</span>
+                <span class="field__hint" data-except="blad">Address segment on the public site, for example mapa or galeria/skaly.</span>
+              </label>
+            </div>
+          </section>
+
+          <section class="card">
+            <header class="card__header"><div class="card__heading"><h2 class="card__title">Search engines</h2><p class="card__desc">Optional. Used as the page title and description in search results.</p></div></header>
+            <div class="card__body">
+              <label class="field"><span class="field__label">SEO Title</span><input class="input" value="GeoSilesia: dziedzictwo geologiczne Śląska" data-except="nowa"><input class="input" data-only="nowa"></label>
+              <label class="field"><span class="field__label">SEO Description</span>
+                <textarea class="input" rows="3" data-except="nowa">Geostanowiska, kopalnie, sztolnie i hałdy województwa śląskiego na mapie, z opisami, galerią zdjęć i słownikiem pojęć.</textarea>
+                <textarea class="input" rows="3" data-only="nowa"></textarea></label>
+            </div>
+          </section>
+
+          <!-- ============ komponenty ============ -->
+          <section class="card">
+            <header class="card__header"><div class="card__heading"><h2 class="card__title">Components</h2><p class="card__desc">Sections of the page in display order. Drag to reorder.</p></div><span class="badge badge--neutral" data-except="nowa nowy-komponent">5</span><span class="badge badge--neutral" data-only="nowy-komponent">6</span></header>
+            <div class="card__body">
+              <div class="empty empty--compact" data-only="nowa">
+                <span class="empty__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-blocks"/></svg></span>
+                <p class="empty__title">No components yet</p>
+                <p class="empty__text">Add the first component to build this page.</p>
+              </div>
+
+              <ol class="blocks" data-except="nowa">
+                <!-- 1. Homepage banner -->
+                <li class="block-card">
+                  <div class="block-card__handle" title="Drag to reorder"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></div>
+                  <div class="block-card__main">
+                    <div class="block-card__head">
+                      <span class="block-card__index" aria-hidden="true"></span>
+                      <button class="btn btn--ghost btn--sm btn--icon block-card__toggle" type="button" aria-expanded="true" aria-label="Hide fields of Homepage banner" data-on="przeciaganie:is-collapsed"><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+                      <span class="control control--select"><button class="input" type="button" aria-label="Component type"><span class="select__value">Homepage banner</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
+                      <button class="btn btn--ghost btn--sm btn--icon" type="button" aria-label="Remove component Homepage banner"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button>
+                    </div>
+                    <div class="block-card__body" data-except="przeciaganie">
+                      <label class="field"><span class="field__label">Title</span><input class="input" value="Odkryj geologię Śląska"></label>
+                      <label class="field"><span class="field__label">Interval</span><input class="input" type="number" value="6000"><span class="field__hint">Time between slides, in milliseconds.</span></label>
+                      <div class="repeater">
+                        <div class="repeater__head"><span class="field__label">Slides</span><span class="badge badge--neutral">1</span></div>
+                        <div class="repeater__rows">
+                          <div class="repeater__row">
+                            <div class="repeater__row-head"><span class="repeater__row-index"></span><button class="btn btn--ghost btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Delete row</button></div>
+                            <div class="field"><span class="field__label">Image</span>
+                              <div class="file-field">
+                                <div class="file-field__preview"><span class="ph ph--strata" role="img" aria-label="Selected image: segiet-wapienie-triasowe.jpg"></span></div>
+                                <div class="file-field__actions"><button class="btn btn--secondary btn--sm" type="button" data-on="wybor-pliku:is-focus">Select file</button><button class="btn btn--ghost btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>Clear</button></div>
+                              </div>
+                            </div>
+                            <label class="field"><span class="field__label">Text</span><input class="input" value="Wapienie triasowe w rezerwacie Segiet"></label>
+                            <label class="field"><span class="field__label">Text english</span><input class="input" value="Triassic limestones in the Segiet reserve"></label>
+                            <div class="form-grid form-grid--2">
+                              <label class="field"><span class="field__label">Left position</span><input class="input" type="number" value="12"></label>
+                              <label class="field"><span class="field__label">Top position</span><input class="input" type="number" value="64"></label>
+                            </div>
+                          </div>
+                        </div>
+                        <button class="btn btn--secondary btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add row</button>
+                      </div>
+                      <div class="field"><span class="field__label">Info icon</span>
+                        <div class="file-field"><div class="file-field__empty"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg><span style="margin-right:auto">No file selected</span><button class="btn btn--secondary btn--sm" type="button">Select file</button></div></div>
+                      </div>
+                    </div>
+                  </div>
+                </li>
+
+                <!-- miejsce docelowe przeciągania -->
+                <li class="block-card is-placeholder" aria-hidden="true" data-only="przeciaganie">
+                  <div class="block-card__handle"></div><div class="block-card__main"><div class="block-card__head"><span class="block-card__index"></span><span class="control control--select"><span class="input"></span></span></div></div>
+                </li>
+                <!-- podgląd przeciąganego elementu -->
+                <li class="block-card is-dragging block-card--preview" aria-hidden="true" data-only="przeciaganie">
+                  <div class="block-card__handle"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></div>
+                  <div class="block-card__main"><div class="block-card__head"><span class="block-card__index"></span><button class="btn btn--ghost btn--sm btn--icon block-card__toggle" type="button" aria-expanded="false" tabindex="-1"><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></button><span class="control control--select"><span class="input"><span class="select__value">News</span></span><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span><button class="btn btn--ghost btn--sm btn--icon" type="button" tabindex="-1" aria-hidden="true"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></div></div>
+                </li>
+
+                <!-- 2. Map -->
+                <li class="block-card">
+                  <div class="block-card__handle" title="Drag to reorder"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></div>
+                  <div class="block-card__main">
+                    <div class="block-card__head">
+                      <span class="block-card__index" aria-hidden="true"></span>
+                      <button class="btn btn--ghost btn--sm btn--icon block-card__toggle" type="button" aria-expanded="true" aria-label="Hide fields of Map" data-on="przeciaganie:is-collapsed"><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+                      <span class="control control--select"><button class="input" type="button" aria-label="Component type"><span class="select__value">Map</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
+                      <button class="btn btn--ghost btn--sm btn--icon" type="button" aria-label="Remove component Map"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button>
+                    </div>
+                    <div class="block-card__body" data-except="przeciaganie">
+                      <label class="field"><span class="field__label">Title</span><input class="input" value="Mapa geostanowisk"></label>
+                      <label class="field"><span class="field__label">Number of results</span><input class="input" type="number" value="20"></label>
+                      <label class="checkbox"><input type="checkbox" checked><span class="checkbox__box"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span><span>Marker cluster</span></label>
+                    </div>
+                  </div>
+                </li>
+
+                <!-- 3–5. zwinięte -->
+                <li class="block-card">
+                  <div class="block-card__handle" title="Drag to reorder"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></div>
+                  <div class="block-card__main"><div class="block-card__head">
+                    <span class="block-card__index" aria-hidden="true"></span>
+                    <button class="btn btn--ghost btn--sm btn--icon block-card__toggle" type="button" aria-expanded="false" aria-label="Show fields of Title and text"><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+                    <span class="control control--select"><button class="input" type="button" aria-label="Component type"><span class="select__value">Title and text</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
+                    <button class="btn btn--ghost btn--sm btn--icon" type="button" aria-label="Remove component Title and text"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button>
+                  </div></div>
+                </li>
+                <li class="block-card" data-except="przeciaganie">
+                  <div class="block-card__handle" title="Drag to reorder"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></div>
+                  <div class="block-card__main"><div class="block-card__head">
+                    <span class="block-card__index" aria-hidden="true"></span>
+                    <button class="btn btn--ghost btn--sm btn--icon block-card__toggle" type="button" aria-expanded="false" aria-label="Show fields of News"><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+                    <span class="control control--select"><button class="input" type="button" aria-label="Component type"><span class="select__value">News</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
+                    <button class="btn btn--ghost btn--sm btn--icon" type="button" aria-label="Remove component News"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button>
+                  </div></div>
+                </li>
+                <li class="block-card">
+                  <div class="block-card__handle" title="Drag to reorder"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></div>
+                  <div class="block-card__main"><div class="block-card__head">
+                    <span class="block-card__index" aria-hidden="true"></span>
+                    <button class="btn btn--ghost btn--sm btn--icon block-card__toggle" type="button" aria-expanded="false" aria-label="Show fields of Geosites logos"><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+                    <span class="control control--select"><button class="input" type="button" aria-label="Component type"><span class="select__value">Geosites logos</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
+                    <button class="btn btn--ghost btn--sm btn--icon" type="button" aria-label="Remove component Geosites logos"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button>
+                  </div></div>
+                </li>
+                <!-- nowy wiersz bez wybranego komponentu -->
+                <li class="block-card" data-only="nowy-komponent">
+                  <div class="block-card__handle" title="Drag to reorder"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></div>
+                  <div class="block-card__main"><div class="block-card__head">
+                    <span class="block-card__index" aria-hidden="true"></span>
+                    <span class="control control--select is-open"><button class="input is-focus" type="button" aria-label="Component type" aria-expanded="true"><span class="select__value select__placeholder">Choose a component</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
+                    <button class="btn btn--ghost btn--sm btn--icon" type="button" aria-label="Remove new component"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button>
+                  </div>
+                  <div class="menu" role="listbox" style="margin:0 var(--space-3) var(--space-3)">
+                    <div class="menu__item" role="option" aria-selected="false">Gallery</div>
+                    <div class="menu__item is-hover" role="option" aria-selected="false">Gallery list</div>
+                    <div class="menu__item" role="option" aria-selected="false">Literature</div>
+                    <div class="menu__item" role="option" aria-selected="false">Dictionary</div>
+                    <div class="menu__item" role="option" aria-selected="false">Tabs</div>
+                  </div></div>
+                </li>
+              </ol>
+              <button class="btn btn--secondary" type="button" style="justify-self:start"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add component</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="backdrop js-backdrop js-close"></div>
+
+<!-- ============ dialog: błąd serwera ============ -->
+<div class="dialog-layer" data-only="blad-serwera">
+  <div class="dialog" role="dialog" aria-modal="true" aria-describedby="srv-body">
+    <p class="dialog__body" id="srv-body" style="color:var(--color-text)">There already is page with "home" url</p>
+    <div class="dialog__actions"><button class="btn btn--primary" type="button">OK</button></div>
+  </div>
+</div>
+
+<!-- ============ dialog: wybór pliku ============ -->
+<div class="dialog-layer dialog-layer--picker" data-only="wybor-pliku">
+  <div class="dialog dialog--picker" role="dialog" aria-modal="true" aria-labelledby="pick-title">
+    <div class="dialog__header"><h2 class="dialog__title" id="pick-title">Choose a file</h2><button class="btn btn--ghost btn--icon" type="button" aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+    <div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="true" type="button">Library</button><button class="tab" role="tab" aria-selected="false" type="button">Upload</button></div>
+    <div class="picker">
+      <div class="picker__main">
+        <div class="library__toolbar" style="margin:0">
+          <label class="control control--search"><span class="visually-hidden">Search files</span><svg class="icon control__icon" aria-hidden="true"><use href="#i-search"/></svg><input class="input" type="search" placeholder="Search files"></label>
+          <span class="control control--select"><button class="input" type="button" aria-label="Catalogues"><span class="select__value">skaly</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
+        </div>
+        <div class="thumbs">
+          <button class="thumb img-loaded current" type="button" aria-label="segiet-wapienie-triasowe.jpg" aria-pressed="true"><span class="ph ph--strata"></span><span class="thumb__check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span></button>
+          <button class="thumb img-loaded" type="button" aria-label="gora-zborow-skalki.jpg"><span class="ph ph--quarry"></span></button>
+          <button class="thumb img-loaded" type="button" aria-label="skaly-rzedkowickie.jpg"><span class="ph ph--forest"></span></button>
+          <button class="thumb img-loaded" type="button" aria-label="kamieniolom-grodek.jpg"><span class="ph ph--water"></span></button>
+          <button class="thumb img-loaded" type="button" aria-label="gora-birow.jpg"><span class="ph ph--heap"></span></button>
+          <button class="thumb" type="button" aria-label="wawoz-ryczowek.jpg"><span class="ph ph--strata"></span></button>
+          <button class="thumb" type="button" aria-label="park-grodziec.jpg"><span class="ph ph--forest"></span></button>
+        </div>
+      </div>
+      <div class="picker__details">
+        <div class="details">
+          <p class="details__name">segiet-wapienie-triasowe.jpg</p>
+          <div class="details__actions">
+            <button class="btn btn--primary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Choose</button>
+            <button class="btn btn--secondary" type="button">Save</button>
+            <button class="btn btn--ghost btn--icon" type="button" aria-label="Delete segiet-wapienie-triasowe.jpg"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button>
+          </div>
+          <div class="details__preview"><span class="ph ph--strata" role="img" aria-label="Preview of segiet-wapienie-triasowe.jpg"></span></div>
+          <dl class="meta"><dt>Date</dt><dd>Mar 3, 2026 9:41:12 AM</dd><dt>Type</dt><dd>image/jpeg</dd><dt>Size</dt><dd class="tabular">2.4 MB</dd></dl>
+          <label class="field"><span class="field__label">Title</span><input class="input" value="Rezerwat Segiet, wapienie triasowe"></label>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="mock.js"></script>
+</body>
+</html>

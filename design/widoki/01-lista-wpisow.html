@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Frodo lista wpisów</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="mock-states" content="domyslny=Lista „Markers” | filtry=Filtry otwarte (mobile) | sortowanie=Menu sortowania | usuwanie=Potwierdzenie usunięcia | usunieto=Wpis usunięty | import=Import w toku | blad-importu=Błąd importu | pusta=Pusta lista | brak-wynikow=Brak wyników | strony=Lista stron (bez filtrów)">
+<!-- Font tylko na potrzeby podglądu; we wdrożeniu hostowany lokalnie. -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<style>
+  .list-toolbar .menu-anchor > .btn { flex: 1 1 auto; }
+  .listing.listing--single { grid-template-columns: minmax(0, 1fr); }
+</style>
+</head>
+<body>
+<script src="../icons.js"></script>
+
+<div class="app">
+  <aside class="sidebar" aria-label="Main">
+    <a class="brand" href="#"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></a>
+    <nav class="nav">
+      <p class="nav__group">Content</p>
+      <a class="nav__item" href="#" data-on="strony:is-active"><svg class="icon" aria-hidden="true"><use href="#i-layout"/></svg><span class="nav__label">Pages</span></a>
+      <a class="nav__item" href="#" data-on="domyslny filtry sortowanie usuwanie usunieto import blad-importu pusta brak-wynikow:is-active"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Markers</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Wydarzenia</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Icons</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Navigation</span></a>
+      <p class="nav__group">Media</p>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg><span class="nav__label">Files</span></a>
+      <p class="nav__group">Structure</p>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-braces"/></svg><span class="nav__label">Post types</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-blocks"/></svg><span class="nav__label">Components</span></a>
+    </nav>
+    <div class="sidebar__theme"><span class="sidebar__theme-label" id="theme-label">Theme</span>
+      <div class="theme-switch" role="radiogroup" aria-labelledby="theme-label">
+        <label class="theme-switch__option" title="Light"><input type="radio" name="theme" value="light" checked aria-label="Light theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg></span></label>
+        <label class="theme-switch__option" title="Dark"><input type="radio" name="theme" value="dark" aria-label="Dark theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg></span></label>
+      </div>
+    </div>
+    <div class="sidebar__footer">
+      <a class="user" href="#"><span class="avatar" aria-hidden="true">b</span><span style="min-width:0"><span class="user__name">bilbo</span><span class="user__meta">Account settings</span></span></a>
+      <button class="btn btn--ghost btn--icon" type="button" aria-label="Log out"><svg class="icon" aria-hidden="true"><use href="#i-logout"/></svg></button>
+    </div>
+  </aside>
+
+  <div class="main" id="scroll">
+    <header class="topbar">
+      <button class="btn btn--ghost btn--icon js-nav" type="button" aria-label="Open menu"><svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg></button>
+      <a class="brand" href="#"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></a>
+    </header>
+
+    <div class="canvas">
+      <div class="page">
+        <!-- ============ nagłówek ekranu ============ -->
+        <header class="page-header">
+          <div class="page-header__top">
+            <div class="page-heading">
+              <h1 class="page-title"><span data-except="strony">markers</span><span data-only="strony">pages</span></h1>
+              <span class="badge"><span data-except="pusta brak-wynikow strony usunieto">48</span><span data-only="usunieto">47</span><span data-only="pusta brak-wynikow">0</span><span data-only="strony">12</span><span class="visually-hidden"> items</span></span>
+            </div>
+            <button class="btn btn--primary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg><span data-except="strony">New marker</span><span data-only="strony">New page</span></button>
+          </div>
+          <div class="page-header__secondary">
+            <button class="btn btn--ghost" type="button" data-except="strony"><svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg>Edit type</button>
+            <button class="btn btn--ghost" type="button" data-except="import"><svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>Import</button>
+            <button class="btn btn--ghost is-busy" type="button" aria-busy="true" data-only="import"><span class="spinner" aria-hidden="true"></span>Importing…</button>
+            <button class="btn btn--ghost" type="button" data-except="pusta"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>Export</button>
+          </div>
+        </header>
+
+        <div class="listing" data-on="strony:listing--single">
+          <!-- ============ lista ============ -->
+          <section class="card list-card" aria-label="List">
+            <div class="list-toolbar">
+              <label class="control control--search">
+                <span class="visually-hidden">Search</span>
+                <svg class="icon control__icon" aria-hidden="true"><use href="#i-search"/></svg>
+                <input class="input" type="search" placeholder="Search markers" data-except="brak-wynikow strony">
+                <input class="input" type="search" value="Rybnik" data-only="brak-wynikow">
+                <input class="input" type="search" placeholder="Search pages" data-only="strony">
+              </label>
+              <div class="menu-anchor" data-except="pusta">
+                <button class="btn btn--secondary" type="button" aria-haspopup="menu" data-on="sortowanie:is-focus"><svg class="icon" aria-hidden="true"><use href="#i-sort"/></svg>Newest</button>
+                <div class="menu menu--floating" role="menu" aria-label="Sort by" data-only="sortowanie">
+                  <button class="menu__item" role="menuitemradio" aria-checked="true" type="button">Newest<svg class="icon menu__check" aria-hidden="true"><use href="#i-check"/></svg></button>
+                  <button class="menu__item" role="menuitemradio" aria-checked="false" type="button">Oldest<svg class="icon menu__check" aria-hidden="true"><use href="#i-check"/></svg></button>
+                  <button class="menu__item is-hover" role="menuitemradio" aria-checked="false" type="button">Title<svg class="icon menu__check" aria-hidden="true"><use href="#i-check"/></svg></button>
+                  <p class="menu__label">Fields</p>
+                  <button class="menu__item" role="menuitemradio" aria-checked="false" type="button">Place<svg class="icon menu__check" aria-hidden="true"><use href="#i-check"/></svg></button>
+                  <button class="menu__item" role="menuitemradio" aria-checked="false" type="button">Link<svg class="icon menu__check" aria-hidden="true"><use href="#i-check"/></svg></button>
+                  <button class="menu__item" role="menuitemradio" aria-checked="false" type="button">Latitude<svg class="icon menu__check" aria-hidden="true"><use href="#i-check"/></svg></button>
+                  <button class="menu__item" role="menuitemradio" aria-checked="false" type="button">Longitude<svg class="icon menu__check" aria-hidden="true"><use href="#i-check"/></svg></button>
+                </div>
+              </div>
+              <button class="btn btn--secondary filters-toggle js-filters" type="button" data-except="strony"><svg class="icon" aria-hidden="true"><use href="#i-sliders"/></svg>Filters</button>
+            </div>
+
+            <!-- wpisy typu „marker” -->
+            <ul class="list" data-except="pusta brak-wynikow strony">
+              <li class="list__row"><a class="list__link" href="#">Kopalnia Guido</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Kopalnia Guido"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row"><a class="list__link" href="#">Sztolnia Królowa Luiza</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Sztolnia Królowa Luiza"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row" data-except="usunieto"><a class="list__link" href="#">Hałda Szarlota</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Hałda Szarlota" data-on="usuwanie:is-focus"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row list__row--removed" role="status" data-only="usunieto"><svg class="icon" aria-hidden="true"><use href="#i-check-circle"/></svg>Post removed successfully</li>
+              <li class="list__row"><a class="list__link" href="#">Rezerwat Segiet</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Rezerwat Segiet"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row"><a class="list__link" href="#">Góra Zborów</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Góra Zborów"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row"><a class="list__link" href="#">Skały Rzędkowickie</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Skały Rzędkowickie"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row"><a class="list__link" href="#">Kamieniołom Gródek</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Kamieniołom Gródek"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row"><a class="list__link" href="#">Pustynia Błędowska</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Pustynia Błędowska"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row"><a class="list__link" href="#">Zabytkowa Kopalnia Srebra</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Zabytkowa Kopalnia Srebra"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row"><a class="list__link" href="#">Sztolnia Czarnego Pstrąga</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Sztolnia Czarnego Pstrąga"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row"><a class="list__link" href="#">Góra Birów</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Góra Birów"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row"><a class="list__link" href="#">Park Grodziec</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Park Grodziec"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row"><a class="list__link" href="#">Wąwóz Ryczówek</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Wąwóz Ryczówek"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+            </ul>
+
+            <!-- strony -->
+            <ul class="list" data-only="strony">
+              <li class="list__row"><a class="list__link" href="#">Strona główna</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Strona główna"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row"><a class="list__link" href="#">Mapa geostanowisk</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Mapa geostanowisk"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row"><a class="list__link" href="#">Geostanowiska</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Geostanowiska"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row"><a class="list__link" href="#">Galeria</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Galeria"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row"><a class="list__link" href="#">Galeria: skały</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Galeria: skały"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row"><a class="list__link" href="#">Słownik pojęć</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Słownik pojęć"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row"><a class="list__link" href="#">Literatura</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Literatura"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row"><a class="list__link" href="#">Aktualności</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Aktualności"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              <li class="list__row"><a class="list__link" href="#">O projekcie</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete O projekcie"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+            </ul>
+
+            <div class="empty" data-only="pusta">
+              <span class="empty__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-doc"/></svg></span>
+              <p class="empty__title">No markers yet</p>
+              <p class="empty__text">Create the first one or import a JSON file.</p>
+            </div>
+            <div class="empty" data-only="brak-wynikow">
+              <span class="empty__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-search"/></svg></span>
+              <p class="empty__title">No markers match your search</p>
+              <p class="empty__text">Change the search text or reset the filters.</p>
+            </div>
+          </section>
+
+          <!-- ============ filtry: panel (desktop) / arkusz (mobile) ============ -->
+          <aside class="filters" aria-label="Filters" data-except="strony" data-on="filtry:is-open">
+            <div class="sheet__grabber" aria-hidden="true"></div>
+            <div class="filters__head">
+              <h2 class="filters__title">Filters</h2>
+              <button class="btn btn--ghost btn--sm" type="button" data-except="pusta">Reset</button>
+              <button class="btn btn--ghost btn--sm btn--icon filters__close js-close" type="button" aria-label="Close filters"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button>
+            </div>
+            <div class="filters__body" data-except="pusta">
+              <div class="field"><span class="field__label">Categories</span><span class="control control--select"><button class="input" type="button"><span class="select__value" data-except="brak-wynikow">Geologia</span><span class="select__value" data-only="brak-wynikow">Geologia, Geomorfologia</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+              <fieldset class="fieldset"><legend class="field__label">Latitude</legend>
+                <div class="range"><label class="field"><span class="field__label">Min</span><input class="input" type="number" value="49"></label><label class="field"><span class="field__label">Max</span><input class="input" type="number" value="51"></label></div>
+              </fieldset>
+              <fieldset class="fieldset"><legend class="field__label">Longitude</legend>
+                <div class="range"><label class="field"><span class="field__label">Min</span><input class="input" type="number" value="18"></label><label class="field"><span class="field__label">Max</span><input class="input" type="number" value="20"></label></div>
+              </fieldset>
+            </div>
+            <div class="empty empty--compact" data-only="pusta"><p class="empty__title">Nothing to filter yet</p><p class="empty__text">Filters appear when this list has posts.</p></div>
+          </aside>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="backdrop js-backdrop js-close" data-on="filtry:is-open"></div>
+
+<!-- ============ dialogi ============ -->
+<div class="dialog-layer" data-only="usuwanie">
+  <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="del-title" aria-describedby="del-body">
+    <h2 class="dialog__title" id="del-title">Confirm deletion</h2>
+    <p class="dialog__body" id="del-body">Are you sure you want to delete Hałda Szarlota?</p>
+    <div class="dialog__actions"><button class="btn btn--secondary" type="button">Cancel</button><button class="btn btn--danger" type="button">Delete</button></div>
+  </div>
+</div>
+<div class="dialog-layer" data-only="blad-importu">
+  <div class="dialog" role="dialog" aria-modal="true" aria-describedby="imp-body">
+    <p class="dialog__body" id="imp-body" style="color:var(--color-text)">Wrong file format!</p>
+    <div class="dialog__actions"><button class="btn btn--primary" type="button">OK</button></div>
+  </div>
+</div>
+
+<script src="mock.js"></script>
+</body>
+</html>

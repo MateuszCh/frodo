@@ -1,0 +1,1496 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Komponenty Frodo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<!-- Font tylko na potrzeby podglądu. We wdrożeniu IBM Plex Sans hostowany lokalnie (SIL OFL 1.1). -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="tokens.css">
+<link rel="stylesheet" href="components.css">
+<style>
+/* Oprawa strony dokumentacji (nie jest częścią systemu). */
+.doc {
+  display: grid; grid-template-columns: minmax(0, 1fr); max-width: 1320px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+}
+.doc-toc { display: none; }
+.doc-main { min-width: 0; padding-bottom: var(--space-16); }
+@media (min-width: 1100px) {
+  .doc {
+    grid-template-columns: 216px minmax(0, 1fr); gap: var(--space-12);
+    padding-left: max(32px, env(safe-area-inset-left, 0px));
+    padding-right: max(32px, env(safe-area-inset-right, 0px));
+  }
+  .doc-toc { display: block; position: sticky; top: 0; height: 100dvh; overflow-y: auto; padding: var(--space-10) 0; scrollbar-width: thin; }
+}
+.doc-toc > .brand { margin: 0 0 var(--space-6) var(--space-3); }
+.doc-toc__group { margin: var(--space-5) 0 var(--space-1); padding: 0 var(--space-3); font-size: var(--text-xs); font-weight: var(--weight-semibold); color: var(--color-text-subtle); }
+.doc-toc a.doc-toc__link { display: block; padding: 3px var(--space-3); border-radius: var(--radius-full); font-size: var(--text-sm); color: var(--color-text-muted); text-decoration: none; }
+.doc-toc a.doc-toc__link:hover { background: var(--color-fill-hover); color: var(--color-text); }
+
+.doc-hero { padding: var(--space-12) 0 var(--space-10); display: grid; gap: var(--space-4); max-width: 74ch; }
+.doc-eyebrow { font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--color-accent-subtle-text); }
+.doc-hero h1 { font-size: clamp(32px, 5vw, 44px); line-height: 1.1; letter-spacing: -0.03em; font-weight: var(--weight-semibold); text-wrap: balance; }
+.doc-lead { font-size: var(--text-lg); line-height: var(--leading-lg); color: var(--color-text-muted); }
+.doc-files { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.doc-theme { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.doc-theme__label { font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+.doc-file { font-family: var(--font-mono); font-size: 13px; padding: 4px 10px; border-radius: var(--radius-full); background: var(--color-surface); border: 1px solid var(--color-border); color: var(--color-text-muted); }
+
+.ds-group { padding-top: var(--space-10); font-size: 13px; font-weight: var(--weight-semibold); letter-spacing: var(--tracking-wide); text-transform: uppercase; color: var(--color-text-subtle); }
+.ds { padding-block: var(--space-8) var(--space-10); border-top: 1px solid var(--color-border); display: grid; gap: var(--space-5); scroll-margin-top: var(--space-4); }
+.ds-group + .ds { border-top: 0; padding-top: var(--space-4); }
+.ds__head { display: grid; gap: var(--space-2); max-width: 78ch; }
+.ds__head h2 { font-size: var(--text-2xl); line-height: var(--leading-2xl); letter-spacing: var(--tracking-tight); font-weight: var(--weight-semibold); text-wrap: balance; }
+.ds__head p { color: var(--color-text-muted); }
+.ds__ng { font-size: var(--text-sm); color: var(--color-text-subtle); }
+.ds__ng code, .note code { font-family: var(--font-mono); font-size: 12.5px; background: var(--color-surface-sunken); padding: 1px 5px; border-radius: 4px; color: var(--color-text-muted); }
+
+.spec { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius-xl); padding: var(--space-6); display: grid; gap: var(--space-6); min-width: 0; }
+.spec--bg { background: var(--color-bg); }
+.spec--sunken { background: var(--color-surface-sunken); }
+.spec__title { font-size: var(--text-md); font-weight: var(--weight-semibold); }
+.states { display: grid; gap: var(--space-5) var(--space-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 200px), 1fr)); align-items: start; }
+.states--wide { grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr)); }
+.states--xl { grid-template-columns: repeat(auto-fill, minmax(min(100%, 420px), 1fr)); }
+.state { display: grid; gap: var(--space-2); align-content: start; justify-items: start; min-width: 0; }
+.state--stretch { justify-items: stretch; }
+.state__label { font-size: var(--text-xs); line-height: var(--leading-xs); font-weight: var(--weight-semibold); color: var(--color-text-subtle); }
+.cluster { display: flex; flex-wrap: wrap; gap: var(--space-3); align-items: center; }
+.note { font-size: var(--text-sm); line-height: var(--leading-sm); color: var(--color-text-muted); max-width: 78ch; }
+.scroll-x { overflow-x: auto; max-width: 100%; padding-bottom: var(--space-1); }
+
+.matrix { display: grid; grid-template-columns: 112px repeat(6, minmax(128px, 1fr)); gap: var(--space-4) var(--space-3); align-items: center; min-width: 920px; }
+.matrix__h { font-size: var(--text-xs); font-weight: var(--weight-semibold); color: var(--color-text-subtle); }
+.matrix__r { font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+
+.palette-group { display: grid; gap: var(--space-3); }
+.palette-group + .palette-group { margin-top: var(--space-4); }
+.palette { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 176px), 1fr)); gap: var(--space-3); }
+.swatch { border: 1px solid var(--color-border); border-radius: var(--radius-md); overflow: hidden; background: var(--color-surface); }
+.swatch__chip { height: 64px; display: flex; align-items: flex-end; padding: var(--space-2) var(--space-3); font-size: 20px; font-weight: var(--weight-bold); border-bottom: 1px solid var(--color-border); }
+.swatch__meta { padding: var(--space-2) var(--space-3) var(--space-3); display: grid; gap: 2px; font-size: var(--text-xs); line-height: var(--leading-xs); }
+.swatch__name { font-weight: var(--weight-semibold); font-size: 13px; }
+.swatch__token { font-family: var(--font-mono); color: var(--color-text-subtle); overflow-wrap: anywhere; }
+.swatch__ratio { color: var(--color-text-muted); }
+.swatch__ratio b { color: var(--color-success); }
+.swatch__ratio b.fail { color: var(--color-error); }
+
+.type-row { display: grid; gap: var(--space-1); padding-block: var(--space-4); border-top: 1px solid var(--color-border); }
+.type-row:first-child { border-top: 0; padding-top: 0; }
+.type-row__meta { font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-subtle); }
+
+.shape-row { display: flex; flex-wrap: wrap; gap: var(--space-4); }
+.shape { width: 132px; min-height: 84px; display: grid; place-items: center; padding: var(--space-2); text-align: center; background: var(--color-surface); border: 1px solid var(--color-border); font-size: var(--text-xs); line-height: var(--leading-xs); color: var(--color-text-muted); }
+.space-scale { display: grid; gap: var(--space-2); }
+.space-scale__row { display: grid; grid-template-columns: 96px minmax(0, 1fr); align-items: center; gap: var(--space-3); font-family: var(--font-mono); font-size: var(--text-xs); color: var(--color-text-subtle); }
+.space-scale__bar { height: 12px; border-radius: 3px; background: var(--color-accent-subtle); box-shadow: inset 0 0 0 1px var(--color-accent-subtle-hover); }
+
+.icon-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(112px, 1fr)); gap: var(--space-2); }
+.icon-tile { display: grid; justify-items: center; gap: var(--space-2); padding: var(--space-4) var(--space-2) var(--space-3); border-radius: var(--radius-md); background: var(--color-bg); color: var(--color-text); }
+.icon-tile .icon { width: 24px; height: 24px; }
+.icon-tile span { font-family: var(--font-mono); font-size: 11.5px; color: var(--color-text-subtle); text-align: center; overflow-wrap: anywhere; }
+
+.logo-tiles { display: grid; gap: var(--space-4); grid-template-columns: repeat(auto-fill, minmax(min(100%, 240px), 1fr)); }
+.logo-tile { min-height: 148px; display: grid; place-items: center; gap: var(--space-3); padding: var(--space-6); border-radius: var(--radius-lg); border: 1px solid var(--color-border); }
+.logo-tile .brand__mark { width: 40px; height: 40px; }
+.logo-tile .brand__word { font-size: 30px; }
+.logo-sizes { display: flex; align-items: flex-end; gap: var(--space-5); }
+
+.overlay { border-radius: var(--radius-xl); background: var(--color-backdrop); padding: var(--space-8) var(--space-4); display: grid; place-items: center; gap: var(--space-6); }
+.float { position: static; opacity: 1; visibility: visible; transform: none; }
+.frames { display: grid; gap: var(--space-6); }
+.frame { display: grid; gap: var(--space-2); justify-items: start; min-width: 0; }
+.frame__cap { font-size: var(--text-sm); color: var(--color-text-subtle); }
+.frame iframe { display: block; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-bg); }
+.frame--m iframe { width: 390px; max-width: 100%; }
+.frame--d iframe { width: 1200px; }
+.frames__row { display: flex; flex-wrap: wrap; gap: var(--space-6); align-items: flex-start; }
+.picker-demo { height: 560px; max-width: 100%; }
+.picker-body { display: grid; grid-template-columns: minmax(0, 1fr); flex: 1; min-height: 0; overflow: auto; }
+@media (min-width: 900px) { .picker-body { grid-template-columns: minmax(0, 1fr) 320px; } }
+.picker-body__grid { padding: var(--space-5) var(--space-6); display: grid; gap: var(--space-4); align-content: start; min-width: 0; }
+.picker-body__details { padding: var(--space-5) var(--space-6); border-top: 1px solid var(--color-border); }
+@media (min-width: 900px) { .picker-body__details { border-top: 0; border-left: 1px solid var(--color-border); } }
+.doc-foot { margin-top: var(--space-12); padding-top: var(--space-6); border-top: 1px solid var(--color-border); font-size: var(--text-sm); color: var(--color-text-subtle); max-width: 80ch; }
+</style>
+</head>
+<body>
+<script src="icons.js"></script>
+
+<div class="doc">
+  <!-- ================= SPIS ================= -->
+  <aside class="doc-toc" aria-label="Spis komponentów">
+    <span class="brand"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></span>
+    <p class="doc-toc__group">Podstawy</p>
+    <a class="doc-toc__link" href="#kolory">Kolory</a>
+    <a class="doc-toc__link" href="#typografia">Typografia</a>
+    <a class="doc-toc__link" href="#ksztalt">Kształt, głębia, odstępy</a>
+    <a class="doc-toc__link" href="#ikony">Ikony</a>
+    <a class="doc-toc__link" href="#logo">Logo</a>
+    <p class="doc-toc__group">Akcje</p>
+    <a class="doc-toc__link" href="#przyciski">Przyciski</a>
+    <a class="doc-toc__link" href="#fab">Przycisk „do góry”</a>
+    <a class="doc-toc__link" href="#menu">Menu sortowania</a>
+    <p class="doc-toc__group">Formularze</p>
+    <a class="doc-toc__link" href="#pole">Pole tekstowe</a>
+    <a class="doc-toc__link" href="#select">Select i multiselect</a>
+    <a class="doc-toc__link" href="#checkbox">Checkbox</a>
+    <a class="doc-toc__link" href="#segmented">Przełącznik True/False/All</a>
+    <a class="doc-toc__link" href="#data">Data</a>
+    <a class="doc-toc__link" href="#clear">Pole z „Clear”</a>
+    <a class="doc-toc__link" href="#plik">Pole pliku</a>
+    <a class="doc-toc__link" href="#repeater">Repeater</a>
+    <a class="doc-toc__link" href="#komunikaty">Komunikaty</a>
+    <p class="doc-toc__group">Struktura</p>
+    <a class="doc-toc__link" href="#nawigacja">Nawigacja</a>
+    <a class="doc-toc__link" href="#motyw">Przełącznik motywu</a>
+    <a class="doc-toc__link" href="#uklad">Szkielet i nagłówek ekranu</a>
+    <a class="doc-toc__link" href="#edytor">Pasek edytora</a>
+    <a class="doc-toc__link" href="#karta">Karta i sekcja</a>
+    <a class="doc-toc__link" href="#zakladki">Zakładki</a>
+    <p class="doc-toc__group">Listy</p>
+    <a class="doc-toc__link" href="#lista">Wiersz listy</a>
+    <a class="doc-toc__link" href="#znaczniki">Znaczniki</a>
+    <a class="doc-toc__link" href="#puste">Puste stany</a>
+    <a class="doc-toc__link" href="#filtry">Filtry</a>
+    <p class="doc-toc__group">Edytory</p>
+    <a class="doc-toc__link" href="#definicja">Definicja pola</a>
+    <a class="doc-toc__link" href="#komponent">Komponent strony</a>
+    <p class="doc-toc__group">Pliki</p>
+    <a class="doc-toc__link" href="#miniatura">Miniatura</a>
+    <a class="doc-toc__link" href="#szczegoly">Szczegóły pliku</a>
+    <a class="doc-toc__link" href="#wysylanie">Wysyłanie</a>
+    <a class="doc-toc__link" href="#postep">Pasek postępu</a>
+    <p class="doc-toc__group">Nakładki</p>
+    <a class="doc-toc__link" href="#dialogi">Dialogi</a>
+    <a class="doc-toc__link" href="#picker">Wybór pliku</a>
+    <a class="doc-toc__link" href="#blad">Strona błędu</a>
+  </aside>
+
+  <main class="doc-main">
+    <header class="doc-hero">
+      <p class="doc-eyebrow">Frodo · design system · etap 3 · kierunek C „Sage”</p>
+      <h1>Komponenty</h1>
+      <p class="doc-lead">Wszystkie komponenty z audytu ze stanami: domyślnym, hover, fokus, wciśnięcia, wyłączonym, błędu i ładowania (tam, gdzie występują). Strona korzysta wyłącznie z plików systemu, a stany hover i fokus są wymuszone klasami demonstracyjnymi.</p>
+      <div class="doc-files">
+        <span class="doc-file">tokens.css</span>
+        <span class="doc-file">components.css</span>
+        <span class="doc-file">icons.js</span>
+        <span class="doc-file">03-design-system.md</span>
+      </div>
+      <div class="doc-theme">
+        <span class="doc-theme__label" id="doc-theme-label">Motyw arkusza</span>
+        <div class="theme-switch" role="radiogroup" aria-labelledby="doc-theme-label">
+          <label class="theme-switch__option" title="Light"><input type="radio" name="doc-theme" value="light" aria-label="Jasny"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg></span></label>
+          <label class="theme-switch__option" title="Dark"><input type="radio" name="doc-theme" value="dark" aria-label="Ciemny"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg></span></label>
+        </div>
+        <span class="note">Bez wyboru arkusz pokazuje motyw z ustawień systemu.</span>
+      </div>
+      <p class="note">Interfejs aplikacji jest po angielsku, treść po polsku. Przykłady pochodzą ze struktury danych serwisu GeoSilesia (typy wpisów „marker” i „wydarzenie”, komponenty stron, katalogi plików).</p>
+    </header>
+
+    <!-- ===================================================== PODSTAWY -->
+    <p class="ds-group">Podstawy</p>
+
+    <section class="ds" id="kolory">
+      <div class="ds__head">
+        <h2>Kolory</h2>
+        <p>Tokeny semantyczne z <code class="code">tokens.css</code>. Kontrast liczony na żywo. Tekst wymaga co najmniej 4,5:1, obramowanie pola co najmniej 3:1. Kolory statusów służą wyłącznie komunikatom. Wyjątkiem jest przycisk potwierdzenia usunięcia.</p>
+      </div>
+      <div id="palette"></div>
+    </section>
+
+    <section class="ds" id="typografia">
+      <div class="ds__head">
+        <h2>Typografia</h2>
+        <p>IBM Plex Sans (SIL OFL 1.1), wagi 400 / 500 / 600 / 700, polskie znaki. Zdania zaczynamy wielką literą i nie piszemy wersalikami. Wartości techniczne (id, URL, MIME) zapisujemy krojem systemowym o stałej szerokości.</p>
+      </div>
+      <div class="spec">
+        <div>
+          <div class="type-row"><span class="type-row__meta">--text-3xl · 32/40 · 600 · tytuł ekranu (desktop)</span><span style="font-size:var(--text-3xl);line-height:var(--leading-3xl);font-weight:600;letter-spacing:var(--tracking-tight)">Markers</span></div>
+          <div class="type-row"><span class="type-row__meta">--text-2xl · 26/32 · 600 · tytuł ekranu (mobile), tytuł edytora</span><span style="font-size:var(--text-2xl);line-height:var(--leading-2xl);font-weight:600;letter-spacing:var(--tracking-tight)">Sztolnia Królowa Luiza</span></div>
+          <div class="type-row"><span class="type-row__meta">--text-xl · 20/28 · 600 · tytuł dialogu</span><span style="font-size:var(--text-xl);line-height:var(--leading-xl);font-weight:600;letter-spacing:var(--tracking-tight)">Confirm deletion</span></div>
+          <div class="type-row"><span class="type-row__meta">--text-lg · 18/26 · 600 · tytuł karty, panelu</span><span style="font-size:var(--text-lg);line-height:var(--leading-lg);font-weight:600">Basic information</span></div>
+          <div class="type-row"><span class="type-row__meta">--text-md · 16/24 · 400 · tekst bazowy, wartości pól</span><span>Zabytkowa Kopalnia Srebra w Tarnowskich Górach. Zażółć gęślą jaźń.</span></div>
+          <div class="type-row"><span class="type-row__meta">--text-sm · 14/20 · 600 · etykieta pola, przycisk</span><span style="font-size:var(--text-sm);line-height:var(--leading-sm);font-weight:600">Categories · New marker</span></div>
+          <div class="type-row"><span class="type-row__meta">--text-sm · 14/20 · 400 · podpowiedź, metadane</span><span style="font-size:var(--text-sm);line-height:var(--leading-sm);color:var(--color-text-subtle)">Lowercase letters and underscores, formatted as you type.</span></div>
+          <div class="type-row"><span class="type-row__meta">--text-xs · 12/16 · 600 · etykieta grupy, numer wiersza</span><span style="font-size:var(--text-xs);line-height:var(--leading-xs);font-weight:600;color:var(--color-text-subtle)">Content · Row 2</span></div>
+          <div class="type-row"><span class="type-row__meta">--font-mono · 13 · wartości techniczne</span><span class="mono">/uploads/kopalnia-guido-poziom-320.jpg · date_of_publication</span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="ksztalt">
+      <div class="ds__head">
+        <h2>Kształt, głębia, odstępy</h2>
+        <p>Karty są płaskie: mają obramowanie 1 px i nie mają cienia. Cień dostają wyłącznie elementy unoszące się nad treścią, czyli menu, panel select, kalendarz, dialog, arkusz, przeciągany komponent i przycisk „do góry”. Odstępy są wielokrotnościami 4 px.</p>
+      </div>
+      <div class="spec">
+        <div class="shape-row">
+          <div class="shape" style="border-radius:var(--radius-xs)">--radius-xs · 6<br>checkbox</div>
+          <div class="shape" style="border-radius:var(--radius-sm)">--radius-sm · 8<br>pozycja menu</div>
+          <div class="shape" style="border-radius:var(--radius-md)">--radius-md · 10<br>pole, miniatura</div>
+          <div class="shape" style="border-radius:var(--radius-lg)">--radius-lg · 16<br>karta, panel</div>
+          <div class="shape" style="border-radius:var(--radius-xl)">--radius-xl · 20<br>blat, dialog</div>
+          <div class="shape" style="border-radius:var(--radius-full)">--radius-full<br>przycisk</div>
+        </div>
+        <div class="shape-row">
+          <div class="shape" style="border-radius:var(--radius-md);box-shadow:var(--shadow-xs)">--shadow-xs<br>segment</div>
+          <div class="shape" style="border-radius:var(--radius-md);box-shadow:var(--shadow-sm)">--shadow-sm<br>„do góry”</div>
+          <div class="shape" style="border-radius:var(--radius-md);box-shadow:var(--shadow-md)">--shadow-md<br>menu, kalendarz</div>
+          <div class="shape" style="border-radius:var(--radius-md);box-shadow:var(--shadow-lg);border-color:transparent">--shadow-lg<br>dialog, arkusz</div>
+          <div class="shape" style="border-radius:var(--radius-md);box-shadow:var(--shadow-focus)">--shadow-focus<br>pole w fokusie</div>
+        </div>
+        <div class="space-scale" aria-label="Skala odstępów">
+          <div class="space-scale__row"><span>--space-1 · 4</span><span class="space-scale__bar" style="width:4px"></span></div>
+          <div class="space-scale__row"><span>--space-2 · 8</span><span class="space-scale__bar" style="width:8px"></span></div>
+          <div class="space-scale__row"><span>--space-3 · 12</span><span class="space-scale__bar" style="width:12px"></span></div>
+          <div class="space-scale__row"><span>--space-4 · 16</span><span class="space-scale__bar" style="width:16px"></span></div>
+          <div class="space-scale__row"><span>--space-5 · 20</span><span class="space-scale__bar" style="width:20px"></span></div>
+          <div class="space-scale__row"><span>--space-6 · 24</span><span class="space-scale__bar" style="width:24px"></span></div>
+          <div class="space-scale__row"><span>--space-8 · 32</span><span class="space-scale__bar" style="width:32px"></span></div>
+          <div class="space-scale__row"><span>--space-10 · 40</span><span class="space-scale__bar" style="width:40px"></span></div>
+          <div class="space-scale__row"><span>--space-12 · 48</span><span class="space-scale__bar" style="width:48px"></span></div>
+          <div class="space-scale__row"><span>--space-16 · 64</span><span class="space-scale__bar" style="width:64px"></span></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="ikony">
+      <div class="ds__head">
+        <h2>Ikony</h2>
+        <p>Jeden zestaw na siatce 24 px, obrys 1,75 px, kolor dziedziczony z tekstu. Zastępuje dziewięć starych plików SVG z wpisanym na sztywno kolorem. Ikona obok tekstu jest dekoracją (<code class="code">aria-hidden</code>). Przycisk z samą ikoną ma etykietę mówiącą, czego dotyczy, np. „Delete Kopalnia Guido”.</p>
+      </div>
+      <div class="spec"><div class="icon-grid" id="icon-grid"></div></div>
+    </section>
+
+    <section class="ds" id="logo">
+      <div class="ds__head">
+        <h2>Logo</h2>
+        <p>Znak to przekrój warstw skalnych w kole. Logotyp „frodo” jest złożony małymi literami krojem interfejsu. Favikona to sam znak, a ikona aplikacji to znak na kwadracie w kolorze marki. <code class="code">theme_color</code> ma wartość #0F766E, a <code class="code">background_color</code> #F3F4F1.</p>
+      </div>
+      <div class="logo-tiles">
+        <div class="logo-tile" style="background:var(--color-bg)"><span class="brand"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></span></div>
+        <div class="logo-tile" style="background:var(--color-surface)">
+          <div class="logo-sizes" aria-label="Favikona 64, 32 i 16 px">
+            <svg style="width:64px;height:64px" aria-hidden="true"><use href="#logo-mark"/></svg>
+            <svg style="width:32px;height:32px" aria-hidden="true"><use href="#logo-mark"/></svg>
+            <svg style="width:16px;height:16px" aria-hidden="true"><use href="#logo-mark"/></svg>
+          </div>
+        </div>
+        <div class="logo-tile" style="background:var(--color-surface)">
+          <svg viewBox="0 0 32 32" style="width:72px;height:72px" role="img" aria-label="Ikona aplikacji">
+            <rect width="32" height="32" rx="7" fill="#0f766e"/>
+            <path d="M7.5 12c2.8-1.7 5.7-1.7 8.5 0s5.7 1.7 8.5 0" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            <path d="M6 16.5c3.3-1.9 6.7-1.9 10 0s6.7 1.9 10 0" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"/>
+            <path d="M8.5 21c2.5-1.5 5-1.5 7.5 0s5 1.5 7.5 0" fill="none" stroke="#a7e3d6" stroke-width="2" stroke-linecap="round"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== AKCJE -->
+    <p class="ds-group">Akcje</p>
+
+    <section class="ds" id="przyciski">
+      <div class="ds__head">
+        <h2>Przyciski</h2>
+        <p><strong>Primary</strong> to jedna akcja główna na ekranie: Save, New marker, Sign in, Upload, Choose. <strong>Secondary</strong> służy do sterowania widokiem: sortowanie, filtry, wybór plików, dodawanie wiersza. <strong>Ghost</strong> to akcje poboczne i usuwanie w listach i formularzach: Edit type, Import, Export, Reset, Clear, Delete. <strong>Danger</strong> występuje wyłącznie w dialogu potwierdzenia usunięcia.</p>
+        <p class="ds__ng">Angular: primary <code>mat-flat-button</code>, secondary <code>mat-stroked-button</code>, ghost <code>mat-button</code>, ikona <code>mat-icon-button</code>. Stan „w toku” zastępuje dzisiejszą klasę <code>.busy</code> (opacity).</p>
+      </div>
+      <div class="spec">
+        <div class="scroll-x">
+          <div class="matrix">
+            <span></span><span class="matrix__h">Domyślny</span><span class="matrix__h">Hover</span><span class="matrix__h">Fokus</span><span class="matrix__h">Wciśnięty</span><span class="matrix__h">Wyłączony</span><span class="matrix__h">W toku</span>
+
+            <span class="matrix__r">Primary</span>
+            <span><button class="btn btn--primary" type="button">Save</button></span>
+            <span><button class="btn btn--primary is-hover" type="button">Save</button></span>
+            <span><button class="btn btn--primary is-focus" type="button">Save</button></span>
+            <span><button class="btn btn--primary is-active" type="button">Save</button></span>
+            <span><button class="btn btn--primary" type="button" disabled>Save</button></span>
+            <span><button class="btn btn--primary is-busy" type="button" aria-busy="true"><span class="spinner" aria-hidden="true"></span>Saving…</button></span>
+
+            <span class="matrix__r">Secondary</span>
+            <span><button class="btn btn--secondary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-sort"/></svg>Newest</button></span>
+            <span><button class="btn btn--secondary is-hover" type="button"><svg class="icon" aria-hidden="true"><use href="#i-sort"/></svg>Newest</button></span>
+            <span><button class="btn btn--secondary is-focus" type="button"><svg class="icon" aria-hidden="true"><use href="#i-sort"/></svg>Newest</button></span>
+            <span><button class="btn btn--secondary is-active" type="button"><svg class="icon" aria-hidden="true"><use href="#i-sort"/></svg>Newest</button></span>
+            <span><button class="btn btn--secondary" type="button" disabled><svg class="icon" aria-hidden="true"><use href="#i-sort"/></svg>Newest</button></span>
+            <span><button class="btn btn--secondary is-busy" type="button" aria-busy="true"><span class="spinner" aria-hidden="true"></span>Exporting…</button></span>
+
+            <span class="matrix__r">Ghost</span>
+            <span><button class="btn btn--ghost" type="button"><svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>Import</button></span>
+            <span><button class="btn btn--ghost is-hover" type="button"><svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>Import</button></span>
+            <span><button class="btn btn--ghost is-focus" type="button"><svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>Import</button></span>
+            <span><button class="btn btn--ghost is-active" type="button"><svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>Import</button></span>
+            <span><button class="btn btn--ghost" type="button" disabled><svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>Import</button></span>
+            <span><button class="btn btn--ghost is-busy" type="button" aria-busy="true"><span class="spinner" aria-hidden="true"></span>Importing…</button></span>
+
+            <span class="matrix__r">Danger</span>
+            <span><button class="btn btn--danger" type="button">Delete</button></span>
+            <span><button class="btn btn--danger is-hover" type="button">Delete</button></span>
+            <span><button class="btn btn--danger is-focus" type="button">Delete</button></span>
+            <span><button class="btn btn--danger is-active" type="button">Delete</button></span>
+            <span><button class="btn btn--danger" type="button" disabled>Delete</button></span>
+            <span class="note">Nie występuje: dialog zamyka się od razu</span>
+
+            <span class="matrix__r">Ikona</span>
+            <span><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Kopalnia Guido"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></span>
+            <span><button class="btn btn--ghost btn--icon is-hover" type="button" aria-label="Delete Kopalnia Guido"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></span>
+            <span><button class="btn btn--ghost btn--icon is-focus" type="button" aria-label="Delete Kopalnia Guido"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></span>
+            <span><button class="btn btn--ghost btn--icon is-active" type="button" aria-label="Delete Kopalnia Guido"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></span>
+            <span><button class="btn btn--ghost btn--icon" type="button" disabled aria-label="Delete Kopalnia Guido"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></span>
+            <span><button class="btn btn--ghost btn--icon is-busy" type="button" aria-busy="true" aria-label="Deleting Kopalnia Guido"><span class="spinner spinner--md" aria-hidden="true"></span></button></span>
+
+            <span class="matrix__r">Mały</span>
+            <span><button class="btn btn--secondary btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add row</button></span>
+            <span><button class="btn btn--secondary btn--sm is-hover" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add row</button></span>
+            <span><button class="btn btn--secondary btn--sm is-focus" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add row</button></span>
+            <span><button class="btn btn--secondary btn--sm is-active" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add row</button></span>
+            <span><button class="btn btn--secondary btn--sm" type="button" disabled><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add row</button></span>
+            <span class="note">Nie występuje</span>
+          </div>
+        </div>
+        <p class="note">Wysokość kontrolki wynosi 44 px na mobile i 40 px od 960 px (<code>--control-h</code>), a wersja mała 32 px. Przycisk w toku ma <code>aria-busy</code>, spinner i czasownik w formie ciągłej („Saving…”). Nie przyjmuje kolejnych kliknięć.</p>
+      </div>
+    </section>
+
+    <section class="ds" id="fab">
+      <div class="ds__head">
+        <h2>Przycisk „do góry”</h2>
+        <p>Pojawia się po przewinięciu treści. Ukryty ma <code class="code">visibility: hidden</code>, więc znika też z kolejności tabulacji. Dziś jest dostępny z klawiatury, choć go nie widać.</p>
+        <p class="ds__ng">Angular: przycisk <code>mat-fab</code> „Back to Top” w <code>app.html</code>, klasa <code>.scrolled</code> → <code>.is-visible</code>.</p>
+      </div>
+      <div class="spec spec--bg">
+        <div class="states">
+          <div class="state"><span class="state__label">Widoczny</span><button class="fab float is-visible" type="button" aria-label="Back to top"><svg class="icon" aria-hidden="true"><use href="#i-arrow-up"/></svg></button></div>
+          <div class="state"><span class="state__label">Hover</span><button class="fab float is-visible is-hover" type="button" aria-label="Back to top"><svg class="icon" aria-hidden="true"><use href="#i-arrow-up"/></svg></button></div>
+          <div class="state"><span class="state__label">Fokus</span><button class="fab float is-visible is-focus" type="button" aria-label="Back to top"><svg class="icon" aria-hidden="true"><use href="#i-arrow-up"/></svg></button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="menu">
+      <div class="ds__head">
+        <h2>Menu sortowania</h2>
+        <p>Przycisk pokazuje bieżące sortowanie. Menu zawiera trzy stałe opcje i pola typu wpisu, które da się sortować. Aktywną opcję oznaczają tło i znacznik.</p>
+        <p class="ds__ng">Angular: <code>mat-menu</code>, pozycja <code>mat-menu-item</code> z klasą aktywności. Etykieta grupy „Fields” jest renderowana przed czwartą pozycją (warunek w szablonie).</p>
+      </div>
+      <div class="spec">
+        <div class="states states--wide">
+          <div class="state"><span class="state__label">Zamknięte</span><button class="btn btn--secondary" type="button" aria-haspopup="menu" aria-expanded="false"><svg class="icon" aria-hidden="true"><use href="#i-sort"/></svg>Newest</button></div>
+          <div class="state">
+            <span class="state__label">Otwarte (hover na „Title”, fokus na „Place”)</span>
+            <button class="btn btn--secondary is-focus" type="button" aria-haspopup="menu" aria-expanded="true"><svg class="icon" aria-hidden="true"><use href="#i-sort"/></svg>Newest</button>
+            <div class="menu" role="menu" aria-label="Sort by">
+              <button class="menu__item" role="menuitemradio" aria-checked="true" type="button">Newest<svg class="icon menu__check" aria-hidden="true"><use href="#i-check"/></svg></button>
+              <button class="menu__item" role="menuitemradio" aria-checked="false" type="button">Oldest<svg class="icon menu__check" aria-hidden="true"><use href="#i-check"/></svg></button>
+              <button class="menu__item is-hover" role="menuitemradio" aria-checked="false" type="button">Title<svg class="icon menu__check" aria-hidden="true"><use href="#i-check"/></svg></button>
+              <p class="menu__label">Fields</p>
+              <button class="menu__item is-focus" role="menuitemradio" aria-checked="false" type="button">Place<svg class="icon menu__check" aria-hidden="true"><use href="#i-check"/></svg></button>
+              <button class="menu__item" role="menuitemradio" aria-checked="false" type="button">Latitude<svg class="icon menu__check" aria-hidden="true"><use href="#i-check"/></svg></button>
+              <button class="menu__item" role="menuitemradio" aria-checked="false" type="button">Longitude<svg class="icon menu__check" aria-hidden="true"><use href="#i-check"/></svg></button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== FORMULARZE -->
+    <p class="ds-group">Formularze</p>
+
+    <section class="ds" id="pole">
+      <div class="ds__head">
+        <h2>Pole tekstowe</h2>
+        <p>Etykieta stoi nad polem i nie „pływa”. Pole wymagane ma gwiazdkę oraz atrybut <code class="code">required</code>. Błąd pojawia się po próbie zapisu, a widok przewija się do pierwszego błędnego pola. Wariant wielowierszowy służy do opisów, a liczbowy ma cyfry o stałej szerokości.</p>
+        <p class="ds__ng">Angular: <code>matInput</code> z <code>ngModel</code>; komunikat błędu w miejscu dzisiejszego <code>mat-error</code>.</p>
+      </div>
+      <div class="spec">
+        <div class="states states--wide">
+          <div class="state state--stretch"><span class="state__label">Domyślne (puste)</span>
+            <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" required></label></div>
+          <div class="state state--stretch"><span class="state__label">Hover</span>
+            <label class="field"><span class="field__label">Place</span><input class="input is-hover" value="Zabrze"></label></div>
+          <div class="state state--stretch"><span class="state__label">Fokus</span>
+            <label class="field"><span class="field__label">Place</span><input class="input is-focus" value="Zabrze"></label></div>
+          <div class="state state--stretch"><span class="state__label">Wypełnione</span>
+            <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Kopalnia Guido" required></label></div>
+          <div class="state state--stretch"><span class="state__label">Błąd</span>
+            <label class="field"><span class="field__label">Url<span class="field__req" aria-hidden="true">*</span></span><input class="input is-invalid" aria-invalid="true" required><span class="field__error"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>This field is required</span></label></div>
+          <div class="state state--stretch"><span class="state__label">Błąd + fokus</span>
+            <label class="field"><span class="field__label">Url<span class="field__req" aria-hidden="true">*</span></span><input class="input is-invalid is-focus" aria-invalid="true" required><span class="field__error"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>This field is required</span></label></div>
+          <div class="state state--stretch"><span class="state__label">Wyłączone</span>
+            <label class="field"><span class="field__label">Id</span><input class="input" value="date_of_publication" disabled></label></div>
+          <div class="state state--stretch"><span class="state__label">Z podpowiedzią</span>
+            <label class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="wydarzenie" required><span class="field__hint">Lowercase letters and underscores, formatted as you type.</span></label></div>
+          <div class="state state--stretch"><span class="state__label">Liczba</span>
+            <label class="field"><span class="field__label">Latitude</span><input class="input" type="number" value="50.2976"></label></div>
+          <div class="state state--stretch"><span class="state__label">Hasło</span>
+            <label class="field"><span class="field__label">Password<span class="field__req" aria-hidden="true">*</span></span><input class="input" type="password" value="password" autocomplete="current-password"></label></div>
+          <div class="state state--stretch" style="grid-column:1/-1"><span class="state__label">Wielowierszowe</span>
+            <label class="field"><span class="field__label">SEO Description</span><textarea class="input" rows="3">Interaktywna mapa geostanowisk województwa śląskiego: kopalnie, sztolnie, hałdy i rezerwaty przyrody nieożywionej.</textarea></label></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="select">
+      <div class="ds__head">
+        <h2>Select i multiselect</h2>
+        <p>Wyzwalacz wygląda jak pole tekstowe ze strzałką. Panel opcji to to samo menu co przy sortowaniu. W multiselect wybrane wartości są wymienione po przecinku, a w panelu mają checkboxy.</p>
+        <p class="ds__ng">Angular: <code>mat-select</code> (<code>multiple</code>); panel stylowany przez <code>panelClass</code> i tokeny.</p>
+      </div>
+      <div class="spec">
+        <div class="states states--wide">
+          <div class="state state--stretch"><span class="state__label">Pusty</span>
+            <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select"><button class="input" type="button"><span class="select__value select__placeholder">Choose a field type</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div></div>
+          <div class="state state--stretch"><span class="state__label">Wybrana wartość</span>
+            <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select"><button class="input" type="button"><span class="select__value">Repeater</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div></div>
+          <div class="state state--stretch"><span class="state__label">Multiselect, kilka wartości</span>
+            <div class="field"><span class="field__label">Categories</span><span class="control control--select"><button class="input" type="button"><span class="select__value">Geologia, Dziedzictwo poprzemysłowe</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div></div>
+          <div class="state state--stretch"><span class="state__label">Błąd</span>
+            <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select"><button class="input is-invalid" type="button" aria-invalid="true"><span class="select__value select__placeholder">Choose a field type</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span><span class="field__error"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>This field is required</span></div></div>
+          <div class="state state--stretch"><span class="state__label">Wyłączony</span>
+            <div class="field"><span class="field__label">Catalogue</span><span class="control control--select"><button class="input is-disabled" type="button" disabled><span class="select__value">kopalnie</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div></div>
+          <div class="state state--stretch"><span class="state__label">Otwarty, pojedynczy wybór</span>
+            <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select is-open"><button class="input is-focus" type="button" aria-expanded="true"><span class="select__value">Repeater</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+            <div class="menu" role="listbox" style="width:100%">
+              <div class="menu__item" role="option" aria-selected="false">Text<svg class="icon menu__check" aria-hidden="true"><use href="#i-check"/></svg></div>
+              <div class="menu__item is-hover" role="option" aria-selected="false">Textarea<svg class="icon menu__check" aria-hidden="true"><use href="#i-check"/></svg></div>
+              <div class="menu__item" role="option" aria-selected="false">True/False<svg class="icon menu__check" aria-hidden="true"><use href="#i-check"/></svg></div>
+              <div class="menu__item" role="option" aria-selected="true">Repeater<svg class="icon menu__check" aria-hidden="true"><use href="#i-check"/></svg></div>
+              <div class="menu__item" role="option" aria-selected="false">Date<svg class="icon menu__check" aria-hidden="true"><use href="#i-check"/></svg></div>
+            </div></div>
+          <div class="state state--stretch"><span class="state__label">Otwarty, wielokrotny wybór</span>
+            <div class="field"><span class="field__label">Categories</span><span class="control control--select is-open"><button class="input is-focus" type="button" aria-expanded="true"><span class="select__value">Geologia, Dziedzictwo poprzemysłowe</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+            <div class="menu" role="listbox" aria-multiselectable="true" style="width:100%">
+              <div class="menu__item" role="option" aria-selected="true"><span class="checkbox is-checked"><span class="checkbox__box"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span></span>Geologia</div>
+              <div class="menu__item is-focus" role="option" aria-selected="false"><span class="checkbox"><span class="checkbox__box"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span></span>Geomorfologia</div>
+              <div class="menu__item" role="option" aria-selected="true"><span class="checkbox is-checked"><span class="checkbox__box"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span></span>Dziedzictwo poprzemysłowe</div>
+            </div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="checkbox">
+      <div class="ds__head">
+        <h2>Checkbox</h2>
+        <p>Pole typu True/False. Stan pokazuje sam znacznik, więc dzisiejszy dopisek z wartością („: true”) w etykiecie nie jest potrzebny.</p>
+        <p class="ds__ng">Angular: <code>mat-checkbox</code> z <code>ngModel</code>.</p>
+      </div>
+      <div class="spec">
+        <div class="states">
+          <div class="state"><span class="state__label">Niezaznaczony</span><label class="checkbox"><input type="checkbox"><span class="checkbox__box"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span><span>Show on homepage</span></label></div>
+          <div class="state"><span class="state__label">Zaznaczony</span><label class="checkbox"><input type="checkbox" checked><span class="checkbox__box"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span><span>Show on homepage</span></label></div>
+          <div class="state"><span class="state__label">Hover</span><label class="checkbox is-hover"><input type="checkbox"><span class="checkbox__box"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span><span>Show on homepage</span></label></div>
+          <div class="state"><span class="state__label">Fokus</span><label class="checkbox is-focus is-checked"><input type="checkbox" checked><span class="checkbox__box"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span><span>Show on homepage</span></label></div>
+          <div class="state"><span class="state__label">Wyłączony</span><label class="checkbox is-disabled"><input type="checkbox" disabled><span class="checkbox__box"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span><span>Show on homepage</span></label></div>
+          <div class="state"><span class="state__label">Wyłączony, zaznaczony</span><label class="checkbox is-disabled is-checked"><input type="checkbox" checked disabled><span class="checkbox__box"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span><span>Show on homepage</span></label></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="segmented">
+      <div class="ds__head">
+        <h2>Przełącznik True / False / All</h2>
+        <p>Filtr pola typu True/False w panelu filtrów. Trzy opcje radio wyglądają jak jeden przełącznik.</p>
+        <p class="ds__ng">Angular: <code>mat-radio-group</code> z trzema <code>mat-radio-button</code>, kółka radio ukryte stylami.</p>
+      </div>
+      <div class="spec spec--sunken">
+        <div class="states states--wide">
+          <div class="state"><span class="state__label">„All” (domyślnie)</span>
+            <fieldset class="fieldset"><legend class="field__label">Show on homepage</legend>
+              <div class="segmented" role="radiogroup">
+                <label class="segmented__option"><input type="radio" name="sg1" value="true"><span class="segmented__label">True</span></label>
+                <label class="segmented__option"><input type="radio" name="sg1" value="false"><span class="segmented__label">False</span></label>
+                <label class="segmented__option"><input type="radio" name="sg1" value="all" checked><span class="segmented__label">All</span></label>
+              </div></fieldset></div>
+          <div class="state"><span class="state__label">„True” + hover na „False”</span>
+            <fieldset class="fieldset"><legend class="field__label">Show on homepage</legend>
+              <div class="segmented" role="radiogroup">
+                <label class="segmented__option"><input type="radio" name="sg2" value="true" checked><span class="segmented__label">True</span></label>
+                <label class="segmented__option is-hover"><input type="radio" name="sg2" value="false"><span class="segmented__label">False</span></label>
+                <label class="segmented__option"><input type="radio" name="sg2" value="all"><span class="segmented__label">All</span></label>
+              </div></fieldset></div>
+          <div class="state"><span class="state__label">Fokus</span>
+            <fieldset class="fieldset"><legend class="field__label">Show on homepage</legend>
+              <div class="segmented" role="radiogroup">
+                <label class="segmented__option"><input type="radio" name="sg3" value="true"><span class="segmented__label">True</span></label>
+                <label class="segmented__option is-focus is-selected"><input type="radio" name="sg3" value="false" checked><span class="segmented__label">False</span></label>
+                <label class="segmented__option"><input type="radio" name="sg3" value="all"><span class="segmented__label">All</span></label>
+              </div></fieldset></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="data">
+      <div class="ds__head">
+        <h2>Data</h2>
+        <p>Pole z przyciskiem kalendarza w środku. Kalendarz otwiera się w nakładce: dzisiejszy dzień ma obrys, wybrany dzień jest wypełniony akcentem. Format daty zależy od lokalizacji przeglądarki, tak jak dziś.</p>
+        <p class="ds__ng">Angular: <code>matDatepicker</code> + <code>mat-datepicker-toggle</code>; kalendarz stylowany tokenami.</p>
+      </div>
+      <div class="spec">
+        <div class="states states--wide">
+          <div class="state state--stretch"><span class="state__label">Puste</span>
+            <label class="field"><span class="field__label">Date of publication</span><span class="control control--suffix"><input class="input" placeholder="MM/DD/YYYY"><span class="control__suffix"><button class="btn btn--ghost btn--sm btn--icon" type="button" aria-label="Open calendar"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg></button></span></span></label></div>
+          <div class="state state--stretch"><span class="state__label">Wypełnione</span>
+            <label class="field"><span class="field__label">Date of publication</span><span class="control control--suffix"><input class="input" value="10/15/2026"><span class="control__suffix"><button class="btn btn--ghost btn--sm btn--icon" type="button" aria-label="Open calendar"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg></button></span></span></label></div>
+          <div class="state state--stretch"><span class="state__label">Fokus na przycisku kalendarza</span>
+            <label class="field"><span class="field__label">Date of publication</span><span class="control control--suffix"><input class="input" value="10/15/2026"><span class="control__suffix"><button class="btn btn--ghost btn--sm btn--icon is-focus" type="button" aria-label="Open calendar"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg></button></span></span></label></div>
+          <div class="state"><span class="state__label">Kalendarz (dziś 19, wybrany 15, hover 22, fokus 23)</span>
+            <div class="calendar" role="dialog" aria-label="Choose date">
+              <div class="calendar__head">
+                <button class="btn btn--ghost btn--sm calendar__period" type="button">Oct 2026<svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+                <button class="btn btn--ghost btn--sm btn--icon" type="button" aria-label="Previous month"><svg class="icon" aria-hidden="true"><use href="#i-chevron-left"/></svg></button>
+                <button class="btn btn--ghost btn--sm btn--icon" type="button" aria-label="Next month"><svg class="icon" aria-hidden="true"><use href="#i-chevron-right"/></svg></button>
+              </div>
+              <div class="calendar__grid" id="cal-grid"></div>
+            </div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="clear">
+      <div class="ds__head">
+        <h2>Pole z „Clear”</h2>
+        <p>Select, multiselect, katalog i data mają obok przycisk czyszczenia. Dziś to czerwony przycisk przy każdym polu, w nowym projekcie neutralny przycisk tekstowy.</p>
+      </div>
+      <div class="spec">
+        <div class="states states--wide">
+          <div class="state state--stretch"><span class="state__label">Select z wartością</span>
+            <div class="field"><span class="field__label">Catalogue</span><div class="field-row"><span class="control control--select"><button class="input" type="button"><span class="select__value">kopalnie</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span><button class="btn btn--ghost" type="button"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>Clear</button></div></div></div>
+          <div class="state state--stretch"><span class="state__label">Hover na „Clear”</span>
+            <div class="field"><span class="field__label">Categories</span><div class="field-row"><span class="control control--select"><button class="input" type="button"><span class="select__value">Geologia</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span><button class="btn btn--ghost is-hover" type="button"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>Clear</button></div></div></div>
+          <div class="state state--stretch"><span class="state__label">Data, fokus na „Clear”</span>
+            <div class="field"><span class="field__label">Date of publication</span><div class="field-row"><span class="control control--suffix"><input class="input" value="10/15/2026"><span class="control__suffix"><button class="btn btn--ghost btn--sm btn--icon" type="button" aria-label="Open calendar"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg></button></span></span><button class="btn btn--ghost is-focus" type="button"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>Clear</button></div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="plik">
+      <div class="ds__head">
+        <h2>Pole pliku</h2>
+        <p>Wybór pliku z biblioteki (dialog). Bez pliku: informacja i przycisk. Z plikiem: podgląd, zmiana i wyczyszczenie.</p>
+      </div>
+      <div class="spec">
+        <div class="states states--wide">
+          <div class="state state--stretch"><span class="state__label">Bez pliku</span>
+            <div class="field"><span class="field__label">Image</span>
+              <div class="file-field"><div class="file-field__empty"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg><span style="margin-right:auto">No file selected</span><button class="btn btn--secondary btn--sm" type="button">Select file</button></div></div></div></div>
+          <div class="state state--stretch"><span class="state__label">Wybrany plik</span>
+            <div class="field"><span class="field__label">Image</span>
+              <div class="file-field">
+                <div class="file-field__preview"><span class="ph ph--mine" role="img" aria-label="Selected image: kopalnia-guido-poziom-320.jpg"></span></div>
+                <div class="file-field__actions"><button class="btn btn--secondary btn--sm" type="button">Select file</button><button class="btn btn--ghost btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>Clear</button></div>
+              </div></div></div>
+          <div class="state state--stretch"><span class="state__label">Wybrany PDF</span>
+            <div class="field"><span class="field__label">Map (PDF)</span>
+              <div class="file-field">
+                <div class="file-field__preview" style="max-width:200px"><span class="thumb__file"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-file"/></svg>PDF</span></div>
+                <div class="file-field__actions"><button class="btn btn--secondary btn--sm is-focus" type="button">Select file</button><button class="btn btn--ghost btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>Clear</button></div>
+              </div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="repeater">
+      <div class="ds__head">
+        <h2>Repeater</h2>
+        <p>Powtarzalna grupa pól. Każdy wiersz ma numer (generowany w CSS) i przycisk usuwania. Zagnieżdżone wiersze mają naprzemienne tło zamiast coraz większych wcięć, więc nie tracą szerokości na telefonie.</p>
+        <p class="ds__ng">Angular: <code>app-repeater</code> ↔ <code>app-field</code> (rekurencja bez zmian); numer wiersza przez <code>counter()</code> w CSS.</p>
+      </div>
+      <div class="spec">
+        <div class="states states--xl">
+          <div class="state state--stretch"><span class="state__label">Pusty</span>
+            <div class="repeater">
+              <div class="repeater__head"><span class="field__label">Links</span></div>
+              <p class="field__hint">No rows yet.</p>
+              <button class="btn btn--secondary btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add row</button>
+            </div></div>
+          <div class="state state--stretch"><span class="state__label">Dwa wiersze (wydarzenie → Links)</span>
+            <div class="repeater">
+              <div class="repeater__head"><span class="field__label">Links</span><span class="badge badge--neutral">2</span></div>
+              <div class="repeater__rows">
+                <div class="repeater__row">
+                  <div class="repeater__row-head"><span class="repeater__row-index"></span><button class="btn btn--ghost btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Delete row</button></div>
+                  <div class="form-grid form-grid--2">
+                    <label class="field"><span class="field__label">Text</span><input class="input" value="Program wydarzenia"></label>
+                    <label class="field"><span class="field__label">Link</span><input class="input" value="/wydarzenia/noc-muzeow"></label>
+                  </div>
+                </div>
+                <div class="repeater__row">
+                  <div class="repeater__row-head"><span class="repeater__row-index"></span><button class="btn btn--ghost btn--sm is-hover" type="button"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Delete row</button></div>
+                  <div class="form-grid form-grid--2">
+                    <label class="field"><span class="field__label">Text</span><input class="input" value="Zapisy"></label>
+                    <label class="field"><span class="field__label">Link</span><input class="input is-focus" value="https://kopalniaguido.pl"></label>
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn--secondary btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add row</button>
+            </div></div>
+          <div class="state state--stretch" style="grid-column:1/-1"><span class="state__label">Zagnieżdżony (komponent „Tabs” → wiersz → „Paragraphs”)</span>
+            <div class="repeater">
+              <div class="repeater__head"><span class="field__label">Tabs</span><span class="badge badge--neutral">1</span></div>
+              <div class="repeater__rows">
+                <div class="repeater__row">
+                  <div class="repeater__row-head"><span class="repeater__row-index"></span><button class="btn btn--ghost btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Delete row</button></div>
+                  <label class="field"><span class="field__label">Title</span><input class="input" value="Budowa geologiczna"></label>
+                  <div class="repeater">
+                    <div class="repeater__head"><span class="field__label">Paragraphs</span><span class="badge badge--neutral">1</span></div>
+                    <div class="repeater__rows">
+                      <div class="repeater__row">
+                        <div class="repeater__row-head"><span class="repeater__row-index"></span><button class="btn btn--ghost btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Delete row</button></div>
+                        <label class="field"><span class="field__label">Paragraph</span><textarea class="input" rows="2">Wapienie triasowe odsłaniają się w ścianach dawnego kamieniołomu.</textarea></label>
+                      </div>
+                    </div>
+                    <button class="btn btn--secondary btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add row</button>
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn--secondary btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add row</button>
+            </div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="komunikaty">
+      <div class="ds__head">
+        <h2>Komunikaty</h2>
+        <p>Komunikat w formularzu (logowanie, konto) z ikoną i własnym tłem. Treść błędu przychodzi z serwera bez zmian. Puste miejsce na komunikat jest zarezerwowane, więc formularz nie skacze. Ostrzeżenie i informacja są zdefiniowane na przyszłość, dziś nie występują.</p>
+      </div>
+      <div class="spec">
+        <div class="states states--wide">
+          <div class="state state--stretch"><span class="state__label">Błąd (serwer)</span><p class="message message--error" role="alert"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>Incorrect password</p></div>
+          <div class="state state--stretch"><span class="state__label">Sukces</span><p class="message message--success" role="status"><svg class="icon" aria-hidden="true"><use href="#i-check-circle"/></svg>Password changed successfully</p></div>
+          <div class="state state--stretch"><span class="state__label">Ostrzeżenie (rezerwa)</span><p class="message message--warning"><svg class="icon" aria-hidden="true"><use href="#i-warning"/></svg>Unsaved changes will be lost</p></div>
+          <div class="state state--stretch"><span class="state__label">Informacja (rezerwa)</span><p class="message message--info"><svg class="icon" aria-hidden="true"><use href="#i-info"/></svg>Files are shared by all pages</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== STRUKTURA -->
+    <p class="ds-group">Struktura</p>
+
+    <section class="ds" id="nawigacja">
+      <div class="ds__head">
+        <h2>Nawigacja</h2>
+        <p>Nawigacja leży na tle aplikacji, a treść na białym blacie. Pozycje są pogrupowane: Content (strony i typy wpisów), Media (pliki), Structure (typy wpisów i komponenty). Aktywna pozycja zmienia tło i wagę, nie rozmiar. Konto i wylogowanie są na dole. „Log out” jest przyciskiem, a nie linkiem bez <code class="code">href</code>.</p>
+        <p class="ds__ng">Angular: <code>mat-sidenav</code> (side od 960 px, over poniżej); pozycje <code>a[routerLink]</code> z <code>aria-current</code>.</p>
+      </div>
+      <div class="spec spec--bg">
+        <div class="states states--wide">
+          <div class="state state--stretch"><span class="state__label">Panel (domyślny, aktywny, hover, fokus)</span>
+            <nav class="sidebar" aria-label="Main (example)" style="border-radius:var(--radius-lg);border:1px solid var(--color-border);height:auto">
+              <span class="brand"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></span>
+              <div class="nav">
+                <p class="nav__group">Content</p>
+                <a class="nav__item" href="#nawigacja"><svg class="icon" aria-hidden="true"><use href="#i-layout"/></svg><span class="nav__label">Pages</span></a>
+                <a class="nav__item" href="#nawigacja" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Markers</span></a>
+                <a class="nav__item is-hover" href="#nawigacja"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Wydarzenia</span></a>
+                <a class="nav__item" href="#nawigacja"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Icons</span></a>
+                <a class="nav__item" href="#nawigacja"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Navigation</span></a>
+                <p class="nav__group">Media</p>
+                <a class="nav__item is-focus" href="#nawigacja"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg><span class="nav__label">Files</span></a>
+                <p class="nav__group">Structure</p>
+                <a class="nav__item" href="#nawigacja"><svg class="icon" aria-hidden="true"><use href="#i-braces"/></svg><span class="nav__label">Post types</span></a>
+                <a class="nav__item" href="#nawigacja"><svg class="icon" aria-hidden="true"><use href="#i-blocks"/></svg><span class="nav__label">Components</span></a>
+              </div>
+              <div class="sidebar__theme" style="margin-top:var(--space-6)"><span class="sidebar__theme-label" id="theme-label-demo">Theme</span>
+                <div class="theme-switch" role="radiogroup" aria-labelledby="theme-label-demo">
+                  <label class="theme-switch__option" title="Light"><input type="radio" name="theme" value="light" checked aria-label="Light theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg></span></label>
+                  <label class="theme-switch__option" title="Dark"><input type="radio" name="theme" value="dark" aria-label="Dark theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg></span></label>
+                </div>
+              </div>
+              <div class="sidebar__footer">
+                <a class="user" href="#nawigacja"><span class="avatar" aria-hidden="true">b</span><span style="min-width:0"><span class="user__name">bilbo</span><span class="user__meta">Account settings</span></span></a>
+                <button class="btn btn--ghost btn--icon" type="button" aria-label="Log out"><svg class="icon" aria-hidden="true"><use href="#i-logout"/></svg></button>
+              </div>
+            </nav></div>
+          <div class="state state--stretch"><span class="state__label">Stopka: konto aktywne, wylogowanie w toku</span>
+            <div class="sidebar" style="border-radius:var(--radius-lg);border:1px solid var(--color-border)">
+              <div class="sidebar__footer" style="margin-top:0;border-top:0;padding-top:0">
+                <a class="user" href="#nawigacja" aria-current="page"><span class="avatar" aria-hidden="true">b</span><span style="min-width:0"><span class="user__name">bilbo</span><span class="user__meta">Account settings</span></span></a>
+                <button class="btn btn--ghost btn--icon is-busy" type="button" aria-busy="true" aria-label="Logging out"><span class="spinner spinner--md" aria-hidden="true"></span></button>
+              </div>
+            </div>
+            <span class="state__label" style="margin-top:var(--space-4)">Pasek górny (mobile)</span>
+            <header class="topbar" style="position:static;border:1px solid var(--color-border);border-radius:var(--radius-lg)">
+              <button class="btn btn--ghost btn--icon" type="button" aria-label="Open menu"><svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg></button>
+              <span class="brand"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></span>
+            </header>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="motyw">
+      <div class="ds__head">
+        <h2>Przełącznik motywu</h2>
+        <p>Dwie opcje, Light i Dark, w stopce nawigacji nad kontem. Dopóki użytkownik nic nie wybierze, aplikacja przyjmuje motyw z ustawień systemu. Wybór zapamiętuje przeglądarka, a motyw zmienia się od razu, bez przeładowania. Na telefonie przełącznik jest w wysuwanej nawigacji.</p>
+        <p class="ds__ng">Angular: nowy element w <code>app-sidenav</code> i mały serwis motywu (zapis w <code>localStorage</code>, atrybut <code>data-theme</code> na <code>&lt;html&gt;</code>). To jedyna zmiana logiki w projekcie, przyjęta decyzją z 20.10.2026.</p>
+      </div>
+      <div class="spec spec--bg">
+        <div class="states">
+          <div class="state"><span class="state__label">Light wybrany</span>
+            <div class="theme-switch" role="radiogroup" aria-label="Theme (example)">
+              <label class="theme-switch__option is-selected" title="Light"><input type="radio" name="tsd1" value="light" checked aria-label="Light theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg></span></label>
+              <label class="theme-switch__option" title="Dark"><input type="radio" name="tsd1" value="dark" aria-label="Dark theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg></span></label>
+            </div></div>
+          <div class="state"><span class="state__label">Dark wybrany</span>
+            <div class="theme-switch" role="radiogroup" aria-label="Theme (example)">
+              <label class="theme-switch__option" title="Light"><input type="radio" name="tsd2" value="light" aria-label="Light theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg></span></label>
+              <label class="theme-switch__option is-selected" title="Dark"><input type="radio" name="tsd2" value="dark" checked aria-label="Dark theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg></span></label>
+            </div></div>
+          <div class="state"><span class="state__label">Hover na „Dark”</span>
+            <div class="theme-switch" role="radiogroup" aria-label="Theme (example)">
+              <label class="theme-switch__option is-selected" title="Light"><input type="radio" name="tsd3" value="light" checked aria-label="Light theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg></span></label>
+              <label class="theme-switch__option is-hover" title="Dark"><input type="radio" name="tsd3" value="dark" aria-label="Dark theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg></span></label>
+            </div></div>
+          <div class="state"><span class="state__label">Fokus</span>
+            <div class="theme-switch" role="radiogroup" aria-label="Theme (example)">
+              <label class="theme-switch__option is-selected is-focus" title="Light"><input type="radio" name="tsd4" value="light" checked aria-label="Light theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg></span></label>
+              <label class="theme-switch__option" title="Dark"><input type="radio" name="tsd4" value="dark" aria-label="Dark theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg></span></label>
+            </div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="uklad">
+      <div class="ds__head">
+        <h2>Szkielet i nagłówek ekranu</h2>
+        <p>Na mobile: pasek górny z menu, nagłówek ekranu z akcją główną, akcje drugorzędne w przewijanym rzędzie, wyszukiwarka nad listą, filtry w arkuszu od dołu. Od 960 px stała nawigacja, biały blat roboczy, akcje w jednym rzędzie z tytułem i panel filtrów obok listy. Ramki pokazują ten sam kod w dwóch szerokościach.</p>
+        <p class="ds__ng">Angular: <code>mat-sidenav-container</code> z <code>id="scroll"</code> na <code>mat-sidenav-content</code>, który staje się elementem przewijanym (przycisk „do góry” zaczyna działać).</p>
+      </div>
+      <div class="frames">
+        <div class="frames__row">
+          <div class="frame frame--m"><iframe title="Ekran listy, mobile" height="720" data-tpl="tpl-list" loading="lazy"></iframe><span class="frame__cap">Mobile 390 px</span></div>
+          <div class="frame frame--m"><iframe title="Ekran listy, mobile, filtry otwarte" height="720" data-tpl="tpl-list" data-state="filters" loading="lazy"></iframe><span class="frame__cap">Mobile: arkusz filtrów</span></div>
+          <div class="frame frame--m"><iframe title="Ekran listy, mobile, nawigacja otwarta" height="720" data-tpl="tpl-list" data-state="nav" loading="lazy"></iframe><span class="frame__cap">Mobile: nawigacja (mat-sidenav „over”)</span></div>
+        </div>
+        <div class="frame frame--d scroll-x" style="justify-items:stretch"><iframe title="Ekran listy, desktop" height="760" data-tpl="tpl-list" loading="lazy"></iframe><span class="frame__cap">Desktop 1200 px</span></div>
+      </div>
+    </section>
+
+    <section class="ds" id="edytor">
+      <div class="ds__head">
+        <h2>Pasek edytora</h2>
+        <p>Nagłówek edytorów wpisu, strony i schematu. Nad tytułem stoi rodzaj edytowanego elementu, a tytuł na żywo pokazuje wpisaną nazwę. Na mobile Save i Delete są przyklejone do dołu ekranu, w zasięgu kciuka. Od 960 px stoją w pasku obok tytułu.</p>
+        <p class="ds__ng">Angular: zastępuje <code>.editor-header</code> w trzech edytorach (jeden wspólny styl zamiast trzech kopii).</p>
+      </div>
+      <div class="frames">
+        <div class="frames__row">
+          <div class="frame frame--m"><iframe title="Edytor, mobile" height="640" data-tpl="tpl-editor" loading="lazy"></iframe><span class="frame__cap">Mobile 390 px: edycja wpisu</span></div>
+          <div class="frame frame--m"><iframe title="Edytor, mobile, błąd walidacji" height="640" data-tpl="tpl-editor" data-state="invalid" loading="lazy"></iframe><span class="frame__cap">Mobile: błąd walidacji po próbie zapisu</span></div>
+        </div>
+        <div class="frame frame--d scroll-x" style="justify-items:stretch"><iframe title="Edytor, desktop" height="560" data-tpl="tpl-editor" loading="lazy"></iframe><span class="frame__cap">Desktop 1200 px</span></div>
+      </div>
+    </section>
+
+    <section class="ds" id="karta">
+      <div class="ds__head">
+        <h2>Karta i sekcja</h2>
+        <p>Karta grupuje pola w sekcje edytora: dane podstawowe, SEO, pola, komponenty. Nie ma cienia. Od tła blatu odróżnia ją obramowanie, a od siebie odstęp 24 px.</p>
+      </div>
+      <div class="spec spec--bg">
+        <div class="states states--xl">
+          <section class="card">
+            <header class="card__header"><div class="card__heading"><h3 class="card__title">Basic information</h3><p class="card__desc">Title and address of the page on the public site.</p></div></header>
+            <div class="card__body">
+              <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Mapa geostanowisk" required></label>
+              <label class="field"><span class="field__label">Url<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="mapa" required></label>
+            </div>
+          </section>
+          <section class="card">
+            <header class="card__header"><div class="card__heading"><h3 class="card__title">Search engines</h3><p class="card__desc">Optional. Used in the page title and description in search results.</p></div></header>
+            <div class="card__body">
+              <label class="field"><span class="field__label">SEO Title</span><input class="input" value="Mapa geostanowisk | GeoSilesia"></label>
+              <label class="field"><span class="field__label">SEO Description</span><textarea class="input" rows="2">Kopalnie, sztolnie, hałdy i rezerwaty przyrody nieożywionej na jednej mapie.</textarea></label>
+            </div>
+          </section>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="zakladki">
+      <div class="ds__head">
+        <h2>Zakładki</h2>
+        <p>Biblioteka plików ma dwie zakładki: przeglądanie i wysyłanie. Aktywna zakładka ma kolor akcentu i podkreślenie. Nazwy: „Library” zamiast „SELECT FILE”, „Upload” zamiast „ADD NEW FILES”.</p>
+        <p class="ds__ng">Angular: <code>mat-tab-group #tabs</code> zostaje (logika przełącza zakładkę po wysłaniu plików).</p>
+      </div>
+      <div class="spec">
+        <div class="states states--wide">
+          <div class="state state--stretch"><span class="state__label">Domyślne</span><div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="true" type="button">Library</button><button class="tab" role="tab" aria-selected="false" type="button">Upload</button></div></div>
+          <div class="state state--stretch"><span class="state__label">Hover na „Upload”</span><div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="true" type="button">Library</button><button class="tab is-hover" role="tab" aria-selected="false" type="button">Upload</button></div></div>
+          <div class="state state--stretch"><span class="state__label">Fokus</span><div class="tabs" role="tablist"><button class="tab" role="tab" aria-selected="false" type="button">Library</button><button class="tab is-focus" role="tab" aria-selected="true" type="button">Upload</button></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== LISTY -->
+    <p class="ds-group">Listy</p>
+
+    <section class="ds" id="lista">
+      <div class="ds__head">
+        <h2>Wiersz listy</h2>
+        <p>Cały wiersz prowadzi do edycji, nie tylko tekst tytułu. Usuwanie to neutralna ikona kosza z etykietą wskazującą obiekt. Po potwierdzeniu przycisk pokazuje spinner, a po sukcesie wiersz przez 2 s wyświetla komunikat serwera, zanim zniknie.</p>
+        <p class="ds__ng">Angular: <code>.listing-item</code>; stan usunięty to istniejący <code>lastRemoved</code> + <code>removeStatus</code>.</p>
+      </div>
+      <div class="spec spec--bg">
+        <div class="card list-card">
+          <div class="list-toolbar">
+            <label class="control control--search"><span class="visually-hidden">Search markers</span><svg class="icon control__icon" aria-hidden="true"><use href="#i-search"/></svg><input class="input" type="search" placeholder="Search markers"></label>
+            <button class="btn btn--secondary" type="button" aria-haspopup="menu"><svg class="icon" aria-hidden="true"><use href="#i-sort"/></svg>Newest</button>
+            <button class="btn btn--secondary filters-toggle" type="button"><svg class="icon" aria-hidden="true"><use href="#i-sliders"/></svg>Filters</button>
+          </div>
+          <ul class="list">
+            <li class="list__row"><a class="list__link" href="#lista">Kopalnia Guido</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Kopalnia Guido"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+            <li class="list__row is-hover"><a class="list__link" href="#lista">Sztolnia Królowa Luiza <span class="visually-hidden">(hover)</span></a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Sztolnia Królowa Luiza"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+            <li class="list__row is-focus"><a class="list__link" href="#lista">Hałda Szarlota <span class="visually-hidden">(fokus)</span></a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Hałda Szarlota"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+            <li class="list__row is-busy"><a class="list__link" href="#lista">Rezerwat Segiet</a><button class="btn btn--ghost btn--icon is-busy" type="button" aria-busy="true" aria-label="Deleting Rezerwat Segiet"><span class="spinner spinner--md" aria-hidden="true"></span></button></li>
+            <li class="list__row list__row--removed" role="status"><svg class="icon" aria-hidden="true"><use href="#i-check-circle"/></svg>Post removed successfully</li>
+            <li class="list__row"><a class="list__link" href="#lista">Góra Zborów</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Góra Zborów"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+          </ul>
+        </div>
+        <p class="note">Wiersze od góry: domyślny, hover, fokus, usuwanie w toku, usunięty, domyślny. Na tej szerokości przycisk „Filters” jest ukryty, bo od 960 px panel filtrów jest stale widoczny.</p>
+      </div>
+    </section>
+
+    <section class="ds" id="znaczniki">
+      <div class="ds__head">
+        <h2>Znaczniki</h2>
+        <p>Licznik obok tytułu ekranu, typ pola w karcie definicji i liczba wierszy repeatera. Wartości techniczne (id pola, URL) są zapisane krojem o stałej szerokości.</p>
+      </div>
+      <div class="spec">
+        <div class="cluster">
+          <span class="badge">48<span class="visually-hidden"> posts</span></span>
+          <span class="badge badge--neutral">repeater</span>
+          <span class="badge badge--neutral">3</span>
+          <code class="code">date_of_publication</code>
+          <code class="code">/uploads/halda-szarlota.jpg</code>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="puste">
+      <div class="ds__head">
+        <h2>Puste stany</h2>
+        <p>Ikona, krótki tytuł i jedno zdanie. Akcja stoi zawsze w nagłówku ekranu, więc pusty stan jej nie powtarza.</p>
+      </div>
+      <div class="spec spec--bg">
+        <div class="states states--wide">
+          <div class="card"><div class="empty"><span class="empty__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-doc"/></svg></span><p class="empty__title">No markers yet</p><p class="empty__text">Create the first one or import a JSON file.</p></div></div>
+          <div class="card"><div class="empty"><span class="empty__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-search"/></svg></span><p class="empty__title">No markers match your search</p><p class="empty__text">Change the search text or reset the filters.</p></div></div>
+          <div class="card"><div class="empty"><span class="empty__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-braces"/></svg></span><p class="empty__title">No fields yet</p><p class="empty__text">Fields define what editors fill in for each post of this type.</p></div></div>
+          <div class="card"><div class="empty"><span class="empty__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-image"/></svg></span><p class="empty__title">No files yet</p><p class="empty__text">Upload images or PDF files in the Upload tab.</p></div></div>
+          <div class="panel"><div class="empty empty--compact"><p class="empty__title">Nothing to filter yet</p><p class="empty__text">Filters appear when this list has posts.</p></div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="filtry">
+      <div class="ds__head">
+        <h2>Filtry</h2>
+        <p>Od 960 px panel na tle w kolorze <code class="code">--color-surface-sunken</code> obok listy. Na mobile ten sam stan (<code class="code">filtersOpen</code>) otwiera arkusz od dołu: zamyka go przycisk z krzyżykiem albo kliknięcie w tło. Wyszukiwarka przeszła do paska nad listą, więc listing stron, komponentów i typów wpisów nie potrzebuje panelu filtrów.</p>
+        <p class="ds__ng">Angular: <code>.listing-drawer</code>, zawartość <code>app-listing-filters</code>; kolejność grup filtrów bez zmian.</p>
+      </div>
+      <div class="spec spec--bg">
+        <div class="states states--wide">
+          <div class="state state--stretch"><span class="state__label">Panel (desktop)</span>
+            <aside class="panel" aria-label="Filters (example)">
+              <div class="filters__head"><h3 class="filters__title">Filters</h3><button class="btn btn--ghost btn--sm" type="button">Reset</button></div>
+              <div class="filters__body">
+                <fieldset class="fieldset"><legend class="field__label">Show on homepage</legend>
+                  <div class="segmented segmented--block" role="radiogroup">
+                    <label class="segmented__option"><input type="radio" name="fp1" value="true"><span class="segmented__label">True</span></label>
+                    <label class="segmented__option"><input type="radio" name="fp1" value="false"><span class="segmented__label">False</span></label>
+                    <label class="segmented__option"><input type="radio" name="fp1" value="all" checked><span class="segmented__label">All</span></label>
+                  </div></fieldset>
+                <div class="field"><span class="field__label">Categories</span><span class="control control--select"><button class="input" type="button"><span class="select__value">Geologia</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+                <fieldset class="fieldset"><legend class="field__label">Latitude</legend>
+                  <div class="range"><label class="field"><span class="field__label">Min</span><input class="input" type="number" value="49"></label><label class="field"><span class="field__label">Max</span><input class="input" type="number" value="51"></label></div></fieldset>
+                <fieldset class="fieldset"><legend class="field__label">Date of publication</legend>
+                  <div class="range"><label class="field"><span class="field__label">From</span><input class="input" value="1/12/2026"></label><label class="field"><span class="field__label">To</span><input class="input" value="10/15/2026"></label></div></fieldset>
+              </div>
+            </aside></div>
+          <div class="state state--stretch"><span class="state__label">Arkusz (mobile)</span>
+            <aside class="sheet" aria-label="Filters (example)">
+              <div class="sheet__grabber" aria-hidden="true"></div>
+              <div class="filters__head"><h3 class="filters__title">Filters</h3><button class="btn btn--ghost btn--sm" type="button">Reset</button><button class="btn btn--ghost btn--sm btn--icon" type="button" aria-label="Close filters"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+              <div class="filters__body">
+                <div class="field"><span class="field__label">Categories</span><span class="control control--select"><button class="input" type="button"><span class="select__value">Geologia, Geomorfologia</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+                <fieldset class="fieldset"><legend class="field__label">Longitude</legend>
+                  <div class="range"><label class="field"><span class="field__label">Min</span><input class="input is-focus" type="number" value="18"></label><label class="field"><span class="field__label">Max</span><input class="input" type="number" value="20"></label></div></fieldset>
+              </div>
+            </aside></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== EDYTORY -->
+    <p class="ds-group">Edytory</p>
+
+    <section class="ds" id="definicja">
+      <div class="ds__head">
+        <h2>Definicja pola</h2>
+        <p>Karta w edytorze typu wpisu i komponentu. Nagłówek pokazuje wpisaną nazwę, typ pola i przycisk usuwania. Pola Title i Id stoją obok siebie od 600 px. Pola dziecka w repeaterze są wcięte i połączone linią, na dowolną głębokość.</p>
+        <p class="ds__ng">Angular: <code>app-add-field</code> (rekurencja i nazwy kontrolek bez zmian); w nagłówku <code>field.title</code> i <code>field.type</code>.</p>
+      </div>
+      <div class="spec spec--bg">
+        <div class="schema-list">
+          <article class="schema-field">
+            <header class="schema-field__head"><span class="schema-field__name">Place</span><span class="badge badge--neutral">text</span><button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Delete field Place"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></header>
+            <div class="schema-field__body">
+              <div class="form-grid form-grid--2">
+                <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Place" required></label>
+                <label class="field"><span class="field__label">Id<span class="field__req" aria-hidden="true">*</span></span><input class="input mono" value="place" required></label>
+              </div>
+              <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select"><button class="input" type="button"><span class="select__value">Text</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+            </div>
+          </article>
+          <article class="schema-field">
+            <header class="schema-field__head"><span class="schema-field__name">Categories</span><span class="badge badge--neutral">multiselect</span><button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Delete field Categories"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></header>
+            <div class="schema-field__body">
+              <div class="form-grid form-grid--2">
+                <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Categories" required></label>
+                <label class="field"><span class="field__label">Id<span class="field__req" aria-hidden="true">*</span></span><input class="input mono" value="categories" required></label>
+              </div>
+              <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select"><button class="input" type="button"><span class="select__value">Multiselect</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+              <label class="field"><span class="field__label">Options<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Geologia; Geomorfologia; Dziedzictwo poprzemysłowe" required><span class="field__hint">Separate options with semicolons.</span></label>
+            </div>
+          </article>
+          <article class="schema-field">
+            <header class="schema-field__head"><span class="schema-field__name">Links</span><span class="badge badge--neutral">repeater</span><button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Delete field Links"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></header>
+            <div class="schema-field__body">
+              <div class="form-grid form-grid--2">
+                <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Links" required></label>
+                <label class="field"><span class="field__label">Id<span class="field__req" aria-hidden="true">*</span></span><input class="input mono" value="links" required></label>
+              </div>
+              <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select"><button class="input" type="button"><span class="select__value">Repeater</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+              <div class="schema-field__children">
+                <span class="field__label">Fields in each row</span>
+                <article class="schema-field">
+                  <header class="schema-field__head"><span class="schema-field__name">Text</span><span class="badge badge--neutral">text</span><button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Delete field Text"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></header>
+                  <div class="schema-field__body"><div class="form-grid form-grid--2"><label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Text"></label><label class="field"><span class="field__label">Id<span class="field__req" aria-hidden="true">*</span></span><input class="input mono" value="text"></label></div></div>
+                </article>
+                <article class="schema-field is-invalid">
+                  <header class="schema-field__head"><span class="schema-field__name is-placeholder">Untitled field</span><span class="badge badge--neutral">text</span><button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Delete untitled field"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></header>
+                  <div class="schema-field__body"><div class="form-grid form-grid--2">
+                    <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input is-invalid" aria-invalid="true" required><span class="field__error"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>This field is required</span></label>
+                    <label class="field"><span class="field__label">Id<span class="field__req" aria-hidden="true">*</span></span><input class="input is-invalid mono" aria-invalid="true" required><span class="field__error"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>This field is required</span></label>
+                  </div></div>
+                </article>
+                <button class="btn btn--secondary btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add field to row</button>
+              </div>
+            </div>
+          </article>
+          <button class="btn btn--secondary" type="button" style="justify-self:start"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add field</button>
+        </div>
+        <p class="note">Karty od góry: pole tekstowe; multiselect z opcjami; repeater z polami wiersza, w tym nowe pole z błędami walidacji. Błędy serwera („Duplicate field ids”) trafiają do dialogu, jak dziś.</p>
+      </div>
+    </section>
+
+    <section class="ds" id="komponent">
+      <div class="ds__head">
+        <h2>Komponent strony</h2>
+        <p>Wiersz w sekcji „Components” edytora strony. Ma numer pozycji (licznik CSS), uchwyt przeciągania na całej wysokości, przycisk zwijania z <code class="code">aria-expanded</code>, wybór komponentu i usuwanie. Przeciągany element unosi się z cieniem, a miejsce docelowe ma przerywany obrys.</p>
+        <p class="ds__ng">Angular: <code>cdkDropList</code> › <code>cdkDrag</code> › <code>cdkDragHandle</code> (struktura bez zmian); klasy <code>.cdk-drag-preview</code> i <code>.cdk-drag-placeholder</code> ostylowane w <code>components.css</code>.</p>
+      </div>
+      <div class="spec spec--bg">
+        <ol class="blocks">
+          <li class="block-card">
+            <div class="block-card__handle is-hover" title="Drag to reorder"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></div>
+            <div class="block-card__main">
+              <div class="block-card__head">
+                <span class="block-card__index" aria-hidden="true"></span>
+                <button class="btn btn--ghost btn--sm btn--icon block-card__toggle" type="button" aria-expanded="false" aria-label="Show fields of Homepage banner"><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+                <span class="control control--select"><button class="input" type="button" aria-label="Component type"><span class="select__value">Homepage banner</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
+                <button class="btn btn--ghost btn--sm btn--icon" type="button" aria-label="Remove component Homepage banner"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button>
+              </div>
+            </div>
+          </li>
+          <li class="block-card">
+            <div class="block-card__handle" title="Drag to reorder"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></div>
+            <div class="block-card__main">
+              <div class="block-card__head">
+                <span class="block-card__index" aria-hidden="true"></span>
+                <button class="btn btn--ghost btn--sm btn--icon block-card__toggle" type="button" aria-expanded="true" aria-label="Hide fields of Title and text"><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></button>
+                <span class="control control--select"><button class="input" type="button" aria-label="Component type"><span class="select__value">Title and text</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
+                <button class="btn btn--ghost btn--sm btn--icon" type="button" aria-label="Remove component Title and text"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button>
+              </div>
+              <div class="block-card__body">
+                <label class="field"><span class="field__label">Title</span><input class="input" value="Czym jest geostanowisko?"></label>
+                <label class="field"><span class="field__label">Paragraph</span><textarea class="input" rows="3">Geostanowisko to miejsce, w którym można zobaczyć ślady procesów geologicznych: odsłonięcia skał, formy terenu albo pozostałości dawnego górnictwa.</textarea></label>
+              </div>
+            </div>
+          </li>
+          <li class="block-card is-placeholder" aria-hidden="true">
+            <div class="block-card__handle"></div><div class="block-card__main"><div class="block-card__head"><span class="block-card__index"></span><span class="control control--select"><span class="input"></span></span></div></div>
+          </li>
+          <li class="block-card">
+            <div class="block-card__handle" title="Drag to reorder"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></div>
+            <div class="block-card__main">
+              <div class="block-card__head">
+                <span class="block-card__index" aria-hidden="true"></span>
+                <span class="control control--select"><button class="input is-focus" type="button" aria-label="Component type"><span class="select__value select__placeholder">Choose a component</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
+                <button class="btn btn--ghost btn--sm btn--icon" type="button" aria-label="Remove new component"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button>
+              </div>
+            </div>
+          </li>
+        </ol>
+        <div class="state"><span class="state__label">Przeciągany element (podgląd)</span>
+          <div class="block-card is-dragging" style="width:min(100%,560px);counter-reset:block 2">
+            <div class="block-card__handle"><svg class="icon" aria-hidden="true"><use href="#i-grip"/></svg></div>
+            <div class="block-card__main"><div class="block-card__head"><span class="block-card__index" aria-hidden="true"></span><button class="btn btn--ghost btn--sm btn--icon block-card__toggle" type="button" aria-expanded="false" aria-label="Show fields of Gallery"><svg class="icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></button><span class="control control--select"><button class="input" type="button"><span class="select__value">Gallery</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span><button class="btn btn--ghost btn--sm btn--icon" type="button" aria-label="Remove component Gallery"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></div></div>
+          </div>
+        </div>
+        <p class="note">Od góry: zwinięty komponent (hover na uchwycie), rozwinięty z polami, miejsce docelowe podczas przeciągania, nowy wiersz bez wybranego komponentu (fokus), a pod listą element w trakcie przeciągania. Przeciąganie nadal działa tylko myszą i dotykiem.</p>
+      </div>
+    </section>
+
+    <!-- ===================================================== PLIKI -->
+    <p class="ds-group">Pliki</p>
+
+    <section class="ds" id="miniatura">
+      <div class="ds__head">
+        <h2>Miniatura</h2>
+        <p>Kwadratowy kafel w siatce biblioteki. Do czasu załadowania obrazu widać szare tło, potem obraz płynnie się pojawia (zamiast dzisiejszego „wyrastania” od zera). Zaznaczenie to obrys w kolorze akcentu i znacznik.</p>
+        <p class="ds__ng">Angular: <code>appImgLoaded</code> dodaje klasę <code>img-loaded</code>; zaznaczenie to dzisiejsza klasa <code>.current</code>.</p>
+      </div>
+      <div class="spec">
+        <div class="states">
+          <div class="state state--stretch"><span class="state__label">Ładowanie</span><button class="thumb" type="button" aria-label="hałda-szarlota.jpg"><span class="ph ph--heap"></span></button></div>
+          <div class="state state--stretch"><span class="state__label">Załadowana</span><button class="thumb img-loaded" type="button" aria-label="kamieniolom-grodek.jpg"><span class="ph ph--quarry"></span></button></div>
+          <div class="state state--stretch"><span class="state__label">Hover</span><button class="thumb img-loaded is-hover" type="button" aria-label="segiet-skalki.jpg"><span class="ph ph--forest"></span></button></div>
+          <div class="state state--stretch"><span class="state__label">Fokus</span><button class="thumb img-loaded is-focus" type="button" aria-label="sztolnia-czarnego-pstraga.jpg"><span class="ph ph--water"></span></button></div>
+          <div class="state state--stretch"><span class="state__label">Zaznaczona</span><button class="thumb img-loaded current" type="button" aria-label="kopalnia-guido-poziom-320.jpg" aria-pressed="true"><span class="ph ph--mine"></span><span class="thumb__check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span></button></div>
+          <div class="state state--stretch"><span class="state__label">PDF</span><button class="thumb img-loaded" type="button" aria-label="mapa-geostanowisk.pdf"><span class="thumb__file"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-file"/></svg>PDF</span></button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="szczegoly">
+      <div class="ds__head">
+        <h2>Szczegóły pliku</h2>
+        <p>Panel zaznaczonego pliku: nazwa, akcje, podgląd, metadane i formularz opisu. W bibliotece akcją główną jest Save. W dialogu wyboru akcją główną jest Choose, a Save staje się drugorzędny.</p>
+        <p class="ds__ng">Angular: <code>.files-edit</code>; kolejność pól formularza (Title, Description, Author, Place, Position, katalogi, nowy katalog) bez zmian.</p>
+      </div>
+      <div class="spec">
+        <div class="states states--xl">
+          <div class="details">
+            <p class="details__name">kopalnia-guido-poziom-320.jpg</p>
+            <div class="details__actions">
+              <button class="btn btn--primary" type="button">Save</button>
+              <button class="btn btn--ghost" type="button"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Delete</button>
+            </div>
+            <div class="details__preview"><span class="ph ph--mine" role="img" aria-label="Preview of kopalnia-guido-poziom-320.jpg"></span></div>
+            <dl class="meta">
+              <dt>Date</dt><dd>Oct 18, 2026 2:14:05 PM</dd>
+              <dt>URL</dt><dd class="mono">/uploads/kopalnia-guido-poziom-320.jpg</dd>
+              <dt>Type</dt><dd>image/jpeg</dd>
+              <dt>Size</dt><dd class="tabular">1.8 MB</dd>
+            </dl>
+          </div>
+          <div class="form-stack">
+            <label class="field"><span class="field__label">Title</span><input class="input" value="Kopalnia Guido, poziom 320"></label>
+            <label class="field"><span class="field__label">Description</span><textarea class="input" rows="2">Chodnik z obudową stalową na poziomie 320 m.</textarea></label>
+            <div class="form-grid form-grid--2">
+              <label class="field"><span class="field__label">Author</span><input class="input" value="Anna Nowak"></label>
+              <label class="field"><span class="field__label">Place</span><input class="input" value="Zabrze"></label>
+            </div>
+            <label class="field"><span class="field__label">Position</span><input class="input" type="number" value="3"></label>
+            <div class="field"><span class="field__label">Catalogues</span><span class="control control--select"><button class="input" type="button"><span class="select__value">kopalnie, galeria</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+            <div class="field"><label class="field__label" for="newcat">New catalogue</label><div class="field-row"><span class="control"><input class="input" id="newcat" value="sztolnie"></span><button class="btn btn--secondary" type="button">Add</button></div></div>
+          </div>
+        </div>
+        <div class="state"><span class="state__label">Akcje w dialogu wyboru pliku</span>
+          <div class="details__actions"><button class="btn btn--primary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Choose</button><button class="btn btn--secondary" type="button">Save</button><button class="btn btn--ghost" type="button"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Delete</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="wysylanie">
+      <div class="ds__head">
+        <h2>Wysyłanie</h2>
+        <p>Zakładka „Upload”. Bez wybranych plików: zaproszenie z przyciskiem. Po wybraniu: lista plików z miniaturami, panel zaznaczonego pliku i pasek akcji. Obszar nie obsługuje przeciągania plików, bo dziś też go nie ma, dlatego tekst o nim nie wspomina.</p>
+        <p class="ds__ng">Angular: <code>.files-upload</code>; pierwszy przycisk w <code>.files-upload__edit</code> to nadal „Remove” (dawniej Delete).</p>
+      </div>
+      <div class="spec">
+        <div class="upload-empty">
+          <span class="upload-empty__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-upload"/></svg></span>
+          <p class="upload-empty__title">Upload images or PDF files</p>
+          <p class="upload-empty__hint">JPG, PNG, GIF or PDF. You can select several files at once and describe each one before uploading.</p>
+          <button class="btn btn--primary" type="button">Select files</button>
+        </div>
+        <div class="states states--xl">
+          <div class="state state--stretch"><span class="state__label">Wybrane pliki (zaznaczony drugi, hover na trzecim)</span>
+            <div class="cluster"><button class="btn btn--secondary" type="button">Select files</button><button class="btn btn--primary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>Upload 3 files</button><button class="btn btn--ghost" type="button">Clear list</button></div>
+            <div class="pending" role="listbox" aria-label="Files to upload" style="width:100%">
+              <button class="pending__item" type="button" role="option" aria-selected="false"><span class="pending__thumb"><span class="ph ph--heap"></span></span><span class="pending__name">halda-szarlota-panorama.jpg</span></button>
+              <button class="pending__item current" type="button" role="option" aria-selected="true"><span class="pending__thumb"><span class="ph ph--strata"></span></span><span class="pending__name">segiet-wapienie-triasowe.jpg</span></button>
+              <button class="pending__item is-hover" type="button" role="option" aria-selected="false"><span class="pending__thumb"><span class="thumb__file"><svg class="icon icon--sm" aria-hidden="true"><use href="#i-file"/></svg></span></span><span class="pending__name">przewodnik-geostanowiska-2026.pdf</span></button>
+            </div></div>
+          <div class="state state--stretch"><span class="state__label">Panel zaznaczonego pliku</span>
+            <div class="details">
+              <p class="details__name">segiet-wapienie-triasowe.jpg</p>
+              <p class="field__hint" style="margin-top:calc(var(--space-4) * -1)">Size: 2.4 MB</p>
+              <div class="details__actions"><button class="btn btn--ghost" type="button"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>Remove</button></div>
+              <div class="details__preview"><span class="ph ph--strata" role="img" aria-label="Preview of segiet-wapienie-triasowe.jpg"></span></div>
+              <label class="field"><span class="field__label">Title</span><input class="input" value="Rezerwat Segiet, wapienie triasowe"></label>
+            </div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="postep">
+      <div class="ds__head">
+        <h2>Pasek postępu</h2>
+        <p>Postęp wysyłania pokazany paskiem i liczbą procent. Pojawia się tylko w trakcie wysyłania, tak jak dziś.</p>
+        <p class="ds__ng">Angular: <code>mat-progress-bar mode="determinate"</code> + etykieta z <code>progress()</code>.</p>
+      </div>
+      <div class="spec">
+        <div class="states states--wide">
+          <div class="state state--stretch"><span class="state__label">W toku</span><div class="progress" role="progressbar" aria-valuenow="64" aria-valuemin="0" aria-valuemax="100" aria-label="Uploading files"><div class="progress__label"><span>Uploading 3 files…</span><span>64%</span></div><div class="progress__track"><div class="progress__bar" style="width:64%"></div></div></div></div>
+          <div class="state state--stretch"><span class="state__label">Prawie gotowe</span><div class="progress" role="progressbar" aria-valuenow="98" aria-valuemin="0" aria-valuemax="100" aria-label="Uploading files"><div class="progress__label"><span>Uploading 3 files…</span><span>98%</span></div><div class="progress__track"><div class="progress__bar" style="width:98%"></div></div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================== NAKŁADKI -->
+    <p class="ds-group">Nakładki</p>
+
+    <section class="ds" id="dialogi">
+      <div class="ds__head">
+        <h2>Dialogi</h2>
+        <p><strong>Alert</strong> przekazuje wynik operacji (sukces lub błąd z serwera) i ma jeden przycisk „OK”. Nie ma koloru statusu, bo dialog nie zna typu komunikatu. <strong>Potwierdzenie</strong> służy tylko do usuwania, więc ma stały tytuł „Confirm deletion”, przyciski „Cancel” i „Delete”, a „Delete” to jedyny czerwony przycisk w aplikacji. Na telefonie przyciski układają się w pełnej szerokości.</p>
+        <p class="ds__ng">Angular: <code>MessageDialogComponent</code> przez <code>MatDialog</code>; tytuł potwierdzenia jest stałym tekstem w szablonie (logika nadal przekazuje tylko treść).</p>
+      </div>
+      <div class="overlay">
+        <div class="dialog" role="alertdialog" aria-labelledby="dlg-c-title" aria-describedby="dlg-c-body">
+          <h3 class="dialog__title" id="dlg-c-title">Confirm deletion</h3>
+          <p class="dialog__body" id="dlg-c-body">Are you sure you want to delete Kopalnia Guido?</p>
+          <div class="dialog__actions"><button class="btn btn--secondary" type="button">Cancel</button><button class="btn btn--danger is-focus" type="button">Delete</button></div>
+        </div>
+        <div class="dialog" role="dialog" aria-describedby="dlg-a-body">
+          <p class="dialog__body" id="dlg-a-body" style="color:var(--color-text)">Kopalnia Guido updated successfully</p>
+          <div class="dialog__actions"><button class="btn btn--primary" type="button">OK</button></div>
+        </div>
+        <div class="dialog" role="dialog" aria-describedby="dlg-e-body">
+          <p class="dialog__body" id="dlg-e-body" style="color:var(--color-text)">There already is page with "mapa" url</p>
+          <div class="dialog__actions"><button class="btn btn--primary" type="button">OK</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="picker">
+      <div class="ds__head">
+        <h2>Wybór pliku</h2>
+        <p>Duży dialog z biblioteką plików. Ma nagłówek z tytułem i przyciskiem zamknięcia, a poniżej te same zakładki, siatkę i panel co ekran „Files”. Na telefonie zajmuje cały ekran.</p>
+        <p class="ds__ng">Angular: <code>FilePickerDialogComponent</code> (<code>panelClass: 'file-picker-panel'</code>); tytuł to stały tekst w trybie popup.</p>
+      </div>
+      <div class="overlay" style="place-items:stretch">
+        <div class="dialog dialog--picker picker-demo" role="dialog" aria-labelledby="pick-title">
+          <div class="dialog__header"><h3 class="dialog__title" id="pick-title">Choose a file</h3><button class="btn btn--ghost btn--icon" type="button" aria-label="Close"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+          <div class="tabs" role="tablist" style="padding:0 var(--space-4)"><button class="tab" role="tab" aria-selected="true" type="button">Library</button><button class="tab" role="tab" aria-selected="false" type="button">Upload</button></div>
+          <div class="picker-body">
+            <div class="picker-body__grid">
+              <div class="form-grid form-grid--2">
+                <label class="control control--search"><span class="visually-hidden">Search files</span><svg class="icon control__icon" aria-hidden="true"><use href="#i-search"/></svg><input class="input" type="search" placeholder="Search files"></label>
+                <span class="control control--select"><button class="input" type="button" aria-label="Catalogues"><span class="select__value">kopalnie</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
+              </div>
+              <div class="thumbs">
+                <button class="thumb img-loaded current" type="button" aria-label="kopalnia-guido-poziom-320.jpg" aria-pressed="true"><span class="ph ph--mine"></span><span class="thumb__check"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg></span></button>
+                <button class="thumb img-loaded" type="button" aria-label="sztolnia-krolowa-luiza.jpg"><span class="ph ph--water"></span></button>
+                <button class="thumb img-loaded" type="button" aria-label="zabytkowa-kopalnia-srebra.jpg"><span class="ph ph--strata"></span></button>
+                <button class="thumb img-loaded" type="button" aria-label="halda-szarlota.jpg"><span class="ph ph--heap"></span></button>
+                <button class="thumb" type="button" aria-label="guido-szyb.jpg"><span class="ph ph--quarry"></span></button>
+              </div>
+            </div>
+            <div class="picker-body__details">
+              <div class="details">
+                <p class="details__name">kopalnia-guido-poziom-320.jpg</p>
+                <div class="details__actions"><button class="btn btn--primary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-check"/></svg>Choose</button><button class="btn btn--secondary" type="button">Save</button><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete kopalnia-guido-poziom-320.jpg"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></div>
+                <dl class="meta"><dt>Type</dt><dd>image/jpeg</dd><dt>Size</dt><dd class="tabular">1.8 MB</dd></dl>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="ds" id="blad">
+      <div class="ds__head">
+        <h2>Strona błędu</h2>
+        <p>Trasa <code class="code">**</code> wyświetla się dla nieznanego adresu. Nawigacja jest wtedy widoczna, więc strona nie potrzebuje własnego linku powrotnego.</p>
+      </div>
+      <div class="spec">
+        <div class="error-page" style="padding-block:var(--space-6)">
+          <p class="error-page__code">404</p>
+          <h3 class="error-page__title">Page not found</h3>
+          <p class="error-page__text">The address may be mistyped, or the page was removed. Choose a section from the menu.</p>
+        </div>
+      </div>
+    </section>
+
+    <footer class="doc-foot">Statyczna makieta systemu. Font ładowany z Google Fonts wyłącznie na potrzeby podglądu. Obrazy w miniaturach to grafiki poglądowe zamiast zdjęć.</footer>
+  </main>
+</div>
+
+<!-- ================= SZABLONY RAMEK ================= -->
+<template id="tpl-list">
+  <div class="app">
+    <aside class="sidebar" aria-label="Main">
+      <a class="brand" href="#"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></a>
+      <nav class="nav">
+        <p class="nav__group">Content</p>
+        <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-layout"/></svg><span class="nav__label">Pages</span></a>
+        <a class="nav__item" href="#" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Markers</span></a>
+        <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Wydarzenia</span></a>
+        <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Icons</span></a>
+        <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Navigation</span></a>
+        <p class="nav__group">Media</p>
+        <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg><span class="nav__label">Files</span></a>
+        <p class="nav__group">Structure</p>
+        <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-braces"/></svg><span class="nav__label">Post types</span></a>
+        <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-blocks"/></svg><span class="nav__label">Components</span></a>
+      </nav>
+      <div class="sidebar__theme"><span class="sidebar__theme-label" id="theme-label">Theme</span>
+        <div class="theme-switch" role="radiogroup" aria-labelledby="theme-label">
+          <label class="theme-switch__option" title="Light"><input type="radio" name="theme" value="light" checked aria-label="Light theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg></span></label>
+          <label class="theme-switch__option" title="Dark"><input type="radio" name="theme" value="dark" aria-label="Dark theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg></span></label>
+        </div>
+      </div>
+      <div class="sidebar__footer">
+        <a class="user" href="#"><span class="avatar" aria-hidden="true">b</span><span style="min-width:0"><span class="user__name">bilbo</span><span class="user__meta">Account settings</span></span></a>
+        <button class="btn btn--ghost btn--icon" type="button" aria-label="Log out"><svg class="icon" aria-hidden="true"><use href="#i-logout"/></svg></button>
+      </div>
+    </aside>
+    <div class="main">
+      <header class="topbar">
+        <button class="btn btn--ghost btn--icon" type="button" aria-label="Open menu"><svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg></button>
+        <a class="brand" href="#"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></a>
+      </header>
+      <div class="canvas">
+        <div class="page">
+          <header class="page-header">
+            <div class="page-header__top">
+              <div class="page-heading"><h1 class="page-title">Markers</h1><span class="badge">48<span class="visually-hidden"> posts</span></span></div>
+              <button class="btn btn--primary" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>New marker</button>
+            </div>
+            <div class="page-header__secondary">
+              <button class="btn btn--ghost" type="button"><svg class="icon" aria-hidden="true"><use href="#i-pencil"/></svg>Edit type</button>
+              <button class="btn btn--ghost" type="button"><svg class="icon" aria-hidden="true"><use href="#i-upload"/></svg>Import</button>
+              <button class="btn btn--ghost" type="button"><svg class="icon" aria-hidden="true"><use href="#i-download"/></svg>Export</button>
+            </div>
+          </header>
+          <div class="listing">
+            <section class="card list-card" aria-label="Markers">
+              <div class="list-toolbar">
+                <label class="control control--search"><span class="visually-hidden">Search markers</span><svg class="icon control__icon" aria-hidden="true"><use href="#i-search"/></svg><input class="input" type="search" placeholder="Search markers"></label>
+                <button class="btn btn--secondary" type="button" aria-haspopup="menu"><svg class="icon" aria-hidden="true"><use href="#i-sort"/></svg>Newest</button>
+                <button class="btn btn--secondary filters-toggle" type="button"><svg class="icon" aria-hidden="true"><use href="#i-sliders"/></svg>Filters</button>
+              </div>
+              <ul class="list">
+                <li class="list__row"><a class="list__link" href="#">Kopalnia Guido</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Kopalnia Guido"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+                <li class="list__row"><a class="list__link" href="#">Sztolnia Królowa Luiza</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Sztolnia Królowa Luiza"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+                <li class="list__row"><a class="list__link" href="#">Hałda Szarlota</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Hałda Szarlota"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+                <li class="list__row"><a class="list__link" href="#">Rezerwat Segiet</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Rezerwat Segiet"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+                <li class="list__row"><a class="list__link" href="#">Góra Zborów</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Góra Zborów"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+                <li class="list__row"><a class="list__link" href="#">Skały Rzędkowickie</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Skały Rzędkowickie"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+                <li class="list__row"><a class="list__link" href="#">Kamieniołom Gródek</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Kamieniołom Gródek"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+                <li class="list__row"><a class="list__link" href="#">Pustynia Błędowska</a><button class="btn btn--ghost btn--icon" type="button" aria-label="Delete Pustynia Błędowska"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></li>
+              </ul>
+            </section>
+            <aside class="filters" aria-label="Filters">
+              <div class="sheet__grabber" aria-hidden="true"></div>
+              <div class="filters__head"><h2 class="filters__title">Filters</h2><button class="btn btn--ghost btn--sm" type="button">Reset</button><button class="btn btn--ghost btn--sm btn--icon filters__close" type="button" aria-label="Close filters"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg></button></div>
+              <div class="filters__body">
+                <div class="field"><span class="field__label">Categories</span><span class="control control--select"><button class="input" type="button"><span class="select__value">Geologia</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+                <fieldset class="fieldset"><legend class="field__label">Latitude</legend><div class="range"><label class="field"><span class="field__label">Min</span><input class="input" type="number" value="49"></label><label class="field"><span class="field__label">Max</span><input class="input" type="number" value="51"></label></div></fieldset>
+                <fieldset class="fieldset"><legend class="field__label">Longitude</legend><div class="range"><label class="field"><span class="field__label">Min</span><input class="input" type="number" value="18"></label><label class="field"><span class="field__label">Max</span><input class="input" type="number" value="20"></label></div></fieldset>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="backdrop"></div>
+</template>
+
+<template id="tpl-editor">
+  <div class="app">
+    <aside class="sidebar" aria-label="Main">
+      <a class="brand" href="#"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></a>
+      <nav class="nav">
+        <p class="nav__group">Content</p>
+        <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-layout"/></svg><span class="nav__label">Pages</span></a>
+        <a class="nav__item" href="#" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Markers</span></a>
+        <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Wydarzenia</span></a>
+        <p class="nav__group">Media</p>
+        <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg><span class="nav__label">Files</span></a>
+        <p class="nav__group">Structure</p>
+        <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-braces"/></svg><span class="nav__label">Post types</span></a>
+        <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-blocks"/></svg><span class="nav__label">Components</span></a>
+      </nav>
+    </aside>
+    <div class="main">
+      <header class="topbar">
+        <button class="btn btn--ghost btn--icon" type="button" aria-label="Open menu"><svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg></button>
+        <a class="brand" href="#"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></a>
+      </header>
+      <form class="canvas" onsubmit="return false">
+        <div class="editor-bar">
+          <div class="editor-bar__heading"><span class="editor-bar__eyebrow">Edit marker</span><h1 class="editor-bar__title">Kopalnia Guido</h1></div>
+          <div class="editor-bar__actions">
+            <button class="btn btn--ghost" type="button"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Delete</button>
+            <button class="btn btn--primary js-save" type="submit">Save</button>
+          </div>
+        </div>
+        <div class="page page--form">
+          <div class="form-stack">
+            <section class="card">
+              <div class="card__body">
+                <label class="field js-title"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Kopalnia Guido" required></label>
+              </div>
+            </section>
+            <section class="card">
+              <header class="card__header"><div class="card__heading"><h2 class="card__title">Fields</h2></div></header>
+              <div class="card__body">
+                <label class="field"><span class="field__label">Place</span><input class="input" value="Zabrze"></label>
+                <div class="form-grid form-grid--2">
+                  <label class="field"><span class="field__label">Latitude</span><input class="input" type="number" value="50.2976"></label>
+                  <label class="field"><span class="field__label">Longitude</span><input class="input" type="number" value="18.7735"></label>
+                </div>
+              </div>
+            </section>
+          </div>
+        </div>
+      </form>
+    </div>
+  </div>
+</template>
+
+<script>
+(() => {
+  /* ---------- paleta z kontrastem ---------- */
+  const css = getComputedStyle(document.documentElement);
+  const v = (t) => css.getPropertyValue(t).trim();
+  const toHex = (c) => {
+    if (c.startsWith('#')) return c.length === 4 ? '#' + [...c.slice(1)].map((x) => x + x).join('') : c;
+    const m = c.match(/\d+/g); return m ? '#' + m.slice(0, 3).map((n) => (+n).toString(16).padStart(2, '0')).join('') : c;
+  };
+  const lum = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255)
+    .map((c) => (c <= 0.03928 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4))
+    .reduce((s, c, i) => s + c * [0.2126, 0.7152, 0.0722][i], 0);
+  const ratio = (a, b) => { const [x, y] = [lum(a), lum(b)].sort((p, q) => q - p); return (x + 0.05) / (y + 0.05); };
+  const col = (t) => toHex(t.startsWith('--') ? v(t) : t);
+  const groups = [
+    ['Akcent', [
+      ['--color-accent', 'Akcent', [['--color-text-on-accent', '--color-accent', 4.5, 'tekst na akcencie'], ['--color-accent', '--color-surface', 4.5, 'na blacie']]],
+      ['--color-accent-hover', 'Akcent: hover', [['--color-text-on-accent', '--color-accent-hover', 4.5, 'tekst']]],
+      ['--color-accent-pressed', 'Akcent: wciśnięty', [['--color-text-on-accent', '--color-accent-pressed', 4.5, 'tekst']]],
+      ['--color-accent-subtle', 'Akcent: tło', [['--color-accent-subtle-text', '--color-accent-subtle', 4.5, 'tekst akcentu']]],
+      ['--color-accent-subtle-text', 'Akcent: tekst', [['--color-accent-subtle-text', '--color-surface', 4.5, 'na blacie']]],
+      ['--color-focus-ring', 'Obrys fokusu', [['--color-focus-ring', '--color-bg', 3, 'na tle']]],
+    ]],
+    ['Tła i linie', [
+      ['--color-bg', 'Tło aplikacji', [['--color-text', '--color-bg', 4.5, 'tekst']]],
+      ['--color-surface', 'Blat, karta, pole', [['--color-text-subtle', '--color-surface', 4.5, 'tekst pomocniczy']]],
+      ['--color-surface-sunken', 'Powierzchnia wklęsła', [['--color-text-subtle', '--color-surface-sunken', 4.5, 'tekst pomocniczy']]],
+      ['--color-surface-hover', 'Hover wiersza', [['--color-text', '--color-surface-hover', 4.5, 'tekst']]],
+      ['--color-fill-hover', 'Wypełnienie: hover', [['--color-text-subtle', '--color-fill-hover', 4.5, 'tekst pomocniczy']]],
+      ['--color-fill-pressed', 'Wypełnienie: wciśnięte', [['--color-text', '--color-fill-pressed', 4.5, 'tekst']]],
+      ['--color-border', 'Linia, karta', []],
+      ['--color-border-control', 'Obrys przycisku', []],
+      ['--color-border-strong', 'Obrys pola', [['--color-border-strong', '--color-surface', 3, 'na blacie'], ['--color-border-strong', '--color-surface-sunken', 3, 'na wklęsłej']]],
+    ]],
+    ['Tekst', [
+      ['--color-text', 'Tekst', [['--color-text', '--color-surface', 4.5, 'na blacie']]],
+      ['--color-text-muted', 'Tekst przygaszony', [['--color-text-muted', '--color-bg', 4.5, 'na tle']]],
+      ['--color-text-subtle', 'Tekst pomocniczy', [['--color-text-subtle', '--color-bg', 4.5, 'na tle']]],
+      ['--color-text-disabled', 'Tekst wyłączony', []],
+      ['--color-nav-active-text', 'Nawigacja: aktywna', [['--color-nav-active-text', '--color-nav-active-bg', 4.5, 'na swoim tle']]],
+    ]],
+    ['Statusy: wyłącznie komunikaty', [
+      ['--color-success', 'Sukces', [['--color-success', '--color-success-bg', 4.5, 'na swoim tle']]],
+      ['--color-error', 'Błąd', [['--color-error', '--color-error-bg', 4.5, 'na swoim tle']]],
+      ['--color-warning', 'Ostrzeżenie', [['--color-warning', '--color-warning-bg', 4.5, 'na swoim tle']]],
+      ['--color-info', 'Informacja', [['--color-info', '--color-info-bg', 4.5, 'na swoim tle']]],
+      ['--color-danger', 'Usuwanie (dialog)', [['--color-text-on-danger', '--color-danger', 4.5, 'tekst przycisku']]],
+    ]],
+  ];
+  const palette = document.getElementById('palette');
+  const renderPalette = () => { palette.innerHTML = ''; groups.forEach(([title, items]) => {
+    const g = document.createElement('div');
+    g.className = 'palette-group';
+    g.innerHTML = '<h3 class="spec__title">' + title + '</h3><div class="palette"></div>';
+    const grid = g.querySelector('.palette');
+    items.forEach(([token, name, pairs]) => {
+      const hex = col(token);
+      const fg = ratio(col('--color-text'), hex) > ratio('#ffffff', hex) ? v('--color-text') : '#ffffff';
+      const rows = pairs.map(([a, b, min, label]) => {
+        const r = ratio(col(a), col(b));
+        return '<span class="swatch__ratio">' + label + ': <b class="' + (r < min ? 'fail' : '') + '">' + r.toFixed(2) + ':1 ' + (r < min ? '✗' : '✓') + '</b></span>';
+      }).join('');
+      grid.insertAdjacentHTML('beforeend',
+        '<div class="swatch"><div class="swatch__chip" style="background:' + hex + ';color:' + fg + '">Aa</div>' +
+        '<div class="swatch__meta"><span class="swatch__name">' + name + '</span><span class="swatch__token">' + token + '</span>' +
+        '<span class="swatch__token">' + hex.toUpperCase() + '</span>' + rows + '</div></div>');
+    });
+    palette.append(g);
+  }); };
+  renderPalette();
+
+  /* ---------- ikony ---------- */
+  const iconGrid = document.getElementById('icon-grid');
+  document.querySelectorAll('symbol[id^="i-"]').forEach((s) => {
+    iconGrid.insertAdjacentHTML('beforeend', '<div class="icon-tile"><svg class="icon" aria-hidden="true"><use href="#' + s.id + '"/></svg><span>' + s.id.slice(2) + '</span></div>');
+  });
+
+  /* ---------- kalendarz: październik 2026 (1.10 = czwartek) ---------- */
+  const cal = document.getElementById('cal-grid');
+  ['S', 'M', 'T', 'W', 'T', 'F', 'S'].forEach((d) => cal.insertAdjacentHTML('beforeend', '<span class="calendar__dow" aria-hidden="true">' + d + '</span>'));
+  for (let i = 0; i < 4; i++) cal.insertAdjacentHTML('beforeend', '<span></span>');
+  for (let d = 1; d <= 31; d++) {
+    const cls = ['calendar__day', d === 19 && 'is-today', d === 15 && 'is-selected', d === 22 && 'is-hover', d === 23 && 'is-focus'].filter(Boolean).join(' ');
+    cal.insertAdjacentHTML('beforeend', '<button class="' + cls + '" type="button" aria-label="October ' + d + ', 2026"' + (d === 15 ? ' aria-pressed="true"' : '') + '>' + d + '</button>');
+  }
+
+  /* ---------- ramki z układami (ten sam kod w dwóch szerokościach) ---------- */
+  const head = () => '<!doctype html><html lang="en"' + (document.documentElement.dataset.theme ? ' data-theme="' + document.documentElement.dataset.theme + '"' : '') + '><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">' +
+    '<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">' +
+    '<link rel="stylesheet" href="tokens.css"><link rel="stylesheet" href="components.css"></head><body>';
+  const buildFrames = () => document.querySelectorAll('iframe[data-tpl]').forEach((frame) => {
+    let html = document.getElementById(frame.dataset.tpl).innerHTML;
+    const state = frame.dataset.state;
+    if (state === 'filters') html = html.replace('class="filters"', 'class="filters is-open"').replace('class="backdrop"', 'class="backdrop is-open"');
+    if (state === 'nav') html = html.replace('class="sidebar"', 'class="sidebar is-open"').replace('class="backdrop"', 'class="backdrop is-open"');
+    if (state === 'invalid') html = html
+      .replace(/<input class="input" value="Kopalnia Guido" required(="")?>/, '<input class="input is-invalid" value="" aria-invalid="true" required><span class="field__error"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>This field is required</span>')
+      .replace('<h1 class="editor-bar__title">Kopalnia Guido</h1>', '<h1 class="editor-bar__title is-placeholder">Untitled</h1>');
+    frame.srcdoc = head() + '<script src="icons.js"><\/script>' + html + '</body></html>';
+  });
+  buildFrames();
+
+  /* ---------- motyw arkusza (przełącznik w nagłówku i w demo nawigacji) ---------- */
+  const setTheme = (t) => {
+    document.documentElement.dataset.theme = t;
+    document.querySelectorAll('input[name="doc-theme"], input[name="theme"]').forEach((i) => { i.checked = i.value === t; });
+    renderPalette();
+    buildFrames();
+  };
+  const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.querySelectorAll('input[name="doc-theme"], input[name="theme"]').forEach((i) => { i.checked = i.value === (systemDark ? 'dark' : 'light'); });
+  document.addEventListener('change', (e) => { if (e.target.matches('input[name="doc-theme"], input[name="theme"]')) setTheme(e.target.value); });
+
+  document.addEventListener('click', (e) => { const a = e.target.closest('a[href="#"]'); if (a) e.preventDefault(); });
+})();
+</script>
+</body>
+</html>

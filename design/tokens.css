@@ -1,0 +1,459 @@
+/* =========================================================================
+   Frodo: design tokens
+   Kierunek C „Sage” (wybrany 19.10.2026)
+
+   Trzy warstwy:
+     1. Prymitywy: surowa paleta. Komponenty NIE używają ich bezpośrednio.
+     2. Tokeny semantyczne: role (tło, powierzchnia, tekst, akcent, status…).
+        Tylko z nich korzystają komponenty. Motyw ciemny = drugi zestaw
+        wartości tej warstwy (sekcja 11).
+     3. Skale niezależne od motywu: typografia, odstępy, promienie,
+        rozmiary, breakpointy, z-index, ruch. Cienie zależą od motywu.
+
+   Motywy: jasny i ciemny. Bez atrybutu data-theme motyw wynika z ustawień
+   systemu; data-theme="light" | "dark" na <html> (przełącznik w aplikacji)
+   wymusza wybrany motyw.
+
+   Kontrast (WCAG 2.1), w obu motywach: każda para tekst/tło ma ≥ 4.5:1,
+   obramowanie pól (--color-border-strong) ma ≥ 3:1 na każdej powierzchni.
+   Szczegóły i zasady użycia: 03-design-system.md.
+   ========================================================================= */
+
+
+/* -------------------------------------------------------------------------
+   1. PRYMITYWY
+   ------------------------------------------------------------------------- */
+:root {
+  /* szałwiowe neutralne (lekko zielony odcień, pod akcent) */
+  --sage-0:   #ffffff;
+  --sage-25:  #f8f9f7;
+  --sage-50:  #f3f4f1;
+  --sage-75:  #eef0ec;
+  --sage-100: #e8eae5;
+  --sage-150: #e1e4de;
+  --sage-200: #d3d8d0;
+  --sage-300: #c9cec6;
+  --sage-400: #7c857f;
+  --sage-500: #5f6963;
+  --sage-600: #4a544e;
+  --sage-700: #2c3530;
+  --sage-900: #18201c;
+
+  /* morski akcent */
+  --teal-50:  #f0f8f6;
+  --teal-100: #e1efeb;
+  --teal-150: #d2e8e2;
+  --teal-200: #a7e3d6;
+  --teal-600: #0f766e;
+  --teal-700: #115e59;
+  --teal-800: #134e4a;
+
+  /* statusy */
+  --green-50:  #f0fdf4;
+  --green-200: #bbf7d0;
+  --green-700: #15803d;
+  --red-50:    #fef2f2;
+  --red-200:   #fecaca;
+  --red-700:   #b91c1c;
+  --red-800:   #991b1b;
+  --red-900:   #7f1d1d;
+  --amber-50:  #fefce8;
+  --amber-200: #fef08a;
+  --amber-700: #a16207;
+  --blue-50:   #eff6ff;
+  --blue-200:  #bfdbfe;
+  --blue-700:  #1d4ed8;
+}
+
+
+/* -------------------------------------------------------------------------
+   2. TOKENY SEMANTYCZNE (motyw jasny, jedyny na dziś)
+   ------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+
+  /* tła i powierzchnie */
+  --color-bg:               var(--sage-50);   /* tło aplikacji, nawigacja */
+  --color-surface:          var(--sage-0);    /* blat roboczy, karty, pola, dialogi */
+  --color-surface-overlay:  var(--sage-0);    /* menu, kalendarz, dialog, arkusz */
+  --color-surface-sunken:   var(--sage-75);   /* panel filtrów, podgląd pliku, tor */
+  --color-surface-hover:    var(--sage-25);   /* hover wiersza na białym */
+  --color-surface-selected: var(--teal-100);  /* zaznaczenie (pozycja menu, opcja) */
+  --color-fill-hover:       var(--sage-100);  /* hover przycisku tekstowego, pozycji menu */
+  --color-fill-pressed:     var(--sage-150);  /* wciśnięcie; tło wyłączonego przycisku */
+  --color-skeleton:         var(--sage-150);  /* kafel ładującej się miniatury */
+  --color-image-ring:       rgb(24 32 28 / .08); /* delikatna obwódka zdjęcia */
+
+  /* linie */
+  --color-border:         var(--sage-150);    /* karty, separatory, wiersze */
+  --color-border-control: var(--sage-300);    /* przycisk drugorzędny */
+  --color-border-strong:  var(--sage-400);    /* pola formularza, checkbox (≥ 3:1) */
+
+  /* tekst */
+  --color-text:          var(--sage-900);
+  --color-text-muted:    var(--sage-600);     /* opisy, etykiety drugorzędne */
+  --color-text-subtle:   var(--sage-500);     /* podpowiedzi, metadane, placeholder */
+  --color-text-disabled: var(--sage-400);     /* stan wyłączony (zwolniony z WCAG) */
+  --color-text-on-accent: var(--sage-0);
+  --color-text-link:     var(--teal-600);
+
+  /* akcent (jeden) */
+  --color-accent:              var(--teal-600);
+  --color-accent-hover:        var(--teal-700);
+  --color-accent-pressed:      var(--teal-800);
+  --color-accent-subtle:       var(--teal-100);
+  --color-accent-subtle-hover: var(--teal-150);
+  --color-accent-subtle-text:  var(--teal-700);
+
+  /* fokus */
+  --color-focus-ring: var(--teal-600);
+  --color-focus-halo: rgb(15 118 110 / .2);
+  --color-error-halo: rgb(185 28 28 / .15);
+
+  /* statusy: wyłącznie komunikaty (+ przycisk potwierdzenia usunięcia) */
+  --color-success:        var(--green-700);
+  --color-success-bg:     var(--green-50);
+  --color-success-border: var(--green-200);
+  --color-error:          var(--red-700);
+  --color-error-bg:       var(--red-50);
+  --color-error-border:   var(--red-200);
+  --color-warning:        var(--amber-700);
+  --color-warning-bg:     var(--amber-50);
+  --color-warning-border: var(--amber-200);
+  --color-info:           var(--blue-700);
+  --color-info-bg:        var(--blue-50);
+  --color-info-border:    var(--blue-200);
+
+  /* akcja niszcząca: tylko przycisk „Delete” w dialogu potwierdzenia */
+  --color-danger:         var(--red-700);
+  --color-danger-hover:   var(--red-800);
+  --color-danger-pressed: var(--red-900);
+  --color-text-on-danger: var(--sage-0);     /* biały w obu motywach */
+
+  /* nawigacja (leży na tle aplikacji) */
+  --color-nav-bg:          var(--sage-50);
+  --color-nav-text:        var(--sage-700);
+  --color-nav-text-muted:  var(--sage-500);
+  --color-nav-hover:       var(--sage-100);
+  --color-nav-active-bg:   var(--teal-100);
+  --color-nav-active-text: var(--teal-700);
+
+  /* nakładki */
+  --color-backdrop: rgb(24 32 28 / .45);
+
+  /* marka */
+  --color-brand:       var(--teal-600);
+  --color-brand-light: var(--teal-200);
+}
+
+
+/* -------------------------------------------------------------------------
+   3. TYPOGRAFIA
+   ------------------------------------------------------------------------- */
+:root {
+  /* IBM Plex Sans (SIL OFL 1.1), we wdrożeniu WOFF2 hostowane lokalnie */
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  /* tylko dla wartości technicznych: id pól, adresy URL, typy MIME */
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --weight-regular:  400;
+  --weight-medium:   500;
+  --weight-semibold: 600;
+  --weight-bold:     700;
+
+  /* skala: rozmiar / wysokość linii */
+  --text-xs:  12px;  --leading-xs:  16px;  /* etykiety grup, znaczniki */
+  --text-sm:  14px;  --leading-sm:  20px;  /* etykiety pól, przyciski, podpowiedzi */
+  --text-md:  16px;  --leading-md:  24px;  /* tekst bazowy, wartości pól */
+  --text-lg:  18px;  --leading-lg:  26px;  /* tytuły kart i paneli */
+  --text-xl:  20px;  --leading-xl:  28px;  /* tytuły dialogów, sekcji */
+  --text-2xl: 26px;  --leading-2xl: 32px;  /* tytuł ekranu (mobile) */
+  --text-3xl: 32px;  --leading-3xl: 40px;  /* tytuł ekranu (desktop) */
+
+  --tracking-tight:  -0.02em;  /* ≥ 20 px */
+  --tracking-normal: 0;
+  --tracking-wide:   0.04em;   /* drobne etykiety */
+}
+
+
+/* -------------------------------------------------------------------------
+   4. ODSTĘPY (siatka 4 px)
+   ------------------------------------------------------------------------- */
+:root {
+  --space-0:   0;
+  --space-0-5: 2px;
+  --space-1:   4px;
+  --space-1-5: 6px;
+  --space-2:   8px;
+  --space-3:   12px;
+  --space-4:   16px;
+  --space-5:   20px;
+  --space-6:   24px;
+  --space-8:   32px;
+  --space-10:  40px;
+  --space-12:  48px;
+  --space-16:  64px;
+}
+
+
+/* -------------------------------------------------------------------------
+   5. PROMIENIE
+   ------------------------------------------------------------------------- */
+:root {
+  --radius-xs:   6px;    /* checkbox, kafel miniatury (wewn.) */
+  --radius-sm:   8px;    /* pozycje menu, podgląd obrazu */
+  --radius-md:   10px;   /* pola formularza, kafle miniatur */
+  --radius-lg:   16px;   /* karty, panel filtrów */
+  --radius-xl:   20px;   /* blat roboczy, dialogi, arkusz mobilny */
+  --radius-full: 999px;  /* przyciski, nawigacja, znaczniki, przełącznik */
+}
+
+
+/* -------------------------------------------------------------------------
+   6. CIENIE: tylko elementy unoszące się nad treścią
+   ------------------------------------------------------------------------- */
+:root {
+  --shadow-xs: 0 1px 2px rgb(24 32 28 / .08);                                  /* aktywny segment */
+  --shadow-sm: 0 1px 2px rgb(24 32 28 / .05), 0 2px 8px rgb(24 32 28 / .06);   /* przycisk „do góry” */
+  --shadow-md: 0 2px 4px rgb(24 32 28 / .04), 0 8px 20px rgb(24 32 28 / .08);  /* menu, select, kalendarz */
+  --shadow-lg: 0 4px 8px rgb(24 32 28 / .05), 0 20px 44px rgb(24 32 28 / .16); /* dialog, arkusz, przeciągany element */
+  --shadow-focus: 0 0 0 1px var(--color-focus-ring), 0 0 0 4px var(--color-focus-halo); /* pole w fokusie */
+}
+
+
+/* -------------------------------------------------------------------------
+   7. ROZMIARY I UKŁAD
+   ------------------------------------------------------------------------- */
+:root {
+  --control-h-sm: 32px;
+  --control-h-md: 40px;
+  --control-h-lg: 44px;
+  --control-h: var(--control-h-lg);   /* mobile: wygodny cel dotyku */
+
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+
+  --layout-topbar-h:     56px;
+  --layout-sidebar-w:    264px;
+  --layout-filters-w:    288px;
+  --layout-details-w:    360px;
+  --layout-content-max:  1180px;
+  --layout-form-max:     720px;
+  --layout-canvas-inset: 12px;
+  --layout-gutter:       16px;        /* mobile */
+}
+
+@media (min-width: 960px) {
+  :root {
+    --control-h: var(--control-h-md);
+    --layout-gutter: 48px;
+  }
+}
+
+
+/* -------------------------------------------------------------------------
+   8. BREAKPOINTY
+   Wartości referencyjne. W @media nie da się użyć var(), więc zapytania
+   piszemy literalnie (przy wdrożeniu: mapa SCSS z tymi samymi liczbami).
+   960 px to próg z logiki aplikacji (LayoutService: size-l).
+   ------------------------------------------------------------------------- */
+:root {
+  --bp-sm: 600px;   /* size-m: większy telefon, mały tablet */
+  --bp-md: 960px;   /* size-l: stała nawigacja, panel filtrów obok listy */
+  --bp-lg: 1280px;  /* size-x: szersze kolumny, panel szczegółów pliku */
+  --bp-xl: 1921px;  /* size-xl */
+}
+
+
+/* -------------------------------------------------------------------------
+   9. Z-INDEX
+   Kontener nakładek Angular CDK (menu, select, kalendarz, dialogi) ma 1000.
+   Arkusz filtrów musi zostać pod nim, żeby rozwinięty select był widoczny.
+   ------------------------------------------------------------------------- */
+:root {
+  --z-base:           0;
+  --z-raised:         1;    /* przycisk w wierszu nad rozciągniętym linkiem */
+  --z-sticky:         10;   /* nagłówek ekranu, pasek edytora */
+  --z-fab:            20;   /* przycisk „do góry” */
+  --z-sheet-backdrop: 800;
+  --z-sheet:          810;  /* arkusz filtrów (mobile) */
+  --z-overlay:        1000; /* referencja: .cdk-overlay-container */
+}
+
+
+/* -------------------------------------------------------------------------
+   10. RUCH
+   ------------------------------------------------------------------------- */
+:root {
+  --duration-instant: 80ms;   /* kolor tła/tekstu przy hover */
+  --duration-fast:    120ms;  /* obramowanie, cień fokusu */
+  --duration-normal:  200ms;  /* obrót strzałki, pojawienie się miniatury, menu */
+  --duration-slow:    280ms;  /* arkusz, szuflada nawigacji */
+
+  --ease-standard:   cubic-bezier(.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(.3, 0, 0, 1);  /* wejście arkusza, szuflady */
+  --ease-exit:       cubic-bezier(.4, 0, 1, 1);  /* wyjście */
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-instant: 1ms;
+    --duration-fast:    1ms;
+    --duration-normal:  1ms;
+    --duration-slow:    1ms;
+  }
+}
+
+
+/* -------------------------------------------------------------------------
+   11. MOTYW CIEMNY
+   Redefiniuje wyłącznie tokeny kolorów (warstwa 2) i cienie; pozostałe skale
+   zostają bez zmian. Wartości ciemne są wpisane bezpośrednio, bo nie mają
+   innych odbiorców poza tym blokiem.
+     - bez atrybutu data-theme: motyw według ustawień systemu (pierwszy blok),
+     - data-theme="dark" / "light" na <html>: wybór z przełącznika w aplikacji.
+   Oba bloki muszą mieć IDENTYCZNE wartości.
+   Kontrast (liczony): tekst ≥ 4.64:1 na każdej powierzchni, obramowanie pól
+   ≥ 3.89:1, tekst na akcencie 8.79:1, biały na czerwonym przycisku 4.57:1.
+   Tła rozjaśnione dwukrotnie 20.10.2026 (rama #1F2522, blat #272E2B).
+   ------------------------------------------------------------------------- */
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+
+    --color-bg:               #1f2522;
+    --color-surface:          #272e2b;
+    --color-surface-overlay:  #303834;
+    --color-surface-sunken:   #2e3632;
+    --color-surface-hover:    #2c3430;
+    --color-surface-selected: #204741;
+    --color-fill-hover:       #37403b;
+    --color-fill-pressed:     #404a45;
+    --color-skeleton:         #39423d;
+    --color-image-ring:       rgb(255 255 255 / .08);
+
+    --color-border:         #3c4540;
+    --color-border-control: #515b55;
+    --color-border-strong:  #8a958f;
+
+    --color-text:           #e8ece9;
+    --color-text-muted:     #bcc4c0;
+    --color-text-subtle:    #a3ada7;
+    --color-text-disabled:  #6f7a74;
+    --color-text-on-accent: #05231f;
+    --color-text-link:      #5ccfbf;
+
+    --color-accent:              #5ccfbf;
+    --color-accent-hover:        #7fdbce;
+    --color-accent-pressed:      #a7e3d6;
+    --color-accent-subtle:       #204741;
+    --color-accent-subtle-hover: #275249;
+    --color-accent-subtle-text:  #8fe3d6;
+
+    --color-focus-ring: #5ccfbf;
+    --color-focus-halo: rgb(92 207 191 / .25);
+    --color-error-halo: rgb(252 165 165 / .25);
+
+    --color-success:        #6ee7a0;
+    --color-success-bg:     #193823;
+    --color-success-border: #2a5e3d;
+    --color-error:          #fca5a5;
+    --color-error-bg:       #3d1f1f;
+    --color-error-border:   #733131;
+    --color-warning:        #fcd34d;
+    --color-warning-bg:     #393012;
+    --color-warning-border: #6b551b;
+    --color-info:           #93c5fd;
+    --color-info-bg:        #1c2c46;
+    --color-info-border:    #30517f;
+
+    --color-danger:         #d14343;
+    --color-danger-hover:   #bb3636;
+    --color-danger-pressed: #a52c2c;
+
+    --color-nav-bg:          #1f2522;
+    --color-nav-text:        #d8dfdb;
+    --color-nav-text-muted:  #a3ada7;
+    --color-nav-hover:       #2a312d;
+    --color-nav-active-bg:   #204741;
+    --color-nav-active-text: #8fe3d6;
+
+    --color-backdrop: rgb(0 0 0 / .6);
+
+    /* na ciemnym tle cień potrzebuje większego krycia */
+    --shadow-xs: 0 1px 2px rgb(0 0 0 / .4);
+    --shadow-sm: 0 1px 2px rgb(0 0 0 / .35), 0 2px 8px rgb(0 0 0 / .3);
+    --shadow-md: 0 2px 4px rgb(0 0 0 / .3), 0 8px 24px rgb(0 0 0 / .45);
+    --shadow-lg: 0 4px 8px rgb(0 0 0 / .35), 0 24px 48px rgb(0 0 0 / .6);
+  }
+}
+
+:root[data-theme="dark"] {
+  color-scheme: dark;
+
+  --color-bg:               #1f2522;
+  --color-surface:          #272e2b;
+  --color-surface-overlay:  #303834;
+  --color-surface-sunken:   #2e3632;
+  --color-surface-hover:    #2c3430;
+  --color-surface-selected: #204741;
+  --color-fill-hover:       #37403b;
+  --color-fill-pressed:     #404a45;
+  --color-skeleton:         #39423d;
+  --color-image-ring:       rgb(255 255 255 / .08);
+
+  --color-border:         #3c4540;
+  --color-border-control: #515b55;
+  --color-border-strong:  #8a958f;
+
+  --color-text:           #e8ece9;
+  --color-text-muted:     #bcc4c0;
+  --color-text-subtle:    #a3ada7;
+  --color-text-disabled:  #6f7a74;
+  --color-text-on-accent: #05231f;
+  --color-text-link:      #5ccfbf;
+
+  --color-accent:              #5ccfbf;
+  --color-accent-hover:        #7fdbce;
+  --color-accent-pressed:      #a7e3d6;
+  --color-accent-subtle:       #204741;
+  --color-accent-subtle-hover: #275249;
+  --color-accent-subtle-text:  #8fe3d6;
+
+  --color-focus-ring: #5ccfbf;
+  --color-focus-halo: rgb(92 207 191 / .25);
+  --color-error-halo: rgb(252 165 165 / .25);
+
+  --color-success:        #6ee7a0;
+  --color-success-bg:     #193823;
+  --color-success-border: #2a5e3d;
+  --color-error:          #fca5a5;
+  --color-error-bg:       #3d1f1f;
+  --color-error-border:   #733131;
+  --color-warning:        #fcd34d;
+  --color-warning-bg:     #393012;
+  --color-warning-border: #6b551b;
+  --color-info:           #93c5fd;
+  --color-info-bg:        #1c2c46;
+  --color-info-border:    #30517f;
+
+  --color-danger:         #d14343;
+  --color-danger-hover:   #bb3636;
+  --color-danger-pressed: #a52c2c;
+
+  --color-nav-bg:          #1f2522;
+  --color-nav-text:        #d8dfdb;
+  --color-nav-text-muted:  #a3ada7;
+  --color-nav-hover:       #2a312d;
+  --color-nav-active-bg:   #204741;
+  --color-nav-active-text: #8fe3d6;
+
+  --color-backdrop: rgb(0 0 0 / .6);
+
+  /* na ciemnym tle cień potrzebuje większego krycia */
+  --shadow-xs: 0 1px 2px rgb(0 0 0 / .4);
+  --shadow-sm: 0 1px 2px rgb(0 0 0 / .35), 0 2px 8px rgb(0 0 0 / .3);
+  --shadow-md: 0 2px 4px rgb(0 0 0 / .3), 0 8px 24px rgb(0 0 0 / .45);
+  --shadow-lg: 0 4px 8px rgb(0 0 0 / .35), 0 24px 48px rgb(0 0 0 / .6);
+}
