@@ -7,16 +7,10 @@
 @use './styles/components/base';
 @use './styles/components/icon';
 @use './styles/components/button';
+@use './styles/components/layout';
+@use './styles/components/nav';
 
 // ---- legacy, replaced by the redesigned views -----------------------------------
-
-// mat-sidenav-content must never scroll itself — each routed component
-// manages its own internal scroll.
-.mat-drawer-content {
-    overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column !important;
-}
 
 // Data-entry field wrapper used by the post/component dynamic fields.
 .field {

@@ -1,33 +1,97 @@
-<mat-nav-list class="sidenav-list">
-    <h1><a routerLink="/">Frodo</a></h1>
-
-    @for (item of navigation; track item.family) {
-    <a mat-list-item
-       [routerLink]="item.link">
-        <span [class.active]="route().family === item.family">{{
-            item.title
-            }}</span>
+@let current = route();
+<div class="sidebar">
+    <a class="brand"
+       routerLink="/">
+        <svg class="brand__mark"
+             aria-hidden="true">
+            <use href="icons.svg#logo-mark" />
+        </svg>
+        <span class="brand__word">Frodo</span>
     </a>
-    }
 
-    @for (type of postTypes(); track type._id) {
-    <a mat-list-item
-       [routerLink]="['/posts', type.type]">
-        <span [class.active]="route().family === 'posts' && route().type === type.type">{{ type.pluralTitle }}</span>
-    </a>
-    }
+    <nav class="nav"
+         aria-label="Main">
+        <p class="nav__group">Content</p>
+        <a class="nav__item"
+           routerLink="/pages"
+           [attr.aria-current]="current.family === 'pages' ? 'page' : null">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-layout" />
+            </svg>
+            <span class="nav__label">Pages</span>
+        </a>
+        @for (type of postTypes(); track type._id) {
+        <a class="nav__item"
+           [routerLink]="['/posts', type.type]"
+           [attr.aria-current]="current.family === 'posts' && current.type === type.type ? 'page' : null">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-doc" />
+            </svg>
+            <span class="nav__label">{{ type.pluralTitle }}</span>
+        </a>
+        }
 
-    @if (userService.isLogged()) {
-    <a mat-list-item
-       routerLink="/account"
-       class="sidenav-user">
-        <span>{{ userService.user().username }}</span>
-    </a>
-    }
+        <p class="nav__group">Media</p>
+        <a class="nav__item"
+           routerLink="/files"
+           [attr.aria-current]="current.family === 'files' ? 'page' : null">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-image" />
+            </svg>
+            <span class="nav__label">Files</span>
+        </a>
 
-    <a mat-list-item
-       (click)="logout()"
-       [class.busy]="logoutStatus()">
-        <span>Logout</span>
-    </a>
-</mat-nav-list>
+        <p class="nav__group">Structure</p>
+        <a class="nav__item"
+           routerLink="/post-types"
+           [attr.aria-current]="current.family === 'postTypes' ? 'page' : null">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-braces" />
+            </svg>
+            <span class="nav__label">Post types</span>
+        </a>
+        <a class="nav__item"
+           routerLink="/components"
+           [attr.aria-current]="current.family === 'components' ? 'page' : null">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-blocks" />
+            </svg>
+            <span class="nav__label">Components</span>
+        </a>
+    </nav>
+
+    <div class="sidebar__footer">
+        @if (userService.isLogged()) {
+        <a class="user"
+           routerLink="/account"
+           [attr.aria-current]="current.url.startsWith('/account') ? 'page' : null">
+            <span class="avatar"
+                  aria-hidden="true">{{ userService.user().username?.charAt(0) }}</span>
+            <span class="user__text">
+                <span class="user__name">{{ userService.user().username }}</span>
+                <span class="user__meta">Account settings</span>
+            </span>
+        </a>
+        }
+        <button mat-icon-button
+                type="button"
+                aria-label="Log out"
+                [attr.aria-busy]="logoutStatus()"
+                (click)="logout()">
+            @if (logoutStatus()) {
+            <span class="spinner"
+                  aria-hidden="true"></span>
+            } @else {
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-logout" />
+            </svg>
+            }
+        </button>
+    </div>
+</div>

@@ -49,3 +49,54 @@
     cursor: progress;
     pointer-events: none;
 }
+
+// back to top (app.html): visible once #scroll has scrolled (.scrolled from LayoutService);
+// hidden with visibility, so it also leaves the tab order
+.fab {
+    position: fixed;
+    z-index: var(--z-fab);
+    right: calc(var(--space-6) + env(safe-area-inset-right, 0px));
+    bottom: calc(var(--space-6) + env(safe-area-inset-bottom, 0px));
+    width: 48px;
+    height: 48px;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    border-radius: var(--radius-full);
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-overlay);
+    color: var(--color-text);
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition:
+        opacity var(--duration-normal) var(--ease-standard),
+        transform var(--duration-normal) var(--ease-standard),
+        visibility 0s linear var(--duration-normal);
+
+    &.scrolled {
+        opacity: 1;
+        visibility: visible;
+        transform: none;
+        transition-delay: 0s;
+    }
+
+    &:hover {
+        background: var(--color-surface-hover);
+        border-color: var(--color-border-control);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-focus-ring);
+        outline-offset: 2px;
+    }
+}
+
+// mobile editors: keep it above the fixed action bar
+@media (max-width: 959px) {
+    body:has(.editor-bar__actions) .fab {
+        bottom: calc(var(--space-6) + var(--control-h) + var(--space-6) + env(safe-area-inset-bottom, 0px));
+    }
+}

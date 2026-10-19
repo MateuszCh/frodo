@@ -1,0 +1,80 @@
+// App shell: mat-sidenav-container (design/components.css, 26).
+// Mobile: top bar, content on the app background in white cards, drawer from the left.
+// From 960 px: 264 px navigation and the white canvas, 12 px from the window edge.
+// mat-sidenav-content#scroll is the scrolling element; headers stick to it.
+
+app-root {
+    display: block;
+    height: 100%;
+}
+
+.app-container {
+    height: 100%;
+}
+
+// mobile drawer floats over the content
+.app-sidenav.mat-drawer-over {
+    --mat-sidenav-container-width: min(300px, 85vw);
+    --mat-sidenav-container-background-color: var(--color-surface-overlay);
+    --mat-sidenav-container-elevation-shadow: var(--shadow-lg);
+}
+
+.canvas {
+    min-width: 0;
+}
+
+@media (min-width: 960px) {
+    .canvas:not(.page--login) {
+        background: var(--color-surface);
+        border-radius: var(--radius-xl);
+        margin: var(--layout-canvas-inset) var(--layout-canvas-inset) var(--layout-canvas-inset) 0;
+        min-height: calc(100dvh - 2 * var(--layout-canvas-inset));
+    }
+}
+
+// content column of a screen
+.page {
+    width: 100%;
+    max-width: var(--layout-content-max);
+    margin: 0 auto;
+    padding: var(--space-5) var(--layout-gutter) var(--space-12);
+    padding-left: max(var(--layout-gutter), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--layout-gutter), env(safe-area-inset-right, 0px));
+}
+
+// editors: 720 px column; extra room for the fixed action bar on mobile
+.page--form {
+    max-width: calc(var(--layout-form-max) + 2 * var(--layout-gutter));
+    padding-bottom: calc(var(--space-16) + var(--control-h));
+}
+
+@media (min-width: 960px) {
+    .page {
+        padding-top: var(--space-10);
+        padding-bottom: var(--space-16);
+    }
+
+    .page--form {
+        padding-bottom: var(--space-16);
+    }
+}
+
+.form-stack {
+    display: grid;
+    gap: var(--space-5);
+}
+
+.page--form > .form-stack {
+    gap: var(--space-6);
+}
+
+.form-grid {
+    display: grid;
+    gap: var(--space-5);
+}
+
+@media (min-width: 600px) {
+    .form-grid--2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

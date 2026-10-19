@@ -1,13 +1,19 @@
-<div class="header"
-     layout-align="center center"
-     layout="row">
-    <h1>
-        <a routerLink="/">Frodo</a>
-    </h1>
+<header class="topbar">
     <button mat-icon-button
-            class="header__menu"
-            aria-label="Toggle sidenav"
+            type="button"
+            aria-label="Open menu"
             (click)="layout.toggleSidenav()">
-        <mat-icon svgIcon="menu"></mat-icon>
+        <svg class="icon"
+             aria-hidden="true">
+            <use href="icons.svg#i-menu" />
+        </svg>
     </button>
-</div>
+    <a class="brand"
+       routerLink="/">
+        <svg class="brand__mark"
+             aria-hidden="true">
+            <use href="icons.svg#logo-mark" />
+        </svg>
+        <span class="brand__word">Frodo</span>
+    </a>
+</header>
