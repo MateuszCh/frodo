@@ -1,38 +1,103 @@
-<section class="auth">
-    <form #form="ngForm" class="auth-form" (ngSubmit)="changePassword(form)">
-        <h3 class="center">Change Password</h3>
-        <mat-form-field class="full-width">
-            <mat-label>Password</mat-label>
-            <input matInput type="password" name="password" required [(ngModel)]="data.password" />
-            <mat-error>This is required</mat-error>
-        </mat-form-field>
-        <mat-form-field class="full-width">
-            <mat-label>New password</mat-label>
-            <input
-                matInput
-                type="password"
-                name="newPassword"
-                required
-                [(ngModel)]="data.newPassword"
-            />
-            <mat-error>This is required</mat-error>
-        </mat-form-field>
-        <mat-form-field class="full-width">
-            <mat-label>New password confirmation</mat-label>
-            <input
-                matInput
-                type="password"
-                name="newPasswordConfirmation"
-                required
-                [(ngModel)]="data.newPasswordConfirmation"
-            />
-            <mat-error>This is required</mat-error>
-        </mat-form-field>
-        <button mat-raised-button color="primary" type="submit" [class.busy]="passwordStatus()">
-            Change password
-        </button>
-        <p class="form-message" [class.error]="errorMessage()" [class.success]="successMessage()">
-            {{ errorMessage() || successMessage() }}
-        </p>
-    </form>
-</section>
+<div class="page page--account">
+    <header class="page-header">
+        <div class="page-header__top">
+            <div class="page-heading">
+                <h1 class="page-title">Account</h1>
+            </div>
+        </div>
+    </header>
+
+    <section class="card">
+        <header class="card__header">
+            <div class="card__heading">
+                <h2 class="card__title">Change password</h2>
+                @if (user()?.username; as username) {
+                    <p class="card__desc">Signed in as {{ username }}.</p>
+                }
+            </div>
+        </header>
+        <div class="card__body">
+            <form #form="ngForm" class="account-form" (ngSubmit)="changePassword(form)">
+                <div class="field">
+                    <label class="field__label" for="account-password">
+                        Current password<span class="field__req" aria-hidden="true">*</span>
+                    </label>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <input
+                            matInput
+                            type="password"
+                            id="account-password"
+                            name="password"
+                            autocomplete="current-password"
+                            required
+                            [(ngModel)]="data.password"
+                        />
+                        <mat-error>
+                            <svg class="icon" aria-hidden="true"><use href="icons.svg#i-alert" /></svg>
+                            This field is required
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="field">
+                    <label class="field__label" for="account-new-password">
+                        New password<span class="field__req" aria-hidden="true">*</span>
+                    </label>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <input
+                            matInput
+                            type="password"
+                            id="account-new-password"
+                            name="newPassword"
+                            autocomplete="new-password"
+                            required
+                            [(ngModel)]="data.newPassword"
+                        />
+                        <mat-error>
+                            <svg class="icon" aria-hidden="true"><use href="icons.svg#i-alert" /></svg>
+                            This field is required
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="field">
+                    <label class="field__label" for="account-confirm-password">
+                        Confirm new password<span class="field__req" aria-hidden="true">*</span>
+                    </label>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <input
+                            matInput
+                            type="password"
+                            id="account-confirm-password"
+                            name="newPasswordConfirmation"
+                            autocomplete="new-password"
+                            required
+                            [(ngModel)]="data.newPasswordConfirmation"
+                        />
+                        <mat-error>
+                            <svg class="icon" aria-hidden="true"><use href="icons.svg#i-alert" /></svg>
+                            This field is required
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <button mat-flat-button type="submit" [attr.aria-busy]="passwordStatus()">
+                    @if (passwordStatus()) {
+                        <span matButtonIcon class="spinner" aria-hidden="true"></span>
+                    }
+                    {{ passwordStatus() ? 'Changing password…' : 'Change password' }}
+                </button>
+                <div class="form-message-slot" aria-live="polite">
+                    @if (errorMessage()) {
+                        <p class="message message--error" role="alert">
+                            <svg class="icon" aria-hidden="true"><use href="icons.svg#i-alert" /></svg>
+                            {{ errorMessage() }}
+                        </p>
+                    } @else if (successMessage()) {
+                        <p class="message message--success" role="status">
+                            <svg class="icon" aria-hidden="true"><use href="icons.svg#i-check-circle" /></svg>
+                            {{ successMessage() }}
+                        </p>
+                    }
+                </div>
+            </form>
+        </div>
+    </section>
+</div>

@@ -1,0 +1,90 @@
+// Sign in (outside the shell) and account (inside it) (design/components.css, 30).
+
+.auth {
+    min-height: 100dvh;
+    display: grid;
+    place-items: center;
+    background: var(--color-bg);
+    padding: var(--space-8) max(var(--layout-gutter), env(safe-area-inset-right, 0px)) var(--space-8)
+        max(var(--layout-gutter), env(safe-area-inset-left, 0px));
+}
+
+.auth__card {
+    width: min(100%, 400px);
+    display: grid;
+    gap: var(--space-6);
+    padding: var(--space-8) var(--space-6);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-xl);
+}
+
+.auth__brand {
+    justify-self: center;
+
+    .brand__mark {
+        width: 40px;
+        height: 40px;
+    }
+
+    .brand__word {
+        font-size: var(--text-2xl);
+    }
+}
+
+.auth__title {
+    font-size: var(--text-xl);
+    line-height: var(--leading-xl);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-tight);
+    text-align: center;
+}
+
+.auth__lead {
+    margin-top: calc(var(--space-4) * -1);
+    font-size: var(--text-sm);
+    line-height: var(--leading-sm);
+    color: var(--color-text-muted);
+    text-align: center;
+}
+
+.auth__form {
+    display: grid;
+    gap: var(--space-5);
+
+    > .mat-mdc-button-base {
+        width: 100%;
+    }
+}
+
+// the message has its place reserved, so the form does not jump
+.form-message-slot {
+    min-height: 46px;
+}
+
+@media (min-width: 600px) {
+    .auth__card {
+        padding: var(--space-10) var(--space-8);
+    }
+}
+
+// account: 560 px column inside the shell
+.page--account {
+    max-width: calc(560px + 2 * var(--layout-gutter));
+    padding-bottom: var(--space-16);
+}
+
+.account-form {
+    display: grid;
+    gap: var(--space-5);
+
+    > .mat-mdc-button-base {
+        justify-self: start;
+    }
+}
+
+@media (max-width: 599px) {
+    .account-form > .mat-mdc-button-base {
+        justify-self: stretch;
+    }
+}
