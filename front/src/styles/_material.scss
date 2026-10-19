@@ -187,7 +187,7 @@ html {
             error-text-color: var(--color-error),
             subscript-text-size: var(--text-sm),
             subscript-text-line-height: var(--leading-sm),
-            subscript-text-weight: var(--weight-medium),
+            subscript-text-weight: var(--weight-regular),
             subscript-text-tracking: var(--tracking-normal),
             enabled-select-arrow-color: var(--color-text-subtle),
             focus-select-arrow-color: var(--color-text-subtle),
@@ -544,6 +544,12 @@ html {
     font-variant-numeric: tabular-nums;
 }
 
+// technical values (type, field id) in the monospace font
+.mat-mdc-form-field .mat-mdc-input-element.mono {
+    font-family: var(--font-mono);
+    font-size: 13px;
+}
+
 // MDC: hint and error sit 6 px under the field, flush with its edge
 .mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper {
     .mat-mdc-form-field-hint-wrapper,
@@ -552,10 +558,15 @@ html {
     }
 }
 
+.mat-mdc-form-field-hint.mat-mdc-form-field-hint {
+    color: var(--color-text-subtle);
+}
+
 .mat-mdc-form-field-error.mat-mdc-form-field-error {
     display: flex;
     align-items: flex-start;
     gap: var(--space-1-5);
+    font-weight: var(--weight-medium);
 
     > .icon {
         width: var(--icon-sm);

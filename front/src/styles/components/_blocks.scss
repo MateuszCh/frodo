@@ -1,0 +1,117 @@
+// Page component card: page editor, cdkDropList › cdkDrag › cdkDragHandle
+// (design/components.css, 19). The drag preview is rendered in <body>, so the
+// .cdk-drag-* rules live here, in the global layer.
+
+.blocks {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-3);
+    counter-reset: block;
+}
+
+.block-card {
+    display: grid;
+    grid-template-columns: 36px minmax(0, 1fr);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    counter-increment: block;
+}
+
+// the handle runs the full height of the card
+.block-card__handle {
+    display: grid;
+    place-items: center;
+    border-right: 1px solid var(--color-border);
+    border-radius: var(--radius-lg) 0 0 var(--radius-lg);
+    color: var(--color-text-subtle);
+    cursor: grab;
+    transition: background-color var(--duration-instant) var(--ease-standard);
+
+    &:hover {
+        background: var(--color-fill-hover);
+        color: var(--color-text);
+    }
+}
+
+.block-card__main {
+    display: block;
+    min-width: 0;
+}
+
+.block-card__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3);
+
+    > .mat-mdc-form-field {
+        flex: 1;
+        max-width: 420px;
+    }
+
+    > .mat-mdc-button-base:last-child {
+        margin-left: auto;
+    }
+}
+
+.block-card__index {
+    flex: none;
+    width: 24px;
+    height: 24px;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--color-fill-hover);
+    color: var(--color-text-muted);
+    font-size: var(--text-xs);
+    font-weight: var(--weight-semibold);
+
+    &::before {
+        content: counter(block);
+    }
+}
+
+.block-card__toggle > .icon {
+    transition: transform var(--duration-normal) var(--ease-standard);
+}
+
+.block-card__toggle[aria-expanded='true'] > .icon {
+    transform: rotate(180deg);
+}
+
+.block-card__body {
+    display: grid;
+    gap: var(--space-5);
+    padding: var(--space-4);
+    border-top: 1px solid var(--color-border);
+}
+
+// dragging
+.block-card.cdk-drag-preview {
+    box-shadow: var(--shadow-lg);
+    border-color: var(--color-border-control);
+
+    .block-card__handle {
+        cursor: grabbing;
+        background: var(--color-fill-hover);
+        color: var(--color-text);
+    }
+}
+
+.block-card.cdk-drag-placeholder {
+    background: var(--color-surface-sunken);
+    border: 1.5px dashed var(--color-border-control);
+    box-shadow: none;
+
+    > * {
+        visibility: hidden;
+    }
+}
+
+.cdk-drop-list-dragging .block-card:not(.cdk-drag-placeholder),
+.block-card.cdk-drag-animating {
+    transition: transform var(--duration-normal) var(--ease-standard);
+}
