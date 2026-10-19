@@ -21,6 +21,11 @@ app-root {
 
 .canvas {
     min-width: 0;
+
+    // routed components are plain blocks
+    > * {
+        display: block;
+    }
 }
 
 @media (min-width: 960px) {

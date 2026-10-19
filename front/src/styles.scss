@@ -19,18 +19,5 @@
 @use './styles/components/list';
 @use './styles/components/filters';
 @use './styles/components/dialog';
-
-// ---- legacy, replaced by the redesigned views -----------------------------------
-
-.repeater-title {
-    display: block;
-    padding-bottom: 4px;
-}
-
-// Fields nested inside a repeater row are flat (the row provides the border).
-.repeater-row .field {
-    padding: 0;
-    margin-bottom: 0;
-    box-shadow: none;
-    background-color: transparent;
-}
+@use './styles/components/file-field';
+@use './styles/components/repeater';

@@ -330,6 +330,7 @@ html {
             unselected-hover-state-layer-opacity: 0,
             unselected-focus-state-layer-opacity: 0,
             unselected-pressed-state-layer-opacity: 0,
+            state-layer-size: 20px,
             touch-target-display: none,
         )
     );
@@ -568,6 +569,12 @@ html {
     margin-right: calc(var(--space-2) * -1);
 }
 
+// ---- datepicker toggle: small ghost icon button inside the field ------------------
+.mat-datepicker-toggle {
+    --mat-icon-button-state-layer-size: var(--control-h-sm);
+    --mat-icon-button-icon-size: var(--icon-sm);
+}
+
 // ---- select: chevron instead of the triangle ------------------------------------
 // MDC: arrow wrapper and svg
 .mat-mdc-select .mat-mdc-select-arrow {
@@ -665,10 +672,14 @@ div.mat-mdc-menu-panel.mat-mdc-menu-panel {
 }
 
 // ---- checkbox ----------------------------------------------------------------------
-// MDC: 20 px box with the 6 px radius
+// MDC: the box keeps the 6 px radius; the label sits 12 px from it
 .mat-mdc-checkbox .mdc-checkbox .mdc-checkbox__background {
     border-width: 1.5px;
     border-radius: var(--radius-xs);
+}
+
+.mat-mdc-checkbox .mdc-form-field > label {
+    padding-left: calc(var(--space-3) - 1px);
 }
 
 .mat-mdc-checkbox .mdc-checkbox__native-control:focus-visible ~ .mdc-checkbox__background {
