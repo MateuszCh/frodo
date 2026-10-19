@@ -25,7 +25,7 @@
     text-align: center;
 }
 .form-message.error {
-    color: #f44336;
+    color: var(--color-error);
 }
 .busy {
     opacity: 0.6;

@@ -18,7 +18,7 @@
     // Focus state disabled so the effect disappears after clicking.
     --mat-list-list-item-hover-state-layer-opacity: 0.08;
     --mat-list-list-item-focus-state-layer-opacity: 0;
-    --mat-list-list-item-hover-state-layer-color: #000;
+    --mat-list-list-item-hover-state-layer-color: var(--color-text);
     border-radius: 4px;
 
     &:focus-visible {
@@ -26,7 +26,7 @@
     }
 
     &:hover {
-        background-color: rgba(0, 0, 0, 0.08);
+        background-color: var(--color-fill-hover);
     }
 
     span {
@@ -38,7 +38,7 @@
     span.active {
         font-size: 21px;
         font-weight: 600;
-        color: #ff5722;
+        color: var(--color-accent-subtle-text);
     }
 }
 

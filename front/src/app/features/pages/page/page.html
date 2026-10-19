@@ -2,7 +2,7 @@
     <form #form="ngForm"
           (ngSubmit)="save(form)">
         <div class="editor-header">
-            <h2 class="font-2 fs-6 center">
+            <h2 class="center">
                 {{ edit() ? 'Edit ' + currentTitle() + ' page' : 'Add new page' }}
             </h2>
             <div class="editor-actions">
@@ -59,7 +59,7 @@
                               [(ngModel)]="model().seoDescription"></textarea>
                 </mat-form-field>
 
-                <h2 class="font-2 fs-4 center">Components</h2>
+                <h2 class="center">Components</h2>
                 @if (!rows().length) {
                 <p class="center">There are no components yet</p>
                 }

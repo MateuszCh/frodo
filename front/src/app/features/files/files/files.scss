@@ -88,8 +88,8 @@
 }
 
 .files-grid__item {
-    border: 1px solid rgba(0, 0, 0, 0.12);
-    background: #fff;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
     cursor: pointer;
     padding: 4px;
     aspect-ratio: 1 / 1;
@@ -108,7 +108,7 @@
 }
 
 .files-grid__item.current {
-    box-shadow: inset 0 0 0 5px rgb(255, 152, 0);
+    box-shadow: inset 0 0 0 5px var(--color-accent);
 }
 
 .files-grid__item.current img {
@@ -121,7 +121,7 @@
     min-height: 0;
     overflow-y: auto;
     scrollbar-gutter: stable;
-    border-left: 1px solid rgba(0, 0, 0, 0.12);
+    border-left: 1px solid var(--color-border);
     padding-left: 16px;
     padding-right: 12px;
     padding-bottom: 24px;
@@ -130,7 +130,6 @@
 .files-edit__name {
     margin: 0 0 4px;
     font-size: 32px;
-    font-family: 'Unica One', cursive;
     text-align: center;
     word-break: break-word;
 }
@@ -138,7 +137,7 @@
 .files-edit__size {
     margin: 0 0 8px;
     font-size: 13px;
-    color: rgba(0, 0, 0, 0.6);
+    color: var(--color-text-subtle);
     text-align: center;
 }
 
@@ -176,7 +175,7 @@
 
 .files-edit__divider {
     border: none;
-    border-top: 1px solid rgba(0, 0, 0, 0.12);
+    border-top: 1px solid var(--color-border);
     margin: 16px 0;
 }
 
@@ -196,7 +195,7 @@
 .files-edit__meta-label {
     flex-shrink: 0;
     width: 36px;
-    color: rgba(0, 0, 0, 0.54);
+    color: var(--color-text-subtle);
 }
 
 .files-edit__meta-url {
@@ -244,7 +243,7 @@
     min-height: 0;
     overflow-y: auto;
     scrollbar-gutter: stable;
-    border: 1px solid rgba(0, 0, 0, 0.12);
+    border: 1px solid var(--color-border);
     align-self: stretch;
 }
 
@@ -253,11 +252,10 @@
     width: 100%;
     text-align: left;
     padding: 8px 12px;
-    background: white;
+    background: var(--color-surface);
     border: none;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.12);
+    border-bottom: 1px solid var(--color-border);
     cursor: pointer;
-    font-family: 'Oswald', sans-serif;
     font-size: 14px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -269,8 +267,8 @@
 }
 
 .upload-list-item.current {
-    background: rgb(255, 152, 0);
-    color: white;
+    background: var(--color-accent);
+    color: var(--color-text-on-accent);
 }
 
 .files-upload__edit {
@@ -323,7 +321,7 @@
     .files-edit {
         flex-basis: auto;
         border-left: none;
-        border-top: 1px solid rgba(0, 0, 0, 0.12);
+        border-top: 1px solid var(--color-border);
         padding-left: 0;
         padding-top: 16px;
         overflow-y: visible;

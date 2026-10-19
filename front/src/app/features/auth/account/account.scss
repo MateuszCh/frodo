@@ -23,10 +23,10 @@
     text-align: center;
 }
 .form-message.error {
-    color: #f44336;
+    color: var(--color-error);
 }
 .form-message.success {
-    color: #4caf50;
+    color: var(--color-success);
 }
 .busy {
     opacity: 0.6;

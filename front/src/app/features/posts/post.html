@@ -2,7 +2,7 @@
     <form #form="ngForm"
           (ngSubmit)="save(form)">
         <div class="editor-header">
-            <h2 class="font-2 fs-6 center">
+            <h2 class="center">
                 {{ edit() ? 'Edit ' + postType().title : 'Add new ' + postType().title }}
             </h2>
             <div class="editor-actions">
@@ -35,7 +35,7 @@
                     <mat-error>This is required</mat-error>
                 </mat-form-field>
 
-                <h2 class="font-2 fs-4 center">Fields</h2>
+                <h2 class="center">Fields</h2>
                 @if (!fields().length) {
                 <p class="center">There are no fields yet</p>
                 }

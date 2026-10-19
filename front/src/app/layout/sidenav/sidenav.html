@@ -1,11 +1,10 @@
 <mat-nav-list class="sidenav-list">
-    <h1 class="center font-3 fs-6"><a routerLink="/">Frodo</a></h1>
+    <h1><a routerLink="/">Frodo</a></h1>
 
     @for (item of navigation; track item.family) {
     <a mat-list-item
        [routerLink]="item.link">
-        <span class="transition left"
-              [class.active]="route().family === item.family">{{
+        <span [class.active]="route().family === item.family">{{
             item.title
             }}</span>
     </a>
@@ -14,8 +13,7 @@
     @for (type of postTypes(); track type._id) {
     <a mat-list-item
        [routerLink]="['/posts', type.type]">
-        <span class="transition left"
-              [class.active]="route().family === 'posts' && route().type === type.type">{{ type.pluralTitle }}</span>
+        <span [class.active]="route().family === 'posts' && route().type === type.type">{{ type.pluralTitle }}</span>
     </a>
     }
 

@@ -1,0 +1,51 @@
+// Button modifiers on top of the Material buttons (design/components.css, 2).
+// Variants: mat-flat-button = primary, mat-stroked-button = secondary,
+// mat-button = ghost, mat-icon-button = icon. The look comes from _material.scss;
+// these classes only change size, width and the danger colour.
+
+// small: 32 px (Clear, Add row, actions inside cards)
+.btn--sm {
+    --mat-button-filled-container-height: var(--control-h-sm);
+    --mat-button-outlined-container-height: var(--control-h-sm);
+    --mat-button-text-container-height: var(--control-h-sm);
+    --mat-button-filled-horizontal-padding: var(--space-3);
+    --mat-button-outlined-horizontal-padding: var(--space-3);
+    --mat-button-text-horizontal-padding: var(--space-3);
+    --mat-button-text-with-icon-horizontal-padding: var(--space-3);
+    --mat-icon-button-state-layer-size: var(--control-h-sm);
+    --mat-icon-button-icon-size: var(--icon-sm);
+
+    > [matButtonIcon] {
+        width: var(--icon-sm);
+        height: var(--icon-sm);
+    }
+}
+
+.mat-mdc-icon-button > .icon {
+    width: var(--mat-icon-button-icon-size);
+    height: var(--mat-icon-button-icon-size);
+}
+
+.btn--block {
+    width: 100%;
+}
+
+// danger: only "Delete" in the confirmation dialog
+.btn--danger.mat-mdc-button-base {
+    --mat-button-filled-container-color: var(--color-danger);
+    --mat-button-filled-label-text-color: var(--color-text-on-danger);
+
+    &:not(:disabled):hover {
+        --mat-button-filled-container-color: var(--color-danger-hover);
+    }
+
+    &:not(:disabled):active {
+        --mat-button-filled-container-color: var(--color-danger-pressed);
+    }
+}
+
+// action in progress: keeps its colour, ignores clicks (replaces the old .busy)
+.mat-mdc-button-base[aria-busy='true'] {
+    cursor: progress;
+    pointer-events: none;
+}
