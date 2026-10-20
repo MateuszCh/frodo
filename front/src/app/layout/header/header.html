@@ -1,7 +1,7 @@
 <header class="topbar">
     <button mat-icon-button
             type="button"
-            aria-label="Open menu"
+            [attr.aria-label]="t('app.openMenu')"
             (click)="layout.toggleSidenav()">
         <svg class="icon"
              aria-hidden="true">

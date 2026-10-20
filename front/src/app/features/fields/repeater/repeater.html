@@ -1,21 +1,21 @@
 <div class="repeater__head">
     <span class="field__label">{{ field().title }}</span>
     @if (rows().length) {
-        <span class="badge badge--neutral">{{ rows().length }}<span class="visually-hidden"> rows</span></span>
+        <span class="badge badge--neutral">{{ rows().length }}<span class="visually-hidden"> {{ t('repeater.rows', { count: rows().length }) }}</span></span>
     }
 </div>
 
 @if (!rows().length) {
-    <p class="field__hint">No rows yet.</p>
+    <p class="field__hint">{{ t('repeater.noRows') }}</p>
 } @else {
     <div class="repeater__rows">
         @for (row of rows(); track $index; let rowIndex = $index) {
             <div class="repeater__row">
                 <div class="repeater__row-head">
-                    <span class="repeater__row-index"></span>
+                    <span class="repeater__row-index" [attr.data-label]="t('repeater.row')"></span>
                     <button mat-button type="button" class="btn--sm" (click)="removeRow(rowIndex)">
                         <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-trash" /></svg>
-                        Delete row
+                        {{ t('repeater.deleteRow') }}
                     </button>
                 </div>
                 @for (rf of field().repeaterFields ?? []; track rf.id) {
@@ -35,5 +35,5 @@
 
 <button mat-stroked-button type="button" class="btn--sm" (click)="addRow()">
     <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-plus" /></svg>
-    Add row
+    {{ t('repeater.addRow') }}
 </button>

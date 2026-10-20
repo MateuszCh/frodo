@@ -46,7 +46,7 @@
                 </mat-form-field>
                 <button mat-button type="button" (click)="clear()">
                     <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-x" /></svg>
-                    Clear
+                    {{ t('common.clear') }}
                 </button>
             </div>
         </div>
@@ -70,7 +70,7 @@
                 </mat-form-field>
                 <button mat-button type="button" (click)="clear()">
                     <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-x" /></svg>
-                    Clear
+                    {{ t('common.clear') }}
                 </button>
             </div>
         </div>
@@ -93,7 +93,7 @@
                 </mat-form-field>
                 <button mat-button type="button" (click)="clear()">
                     <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-x" /></svg>
-                    Clear
+                    {{ t('common.clear') }}
                 </button>
             </div>
         </div>
@@ -122,7 +122,7 @@
                 </mat-form-field>
                 <button mat-button type="button" (click)="clear()">
                     <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-x" /></svg>
-                    Clear
+                    {{ t('common.clear') }}
                 </button>
             </div>
         </div>
@@ -137,29 +137,29 @@
                 @if (fileSrc(); as src) {
                     <div class="file-field__preview field-file__preview">
                         @if (src.toLowerCase().endsWith('.pdf')) {
-                            <span class="file-field__file" role="img" [attr.aria-label]="'Selected file: ' + src">
+                            <span class="file-field__file" role="img" [attr.aria-label]="t('field.selectedFile', { name: src })">
                                 <svg class="icon icon--lg" aria-hidden="true"><use href="icons.svg#i-file" /></svg>
                                 PDF
                             </span>
                         } @else {
-                            <img [src]="src" [alt]="'Selected file: ' + f.title" />
+                            <img [src]="src" [alt]="t('field.selectedFile', { name: f.title })" />
                         }
                     </div>
                     <div class="file-field__actions">
                         <button mat-stroked-button type="button" class="btn--sm" (click)="openFiles()">
-                            Select file
+                            {{ t('field.selectFile') }}
                         </button>
                         <button mat-button type="button" class="btn--sm" (click)="clear()">
                             <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-x" /></svg>
-                            Clear
+                            {{ t('common.clear') }}
                         </button>
                     </div>
                 } @else {
                     <div class="file-field__empty">
                         <svg class="icon" aria-hidden="true"><use href="icons.svg#i-image" /></svg>
-                        <span class="file-field__empty-text">No file selected</span>
+                        <span class="file-field__empty-text">{{ t('field.noFile') }}</span>
                         <button mat-stroked-button type="button" class="btn--sm" (click)="openFiles()">
-                            Select file
+                            {{ t('field.selectFile') }}
                         </button>
                     </div>
                 }

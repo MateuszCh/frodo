@@ -10,8 +10,8 @@
     <header class="page-header files-header">
         <div class="page-header__top">
             <div class="page-heading">
-                <h1 class="page-title">Files</h1>
-                <span class="badge">{{ files().length }}<span class="visually-hidden"> files</span></span>
+                <h1 class="page-title">{{ t('files.title') }}</h1>
+                <span class="badge">{{ files().length }}<span class="visually-hidden"> {{ t('files.count', { count: files().length }) }}</span></span>
             </div>
         </div>
         <div class="page-header__secondary files-actions">
@@ -30,7 +30,7 @@
                     <use href="icons.svg#i-upload" />
                 </svg>
                 }
-                {{ importStatus() ? 'Importing…' : 'Import' }}
+                {{ importStatus() ? t('common.importing') : t('common.import') }}
             </button>
             <input #importInput
                    type="file"
@@ -53,19 +53,19 @@
                     <use href="icons.svg#i-download" />
                 </svg>
                 }
-                {{ exportStatus() ? 'Exporting…' : 'Export' }}
+                {{ exportStatus() ? t('common.exporting') : t('common.export') }}
             </button>
             }
         </div>
     </header>
     } @else {
     <div class="dialog__header">
-        <h2 class="dialog__title">Choose a file</h2>
+        <h2 class="dialog__title">{{ t('files.chooseTitle') }}</h2>
         <button mat-icon-button
                 type="button"
                 class="files-popup-close"
                 mat-dialog-close
-                aria-label="Close">
+                [attr.aria-label]="t('common.close')">
             <svg class="icon"
                  aria-hidden="true">
                 <use href="icons.svg#i-x" />
@@ -77,7 +77,7 @@
     <mat-tab-group #tabs
                    class="files-tabs">
         <!-- Library -->
-        <mat-tab label="Library">
+        <mat-tab [label]="t('files.library')">
             <div class="tab-panel files-select"
                  [class.picker]="popup"
                  [class.picker--selected]="popup && !!selected()"
@@ -91,14 +91,14 @@
                     @if (files().length) {
                     <div class="library__toolbar files-filters">
                         <label class="control control--search">
-                            <span class="visually-hidden">Search files</span>
+                            <span class="visually-hidden">{{ t('files.search') }}</span>
                             <svg class="icon control__icon"
                                  aria-hidden="true">
                                 <use href="icons.svg#i-search" />
                             </svg>
                             <input class="input"
                                    type="search"
-                                   placeholder="Search files"
+                                   [placeholder]="t('files.search')"
                                    [ngModel]="searchText()"
                                    (ngModelChange)="searchText.set($event)" />
                         </label>
@@ -106,8 +106,8 @@
                         <mat-form-field appearance="outline"
                                         subscriptSizing="dynamic">
                             <mat-select multiple
-                                        aria-label="Catalogues"
-                                        placeholder="All catalogues"
+                                        [aria-label]="t('files.catalogues')"
+                                        [placeholder]="t('files.allCatalogues')"
                                         [ngModel]="searchCatalogues()"
                                         (ngModelChange)="searchCatalogues.set($event)">
                                 @for (catalogue of catalogues(); track catalogue) {
@@ -128,8 +128,8 @@
                                     <use href="icons.svg#i-image" />
                                 </svg>
                             </span>
-                            <p class="empty__title">No files yet</p>
-                            <p class="empty__text">Upload images or PDF files in the Upload tab, or import a JSON file.</p>
+                            <p class="empty__title">{{ t('files.empty') }}</p>
+                            <p class="empty__text">{{ t('files.emptyText') }}</p>
                         </div>
                     </div>
                     } @else if (!filtered().length) {
@@ -141,8 +141,8 @@
                                     <use href="icons.svg#i-search" />
                                 </svg>
                             </span>
-                            <p class="empty__title">No files match your search</p>
-                            <p class="empty__text">Change the search text or choose another catalogue.</p>
+                            <p class="empty__title">{{ t('files.noMatch') }}</p>
+                            <p class="empty__text">{{ t('files.noMatchText') }}</p>
                         </div>
                     </div>
                     }
@@ -184,7 +184,7 @@
                 <aside class="files-edit"
                        [class.picker__details]="popup"
                        [class.library__details]="!popup"
-                       aria-label="File details">
+                       [attr.aria-label]="t('files.details')">
                     <div class="details">
                         <p class="details__name files-edit__name">{{ file.filename }}</p>
                         <div class="details__actions">
@@ -197,7 +197,7 @@
                                      aria-hidden="true">
                                     <use href="icons.svg#i-check" />
                                 </svg>
-                                Choose
+                                {{ t('files.choose') }}
                             </button>
                             <button mat-stroked-button
                                     type="button"
@@ -208,11 +208,11 @@
                                       class="spinner"
                                       aria-hidden="true"></span>
                                 }
-                                {{ saving ? 'Saving…' : 'Save' }}
+                                {{ saving ? t('common.saving') : t('common.save') }}
                             </button>
                             <button mat-icon-button
                                     type="button"
-                                    [attr.aria-label]="'Delete ' + file.filename"
+                                    [attr.aria-label]="t('files.deleteFile', { name: file.filename })"
                                     [attr.aria-busy]="deleting"
                                     (click)="deleteDialog()">
                                 @if (deleting) {
@@ -235,7 +235,7 @@
                                       class="spinner"
                                       aria-hidden="true"></span>
                                 }
-                                {{ saving ? 'Saving…' : 'Save' }}
+                                {{ saving ? t('common.saving') : t('common.save') }}
                             </button>
                             <button mat-button
                                     type="button"
@@ -252,18 +252,18 @@
                                     <use href="icons.svg#i-trash" />
                                 </svg>
                                 }
-                                {{ deleting ? 'Deleting…' : 'Delete' }}
+                                {{ deleting ? t('common.deleting') : t('common.delete') }}
                             </button>
                             }
                         </div>
                         <div class="details__preview files-edit__preview">
                             @if (isImage(file)) {
                             <img [src]="file.src"
-                                 [alt]="'Preview of ' + file.filename" />
+                                 [alt]="t('files.preview', { name: file.filename })" />
                             } @else {
                             <span class="thumb__file"
                                   role="img"
-                                  [attr.aria-label]="'Preview of ' + file.filename">
+                                  [attr.aria-label]="t('files.preview', { name: file.filename })">
                                 <svg class="icon icon--lg"
                                      aria-hidden="true">
                                     <use href="icons.svg#i-file" />
@@ -274,19 +274,19 @@
                         </div>
                         <dl class="meta files-edit__meta">
                             @if (file.created) {
-                            <dt>Date</dt>
-                            <dd>{{ file.created | date:'MMM d, y h:mm:ss a' }}</dd>
+                            <dt>{{ t('files.date') }}</dt>
+                            <dd>{{ file.created | date: 'medium' : undefined : locale() }}</dd>
                             }
                             @if (file.src) {
-                            <dt>URL</dt>
+                            <dt>{{ t('files.url') }}</dt>
                             <dd class="mono">{{ file.src }}</dd>
                             }
                             @if (file.type) {
-                            <dt>Type</dt>
+                            <dt>{{ t('files.type') }}</dt>
                             <dd>{{ file.type }}</dd>
                             }
                             @if (file.size) {
-                            <dt>Size</dt>
+                            <dt>{{ t('files.size') }}</dt>
                             <dd class="tabular">{{ file.size | bytes }}</dd>
                             }
                         </dl>
@@ -294,7 +294,7 @@
                         <div class="form-stack">
                             <div class="field">
                                 <label class="field__label"
-                                       for="file-title">Title</label>
+                                       for="file-title">{{ t('common.title') }}</label>
                                 <mat-form-field appearance="outline"
                                                 subscriptSizing="dynamic">
                                     <input matInput
@@ -304,7 +304,7 @@
                             </div>
                             <div class="field">
                                 <label class="field__label"
-                                       for="file-description">Description</label>
+                                       for="file-description">{{ t('files.description') }}</label>
                                 <mat-form-field appearance="outline"
                                                 subscriptSizing="dynamic">
                                     <textarea matInput
@@ -315,7 +315,7 @@
                             </div>
                             <div class="field">
                                 <label class="field__label"
-                                       for="file-author">Author</label>
+                                       for="file-author">{{ t('files.author') }}</label>
                                 <mat-form-field appearance="outline"
                                                 subscriptSizing="dynamic">
                                     <input matInput
@@ -325,7 +325,7 @@
                             </div>
                             <div class="field">
                                 <label class="field__label"
-                                       for="file-place">Place</label>
+                                       for="file-place">{{ t('files.place') }}</label>
                                 <mat-form-field appearance="outline"
                                                 subscriptSizing="dynamic">
                                     <input matInput
@@ -335,7 +335,7 @@
                             </div>
                             <div class="field">
                                 <label class="field__label"
-                                       for="file-position">Position</label>
+                                       for="file-position">{{ t('files.position') }}</label>
                                 <mat-form-field appearance="outline"
                                                 subscriptSizing="dynamic">
                                     <input matInput
@@ -347,7 +347,7 @@
                             @if (catalogues().length) {
                             <div class="field">
                                 <span class="field__label"
-                                      id="file-catalogues-label">Catalogues</span>
+                                      id="file-catalogues-label">{{ t('files.catalogues') }}</span>
                                 <mat-form-field appearance="outline"
                                                 subscriptSizing="dynamic">
                                     <mat-select multiple
@@ -362,7 +362,7 @@
                             }
                             <div class="field">
                                 <label class="field__label"
-                                       for="file-new-catalogue">New catalogue</label>
+                                       for="file-new-catalogue">{{ t('files.newCatalogue') }}</label>
                                 <div class="field-row">
                                     <mat-form-field appearance="outline"
                                                     subscriptSizing="dynamic">
@@ -373,7 +373,7 @@
                                     </mat-form-field>
                                     <button mat-stroked-button
                                             type="button"
-                                            (click)="addCatalogue()">Add</button>
+                                            (click)="addCatalogue()">{{ t('common.add') }}</button>
                                 </div>
                             </div>
                         </div>
@@ -384,7 +384,7 @@
         </mat-tab>
 
         <!-- Upload -->
-        <mat-tab label="Upload">
+        <mat-tab [label]="t('files.upload')">
             <input #uploadInput
                    type="file"
                    multiple
@@ -401,20 +401,17 @@
                             <use href="icons.svg#i-upload" />
                         </svg>
                     </span>
-                    <p class="upload-empty__title">Upload images or PDF files</p>
-                    <p class="upload-empty__hint">
-                        JPG, PNG, GIF or PDF. You can select several files at once and describe each one before
-                        uploading.
-                    </p>
+                    <p class="upload-empty__title">{{ t('files.uploadTitle') }}</p>
+                    <p class="upload-empty__hint">{{ t('files.uploadHint') }}</p>
                     <button mat-flat-button
                             type="button"
-                            (click)="uploadInput.click()">Select files</button>
+                            (click)="uploadInput.click()">{{ t('files.selectFiles') }}</button>
                 </div>
                 } @else {
                 <div class="upload-bar files-upload__actions">
                     <button mat-stroked-button
                             type="button"
-                            (click)="uploadInput.click()">Select files</button>
+                            (click)="uploadInput.click()">{{ t('files.selectFiles') }}</button>
                     <button mat-flat-button
                             type="button"
                             [attr.aria-busy]="uploading"
@@ -430,21 +427,21 @@
                             <use href="icons.svg#i-upload" />
                         </svg>
                         }
-                        {{ uploading ? 'Uploading…' : 'Upload ' + pendingCount + (pendingCount === 1 ? ' file' : ' files') }}
+                        {{ uploading ? t('files.uploading') : t('files.uploadCount', { count: pendingCount }) }}
                     </button>
                     <button mat-button
                             type="button"
-                            (click)="clearPending()">Clear list</button>
+                            (click)="clearPending()">{{ t('files.clearList') }}</button>
                 </div>
 
                 @if (progress() > 0 && uploading) {
                 <div class="progress">
                     <div class="progress__label">
-                        <span>Uploading {{ pendingCount }} {{ pendingCount === 1 ? 'file' : 'files' }}…</span>
+                        <span>{{ t('files.uploadingCount', { count: pendingCount }) }}</span>
                         <span>{{ progress() }}%</span>
                     </div>
                     <mat-progress-bar mode="determinate"
-                                      aria-label="Uploading files"
+                                      [attr.aria-label]="t('files.uploadingLabel')"
                                       [value]="progress()"></mat-progress-bar>
                 </div>
                 }
@@ -452,7 +449,7 @@
                 <div class="upload-layout">
                     <div class="pending files-upload__list"
                          role="listbox"
-                         aria-label="Files to upload">
+                         [attr.aria-label]="t('files.toUpload')">
                         @for (item of pending(); track item.file.name; let i = $index) {
                         <button type="button"
                                 class="pending__item upload-list-item"
@@ -481,10 +478,10 @@
                     <!-- description of the selected pending file -->
                     @if (selectedPendingItem(); as item) {
                     <aside class="library__details files-upload__edit"
-                           aria-label="Selected file">
+                           [attr.aria-label]="t('files.selected')">
                         <div class="details">
                             <p class="details__name">{{ item.file.name }}</p>
-                            <p class="field__hint">Size: {{ item.file.size | bytes }}</p>
+                            <p class="field__hint">{{ t('files.sizeValue', { size: (item.file.size | bytes) }) }}</p>
                             <div class="details__actions">
                                 <button mat-button
                                         type="button"
@@ -494,17 +491,17 @@
                                          aria-hidden="true">
                                         <use href="icons.svg#i-x" />
                                     </svg>
-                                    Remove
+                                    {{ t('files.remove') }}
                                 </button>
                             </div>
                             <div class="details__preview">
                                 @if (item.file.type.startsWith('image/')) {
                                 <img [src]="item.previewUrl"
-                                     [alt]="'Preview of ' + item.file.name" />
+                                     [alt]="t('files.preview', { name: item.file.name })" />
                                 } @else {
                                 <span class="thumb__file"
                                       role="img"
-                                      [attr.aria-label]="'Preview of ' + item.file.name">
+                                      [attr.aria-label]="t('files.preview', { name: item.file.name })">
                                     <svg class="icon icon--lg"
                                          aria-hidden="true">
                                         <use href="icons.svg#i-file" />
@@ -516,7 +513,7 @@
                             <div class="form-stack">
                                 <div class="field">
                                     <label class="field__label"
-                                           for="pending-title">Title</label>
+                                           for="pending-title">{{ t('common.title') }}</label>
                                     <mat-form-field appearance="outline"
                                                     subscriptSizing="dynamic">
                                         <input matInput
@@ -526,7 +523,7 @@
                                 </div>
                                 <div class="field">
                                     <label class="field__label"
-                                           for="pending-description">Description</label>
+                                           for="pending-description">{{ t('files.description') }}</label>
                                     <mat-form-field appearance="outline"
                                                     subscriptSizing="dynamic">
                                         <textarea matInput
@@ -537,7 +534,7 @@
                                 </div>
                                 <div class="field">
                                     <label class="field__label"
-                                           for="pending-author">Author</label>
+                                           for="pending-author">{{ t('files.author') }}</label>
                                     <mat-form-field appearance="outline"
                                                     subscriptSizing="dynamic">
                                         <input matInput
@@ -547,7 +544,7 @@
                                 </div>
                                 <div class="field">
                                     <label class="field__label"
-                                           for="pending-place">Place</label>
+                                           for="pending-place">{{ t('files.place') }}</label>
                                     <mat-form-field appearance="outline"
                                                     subscriptSizing="dynamic">
                                         <input matInput
@@ -557,7 +554,7 @@
                                 </div>
                                 <div class="field">
                                     <label class="field__label"
-                                           for="pending-position">Position</label>
+                                           for="pending-position">{{ t('files.position') }}</label>
                                     <mat-form-field appearance="outline"
                                                     subscriptSizing="dynamic">
                                         <input matInput
@@ -569,7 +566,7 @@
                                 @if (catalogues().length) {
                                 <div class="field">
                                     <span class="field__label"
-                                          id="pending-catalogues-label">Catalogues</span>
+                                          id="pending-catalogues-label">{{ t('files.catalogues') }}</span>
                                     <mat-form-field appearance="outline"
                                                     subscriptSizing="dynamic">
                                         <mat-select multiple
@@ -584,7 +581,7 @@
                                 }
                                 <div class="field">
                                     <label class="field__label"
-                                           for="pending-new-catalogue">New catalogue</label>
+                                           for="pending-new-catalogue">{{ t('files.newCatalogue') }}</label>
                                     <div class="field-row">
                                         <mat-form-field appearance="outline"
                                                         subscriptSizing="dynamic">
@@ -595,7 +592,7 @@
                                         </mat-form-field>
                                         <button mat-stroked-button
                                                 type="button"
-                                                (click)="addCataloguePending()">Add</button>
+                                                (click)="addCataloguePending()">{{ t('common.add') }}</button>
                                     </div>
                                 </div>
                             </div>

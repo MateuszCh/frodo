@@ -2,7 +2,7 @@
     <header class="page-header">
         <div class="page-header__top">
             <div class="page-heading">
-                <h1 class="page-title">Account</h1>
+                <h1 class="page-title">{{ t('account.title') }}</h1>
             </div>
         </div>
     </header>
@@ -10,9 +10,9 @@
     <section class="card">
         <header class="card__header">
             <div class="card__heading">
-                <h2 class="card__title">Change password</h2>
+                <h2 class="card__title">{{ t('account.changePassword') }}</h2>
                 @if (user()?.username; as username) {
-                    <p class="card__desc">Signed in as {{ username }}.</p>
+                    <p class="card__desc">{{ t('account.signedInAs', { name: username }) }}</p>
                 }
             </div>
         </header>
@@ -20,7 +20,7 @@
             <form #form="ngForm" class="account-form" (ngSubmit)="changePassword(form)">
                 <div class="field">
                     <label class="field__label" for="account-password">
-                        Current password<span class="field__req" aria-hidden="true">*</span>
+                        {{ t('account.currentPassword') }}<span class="field__req" aria-hidden="true">*</span>
                     </label>
                     <mat-form-field appearance="outline" subscriptSizing="dynamic">
                         <input
@@ -34,13 +34,13 @@
                         />
                         <mat-error>
                             <svg class="icon" aria-hidden="true"><use href="icons.svg#i-alert" /></svg>
-                            This field is required
+                            {{ t('common.required') }}
                         </mat-error>
                     </mat-form-field>
                 </div>
                 <div class="field">
                     <label class="field__label" for="account-new-password">
-                        New password<span class="field__req" aria-hidden="true">*</span>
+                        {{ t('account.newPassword') }}<span class="field__req" aria-hidden="true">*</span>
                     </label>
                     <mat-form-field appearance="outline" subscriptSizing="dynamic">
                         <input
@@ -54,13 +54,13 @@
                         />
                         <mat-error>
                             <svg class="icon" aria-hidden="true"><use href="icons.svg#i-alert" /></svg>
-                            This field is required
+                            {{ t('common.required') }}
                         </mat-error>
                     </mat-form-field>
                 </div>
                 <div class="field">
                     <label class="field__label" for="account-confirm-password">
-                        Confirm new password<span class="field__req" aria-hidden="true">*</span>
+                        {{ t('account.confirmPassword') }}<span class="field__req" aria-hidden="true">*</span>
                     </label>
                     <mat-form-field appearance="outline" subscriptSizing="dynamic">
                         <input
@@ -74,7 +74,7 @@
                         />
                         <mat-error>
                             <svg class="icon" aria-hidden="true"><use href="icons.svg#i-alert" /></svg>
-                            This field is required
+                            {{ t('common.required') }}
                         </mat-error>
                     </mat-form-field>
                 </div>
@@ -82,7 +82,7 @@
                     @if (passwordStatus()) {
                         <span matButtonIcon class="spinner" aria-hidden="true"></span>
                     }
-                    {{ passwordStatus() ? 'Changing password…' : 'Change password' }}
+                    {{ passwordStatus() ? t('account.submitting') : t('account.submit') }}
                 </button>
                 <div class="form-message-slot" aria-live="polite">
                     @if (errorMessage()) {

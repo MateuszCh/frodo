@@ -48,6 +48,10 @@
     text-align: center;
 }
 
+.auth__language {
+    justify-self: center;
+}
+
 .auth__form {
     display: grid;
     gap: var(--space-5);

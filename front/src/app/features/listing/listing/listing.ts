@@ -24,8 +24,10 @@ import {
     persistSort,
     resetFilters,
 } from '../listing-filter';
+import { I18nService } from '../../../core/i18n/i18n.service';
 
 type ListingItem = Page | ComponentEntity | PostType | Post;
+type ListingFamily = 'posts' | 'pages' | 'components' | 'postTypes';
 type ListingModel = ListingItem[] | PostType;
 
 interface RemoveStatus {
@@ -46,6 +48,8 @@ interface RemoveStatus {
     templateUrl: './listing.html',
 })
 export class ListingComponent {
+    protected readonly t = inject(I18nService).t;
+
     // resolve + route data, bound via withComponentInputBinding()
     readonly model = input<ListingModel>();
     readonly family = input<string>('');
@@ -79,6 +83,8 @@ export class ListingComponent {
     protected readonly filtersOpen = signal(false);
 
     protected readonly isPosts = computed(() => this.family() === 'posts');
+    /** Family part of the message keys (listing.new.pages, listing.empty.posts…). */
+    protected readonly familyKey = computed(() => this.family() as ListingFamily);
     protected readonly title = computed(() => this.computeTitle());
     private readonly postType = computed(() =>
         this.isPosts() ? (this.model() as PostType).type : undefined,
@@ -135,13 +141,27 @@ export class ListingComponent {
             case 'posts':
                 return (this.model() as PostType)?.pluralTitle ?? '';
             case 'pages':
-                return 'pages';
+                return this.t('listing.title.pages');
             case 'components':
-                return 'components';
+                return this.t('listing.title.components');
             case 'postTypes':
-                return 'post types';
+                return this.t('listing.title.postTypes');
             default:
                 return '';
+        }
+    }
+
+    /** The three fixed sorts are translated; field sorts show the field title. */
+    protected sortName(sort: SortType): string {
+        switch (sort.varName) {
+            case '-created':
+                return this.t('listing.sort.newest');
+            case 'created':
+                return this.t('listing.sort.oldest');
+            case 'title':
+                return this.t('listing.sort.title');
+            default:
+                return sort.name;
         }
     }
 
@@ -210,7 +230,7 @@ export class ListingComponent {
     // ---- remove with undo (port of factory.remove/removeDialog) ---------------
 
     removeDialog(model: ListingItem): void {
-        this.tools.confirm(`Are you sure you want to delete ${model.title}?`).subscribe((ok) => {
+        this.tools.confirm(this.t('common.confirmDelete', { name: model.title })).subscribe((ok) => {
             if (ok) {
                 this.remove(model);
             }
@@ -244,7 +264,7 @@ export class ListingComponent {
             },
             error: (error) => {
                 this.removeStatus.set(undefined);
-                this.tools.alert(error?.error?.error ?? error?.error ?? 'Error removing');
+                this.tools.alert(error?.error?.error ?? error?.error ?? this.t('common.errorRemoving'));
             },
         });
     }
@@ -263,13 +283,13 @@ export class ListingComponent {
             try {
                 posts = JSON.parse(reader.result as string);
             } catch {
-                this.tools.alert('Wrong file format!');
+                this.tools.alert(this.t('common.wrongFileFormat'));
                 return;
             }
             if (Array.isArray(posts) && posts.length) {
                 this.import(posts);
             } else {
-                this.tools.alert('There is no correct posts to import');
+                this.tools.alert(this.t('listing.noPostsToImport'));
             }
         };
         reader.readAsText(file);
@@ -303,13 +323,11 @@ export class ListingComponent {
                 if (this.family() === 'postTypes') {
                     this.postTypesService.refreshMenu();
                 }
-                this.tools.alert(
-                    `${added} ${this.title()} ${added > 1 ? 'were' : 'was'} successfully imported`,
-                );
+                this.tools.alert(this.t('listing.imported', { count: added, title: this.title() }));
             },
             error: (error) => {
                 this.importStatus.set(false);
-                this.tools.alert(error?.error?.error ?? 'There was an error importing');
+                this.tools.alert(error?.error?.error ?? this.t('common.errorImporting'));
             },
         });
     }
@@ -326,7 +344,7 @@ export class ListingComponent {
             },
             error: () => {
                 this.exportStatus.set(false);
-                this.tools.alert('There was an error exporting');
+                this.tools.alert(this.t('common.errorExporting'));
             },
         });
     }

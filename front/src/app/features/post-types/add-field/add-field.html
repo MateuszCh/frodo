@@ -2,12 +2,12 @@
 <article class="schema-field">
     <header class="schema-field__head">
         <span class="schema-field__name"
-              [class.is-placeholder]="!f.title">{{ f.title || 'Untitled field' }}</span>
+              [class.is-placeholder]="!f.title">{{ f.title || t('schema.untitledField') }}</span>
         <span class="badge badge--neutral">{{ f.type }}</span>
         <button mat-icon-button
                 type="button"
                 class="btn--sm"
-                [attr.aria-label]="f.title ? 'Delete field ' + f.title : 'Delete untitled field'"
+                [attr.aria-label]="f.title ? t('schema.deleteField', { name: f.title }) : t('schema.deleteUntitledField')"
                 (click)="remove.emit()">
             <svg class="icon"
                  aria-hidden="true">
@@ -20,7 +20,7 @@
         <div class="form-grid form-grid--2">
             <div class="field">
                 <label class="field__label"
-                       [for]="uid + '_title'">Title<span class="field__req"
+                       [for]="uid + '_title'">{{ t('common.title') }}<span class="field__req"
                           aria-hidden="true">*</span></label>
                 <mat-form-field appearance="outline"
                                 subscriptSizing="dynamic">
@@ -35,14 +35,14 @@
                              aria-hidden="true">
                             <use href="icons.svg#i-alert" />
                         </svg>
-                        This field is required
+                        {{ t('common.required') }}
                     </mat-error>
                 </mat-form-field>
             </div>
 
             <div class="field">
                 <label class="field__label"
-                       [for]="uid + '_id'">Id<span class="field__req"
+                       [for]="uid + '_id'">{{ t('schema.id') }}<span class="field__req"
                           aria-hidden="true">*</span></label>
                 <mat-form-field appearance="outline"
                                 subscriptSizing="dynamic">
@@ -59,7 +59,7 @@
                              aria-hidden="true">
                             <use href="icons.svg#i-alert" />
                         </svg>
-                        This field is required
+                        {{ t('common.required') }}
                     </mat-error>
                 </mat-form-field>
             </div>
@@ -67,17 +67,17 @@
 
         <div class="field">
             <span class="field__label"
-                  [id]="uid + '_type-label'">Type<span class="field__req"
+                  [id]="uid + '_type-label'">{{ t('common.type') }}<span class="field__req"
                       aria-hidden="true">*</span></span>
             <mat-form-field appearance="outline"
                             subscriptSizing="dynamic">
-                <mat-select placeholder="Choose a field type"
+                <mat-select [placeholder]="t('schema.chooseType')"
                             [aria-labelledby]="uid + '_type-label'"
                             [name]="uid + '_type'"
                             required
                             [(ngModel)]="f.type">
                     @for (option of fieldTypes; track option.type) {
-                    <mat-option [value]="option.type">{{ option.name }}</mat-option>
+                    <mat-option [value]="option.type">{{ fieldType(option.type) }}</mat-option>
                     }
                 </mat-select>
                 <mat-error>
@@ -85,7 +85,7 @@
                          aria-hidden="true">
                         <use href="icons.svg#i-alert" />
                     </svg>
-                    This field is required
+                    {{ t('common.required') }}
                 </mat-error>
             </mat-form-field>
         </div>
@@ -93,7 +93,7 @@
         @if (f.type === 'select') {
         <div class="field">
             <label class="field__label"
-                   [for]="uid + '_selectOptions'">Options<span class="field__req"
+                   [for]="uid + '_selectOptions'">{{ t('schema.options') }}<span class="field__req"
                       aria-hidden="true">*</span></label>
             <mat-form-field appearance="outline"
                             subscriptSizing="dynamic">
@@ -108,17 +108,17 @@
                          aria-hidden="true">
                         <use href="icons.svg#i-alert" />
                     </svg>
-                    This field is required
+                    {{ t('common.required') }}
                 </mat-error>
             </mat-form-field>
-            <span class="field__hint">Separate options with semicolons.</span>
+            <span class="field__hint">{{ t('schema.optionsHint') }}</span>
         </div>
         }
 
         @if (f.type === 'multiselect') {
         <div class="field">
             <label class="field__label"
-                   [for]="uid + '_multiselectOptions'">Options<span class="field__req"
+                   [for]="uid + '_multiselectOptions'">{{ t('schema.options') }}<span class="field__req"
                       aria-hidden="true">*</span></label>
             <mat-form-field appearance="outline"
                             subscriptSizing="dynamic">
@@ -133,16 +133,16 @@
                          aria-hidden="true">
                         <use href="icons.svg#i-alert" />
                     </svg>
-                    This field is required
+                    {{ t('common.required') }}
                 </mat-error>
             </mat-form-field>
-            <span class="field__hint">Separate options with semicolons.</span>
+            <span class="field__hint">{{ t('schema.optionsHint') }}</span>
         </div>
         }
 
         @if (f.type === 'repeater') {
         <div class="schema-field__children">
-            <span class="field__label">Fields in each row</span>
+            <span class="field__label">{{ t('schema.rowFields') }}</span>
             @for (rf of f.repeaterFields ?? []; track rf; let i = $index) {
             <app-add-field [field]="rf"
                            (remove)="removeRepeaterField(i)"></app-add-field>
@@ -156,7 +156,7 @@
                      aria-hidden="true">
                     <use href="icons.svg#i-plus" />
                 </svg>
-                Add field to row
+                {{ t('schema.addRowField') }}
             </button>
         </div>
         }

@@ -26,6 +26,7 @@ import { ToolsService } from '../../../core/tools.service';
 import { BytesPipe } from '../../../shared/bytes.pipe';
 import { ImgLoadedDirective } from '../../../shared/img-loaded.directive';
 import { InfiniteScrollDirective } from '../../../shared/infinite-scroll.directive';
+import { I18nService } from '../../../core/i18n/i18n.service';
 
 interface PendingUpload {
     file: File;
@@ -52,6 +53,9 @@ interface PendingUpload {
     templateUrl: './files.html',
 })
 export class FilesComponent implements OnInit {
+    private readonly i18n = inject(I18nService);
+    protected readonly t = this.i18n.t;
+    protected readonly locale = this.i18n.locale;
     readonly allFiles = input<FileItem[]>([]);
     readonly isPopup = input(false);
     readonly fileSelected = output<FileItem>();
@@ -180,11 +184,11 @@ export class FilesComponent implements OnInit {
             next: () => {
                 this.actionStatus.set('');
                 this.deriveCatalogues(this.files());
-                this.tools.alert(`${file.filename} saved successfully`);
+                this.tools.alert(this.t('files.saved', { name: file.filename }));
             },
             error: (e) => {
                 this.actionStatus.set('');
-                this.tools.alert(e?.error?.error ?? e?.error ?? 'Error saving');
+                this.tools.alert(e?.error?.error ?? e?.error ?? this.t('common.errorSaving'));
             },
         });
     }
@@ -192,7 +196,7 @@ export class FilesComponent implements OnInit {
     deleteDialog(): void {
         const file = this.selected();
         if (!file) return;
-        this.tools.confirm(`Are you sure you want to delete ${file.filename}?`).subscribe((ok) => {
+        this.tools.confirm(this.t('common.confirmDelete', { name: file.filename })).subscribe((ok) => {
             if (ok) this.deleteFile(file);
         });
     }
@@ -204,11 +208,11 @@ export class FilesComponent implements OnInit {
                 this.actionStatus.set('');
                 this.files.update((list) => list.filter((f) => f !== file));
                 this.selected.set(undefined);
-                this.tools.alert(`${file.filename} removed successfully`);
+                this.tools.alert(this.t('files.removed', { name: file.filename }));
             },
             error: (e) => {
                 this.actionStatus.set('');
-                this.tools.alert(e?.error?.error ?? e?.error ?? 'Error removing');
+                this.tools.alert(e?.error?.error ?? e?.error ?? this.t('common.errorRemoving'));
             },
         });
     }
@@ -291,13 +295,13 @@ export class FilesComponent implements OnInit {
                             this.deriveCatalogues(this.files());
                             this.clearPending();
                             this.tabs().selectedIndex = 0;
-                            this.tools.alert('Files uploaded successfully');
+                            this.tools.alert(this.t('files.uploaded'));
                         }
                     }
                 },
                 error: (e) => {
                     this.actionStatus.set('');
-                    this.tools.alert(e?.error?.error ?? e?.error ?? 'Error uploading');
+                    this.tools.alert(e?.error?.error ?? e?.error ?? this.t('files.errorUploading'));
                 },
             });
     }
@@ -315,7 +319,7 @@ export class FilesComponent implements OnInit {
             try {
                 files = JSON.parse(reader.result as string);
             } catch {
-                this.tools.alert('Wrong file format!');
+                this.tools.alert(this.t('common.wrongFileFormat'));
                 return;
             }
             if (Array.isArray(files) && files.length) {
@@ -326,17 +330,15 @@ export class FilesComponent implements OnInit {
                         const added = response.length - oldLength;
                         this.files.set(response);
                         this.deriveCatalogues(response);
-                        this.tools.alert(
-                            `${added} files ${added > 1 ? 'were' : 'was'} successfully imported`,
-                        );
+                        this.tools.alert(this.t('files.imported', { count: added }));
                     },
                     error: (error) => {
                         this.importStatus.set(false);
-                        this.tools.alert(error?.error?.error ?? 'There was an error importing');
+                        this.tools.alert(error?.error?.error ?? this.t('common.errorImporting'));
                     },
                 });
             } else {
-                this.tools.alert('There is no correct files to import');
+                this.tools.alert(this.t('files.noFilesToImport'));
             }
         };
         reader.readAsText(file);
@@ -355,7 +357,7 @@ export class FilesComponent implements OnInit {
             },
             error: () => {
                 this.exportStatus.set(false);
-                this.tools.alert('There was an error exporting');
+                this.tools.alert(this.t('common.errorExporting'));
             },
         });
     }

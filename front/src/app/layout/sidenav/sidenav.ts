@@ -5,6 +5,8 @@ import { UserService } from '../../core/user.service';
 import { PostTypesService } from '../../core/post-types.service';
 import { injectRouteState } from '../../core/router-state';
 import { ThemeService } from '../../core/theme.service';
+import { LanguageSwitchComponent } from '../language-switch/language-switch';
+import { I18nService } from '../../core/i18n/i18n.service';
 
 interface NavItem {
     title: string;
@@ -15,10 +17,11 @@ interface NavItem {
 /** Port of sidenav.component.js — main navigation menu. */
 @Component({
     selector: 'app-sidenav',
-    imports: [RouterLink, MatButtonModule],
+    imports: [RouterLink, MatButtonModule, LanguageSwitchComponent],
     templateUrl: './sidenav.html',
 })
 export class SidenavComponent implements OnInit {
+    protected readonly t = inject(I18nService).t;
     protected userService = inject(UserService);
     private postTypesService = inject(PostTypesService);
     private router = inject(Router);

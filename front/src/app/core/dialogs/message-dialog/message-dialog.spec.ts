@@ -5,6 +5,11 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MessageDialogComponent } from './message-dialog';
 import type { MessageDialogData } from './message-dialog';
 
+// These tests assert the English texts; the Polish default is covered in i18n.service.spec.ts
+// and in the Polish rendering tests.
+beforeEach(() => localStorage.setItem('frodo.lang', 'en'));
+afterEach(() => localStorage.removeItem('frodo.lang'));
+
 function setup(data: MessageDialogData) {
     TestBed.configureTestingModule({
         imports: [MessageDialogComponent, MatIconTestingModule],

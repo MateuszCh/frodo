@@ -7,6 +7,11 @@ import { FilesService } from '../../../core/files.service';
 import { Field } from '../../../models/models';
 import { RepeaterComponent } from './repeater';
 
+// These tests assert the English texts; the Polish default is covered in i18n.service.spec.ts
+// and in the Polish rendering tests.
+beforeEach(() => localStorage.setItem('frodo.lang', 'en'));
+afterEach(() => localStorage.removeItem('frodo.lang'));
+
 @Component({
     // app-field's ngModel controls resolve their ControlContainer from the
     // ancestor NgForm, mirroring how the post editor hosts the repeater

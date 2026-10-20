@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="pl">
     <head>
         <meta charset="utf-8" />
         <base href="/" />
@@ -12,12 +12,17 @@
         <meta name="theme-color" content="#F3F4F1" media="(prefers-color-scheme: light)" />
         <meta name="theme-color" content="#1F2522" media="(prefers-color-scheme: dark)" />
         <script>
-            // Apply the saved Light / Dark choice (ThemeService) before Angular starts,
-            // so a dark page does not flash light. Without a choice the system decides.
+            // Apply the saved Light / Dark choice (ThemeService) and language (I18nService)
+            // before Angular starts, so a dark page does not flash light. Without a choice
+            // the system decides the theme and the language is Polish.
             try {
                 var theme = localStorage.getItem('frodo.theme');
                 if (theme === 'light' || theme === 'dark') {
                     document.documentElement.dataset.theme = theme;
+                }
+                var lang = localStorage.getItem('frodo.lang');
+                if (lang === 'pl' || lang === 'en') {
+                    document.documentElement.lang = lang;
                 }
             } catch (e) {}
         </script>

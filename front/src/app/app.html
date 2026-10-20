@@ -26,7 +26,7 @@
                 class="fab"
                 [class.scrolled]="layout.scrolled()"
                 (click)="scrollTop()"
-                aria-label="Back to top">
+                [attr.aria-label]="t('app.backToTop')">
             <svg class="icon"
                  aria-hidden="true">
                 <use href="icons.svg#i-arrow-up" />

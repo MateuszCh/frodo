@@ -1,8 +1,9 @@
-import { Component, effect, forwardRef, input, signal } from '@angular/core';
+import { Component, effect, forwardRef, inject, input, signal } from '@angular/core';
 import { ControlContainer, NgForm } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
 import { Field } from '../../../models/models';
 import { FieldInputComponent } from '../field-input/field-input';
+import { I18nService } from '../../../core/i18n/i18n.service';
 
 /**
  * Port of repeater.componenet.js — repeatable group of fields stored as an
@@ -21,6 +22,7 @@ import { FieldInputComponent } from '../field-input/field-input';
     templateUrl: './repeater.html',
 })
 export class RepeaterComponent {
+    protected readonly t = inject(I18nService).t;
     readonly parentModel = input.required<Record<string, unknown>>();
     readonly field = input.required<Field>();
     readonly namePrefix = input<string>('');

@@ -5,6 +5,7 @@ import { HeaderComponent } from './layout/header/header';
 import { SidenavComponent } from './layout/sidenav/sidenav';
 import { LayoutService } from './core/layout.service';
 import { injectRouteState } from './core/router-state';
+import { I18nService } from './core/i18n/i18n.service';
 
 @Component({
     selector: 'app-root',
@@ -17,6 +18,7 @@ import { injectRouteState } from './core/router-state';
     templateUrl: './app.html',
 })
 export class App {
+    protected readonly t = inject(I18nService).t;
     protected layout = inject(LayoutService);
     private route = injectRouteState();
 

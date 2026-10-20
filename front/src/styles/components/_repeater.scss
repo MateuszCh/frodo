@@ -55,7 +55,8 @@
     font-weight: var(--weight-semibold);
     color: var(--color-text-subtle);
 
+    // the word comes from the template (data-label), so it follows the language
     &::before {
-        content: 'Row ' counter(repeater-row);
+        content: attr(data-label) ' ' counter(repeater-row);
     }
 }

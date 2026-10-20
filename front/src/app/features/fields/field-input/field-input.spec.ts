@@ -13,6 +13,11 @@ import { FilesService } from '../../../core/files.service';
 import { makeField } from '../../../testing/test-helpers';
 import type { Field } from '../../../models/models';
 
+// These tests assert the English texts; the Polish default is covered in i18n.service.spec.ts
+// and in the Polish rendering tests.
+beforeEach(() => localStorage.setItem('frodo.lang', 'en'));
+afterEach(() => localStorage.removeItem('frodo.lang'));
+
 // ---------------------------------------------------------------------------
 // Host
 // ---------------------------------------------------------------------------

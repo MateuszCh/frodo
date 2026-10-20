@@ -10,6 +10,7 @@ import { ComponentEntity, Page } from '../../../models/models';
 import { PagesService } from '../../../core/pages.service';
 import { ToolsService } from '../../../core/tools.service';
 import { AddComponentComponent } from '../add-component/add-component';
+import { I18nService } from '../../../core/i18n/i18n.service';
 
 @Component({
     selector: 'app-page',
@@ -24,6 +25,7 @@ import { AddComponentComponent } from '../add-component/add-component';
     templateUrl: './page.html',
 })
 export class PageComponent implements OnInit {
+    protected readonly t = inject(I18nService).t;
     readonly components = input<ComponentEntity[]>([]);
     readonly page = input<Page>();
 
@@ -82,7 +84,7 @@ export class PageComponent implements OnInit {
                 if (editing) {
                     this.actionStatus.set('');
                     this.currentTitle.set(this.model().title);
-                    this.tools.alert(`${this.model().title} page updated successfully`);
+                    this.tools.alert(this.t('page.updated', { title: this.model().title }));
                 } else if (response.url) {
                     this.router.navigateByUrl(response.url);
                 } else {
@@ -91,14 +93,14 @@ export class PageComponent implements OnInit {
             },
             error: (err) => {
                 this.actionStatus.set('');
-                this.tools.alert(err?.error?.error ?? err?.error ?? 'Error saving');
+                this.tools.alert(err?.error?.error ?? err?.error ?? this.t('common.errorSaving'));
             },
         });
     }
 
     removeDialog(): void {
         this.tools
-            .confirm(`Are you sure you want to delete ${this.model().title}?`)
+            .confirm(this.t('common.confirmDelete', { name: this.model().title }))
             .subscribe((ok) => {
                 if (ok) {
                     this.remove();
@@ -112,7 +114,7 @@ export class PageComponent implements OnInit {
             next: () => this.router.navigate(['/pages']),
             error: () => {
                 this.actionStatus.set('');
-                this.tools.alert(`There was an error removing ${this.model().title} page`);
+                this.tools.alert(this.t('page.removeError', { title: this.model().title }));
             },
         });
     }

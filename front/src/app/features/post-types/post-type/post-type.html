@@ -6,9 +6,15 @@
       (ngSubmit)="save(form)">
     <div class="editor-bar">
         <div class="editor-bar__heading">
-            <span class="editor-bar__eyebrow">{{ edit() ? 'Edit' : 'New' }} {{ typeLabel() }}</span>
+            <span class="editor-bar__eyebrow">{{
+                t(
+                isComponent()
+                ? (edit() ? 'schema.editComponent' : 'schema.newComponent')
+                : (edit() ? 'schema.editPostType' : 'schema.newPostType')
+                )
+                }}</span>
             <h1 class="editor-bar__title"
-                [class.is-placeholder]="!model().title">{{ model().title || 'Untitled' }}</h1>
+                [class.is-placeholder]="!model().title">{{ model().title || t('common.untitled') }}</h1>
         </div>
         <div class="editor-bar__actions">
             @if (edit()) {
@@ -27,7 +33,7 @@
                     <use href="icons.svg#i-trash" />
                 </svg>
                 }
-                {{ removing ? 'Deleting…' : 'Delete' }}
+                {{ removing ? t('common.deleting') : t('common.delete') }}
             </button>
             }
             <button mat-flat-button
@@ -38,7 +44,7 @@
                       class="spinner"
                       aria-hidden="true"></span>
                 }
-                {{ saving ? 'Saving…' : 'Save' }}
+                {{ saving ? t('common.saving') : t('common.save') }}
             </button>
         </div>
     </div>
@@ -48,13 +54,9 @@
             <section class="card">
                 <header class="card__header">
                     <div class="card__heading">
-                        <h2 class="card__title">Basic information</h2>
+                        <h2 class="card__title">{{ t('common.basicInfo') }}</h2>
                         <p class="card__desc">
-                            {{
-                            isComponent()
-                            ? 'Name shown in the page editor and the type stored with each page section.'
-                            : 'Names shown in the menu and the type used in addresses and the API.'
-                            }}
+                            {{ t(isComponent() ? 'schema.descComponent' : 'schema.descPostType') }}
                         </p>
                     </div>
                 </header>
@@ -62,7 +64,7 @@
                     <div class="form-grid form-grid--2">
                         <div class="field">
                             <label class="field__label"
-                                   for="schema-title">Title<span class="field__req"
+                                   for="schema-title">{{ t('common.title') }}<span class="field__req"
                                       aria-hidden="true">*</span></label>
                             <mat-form-field appearance="outline"
                                             subscriptSizing="dynamic">
@@ -76,7 +78,7 @@
                                          aria-hidden="true">
                                         <use href="icons.svg#i-alert" />
                                     </svg>
-                                    This field is required
+                                    {{ t('common.required') }}
                                 </mat-error>
                             </mat-form-field>
                         </div>
@@ -84,7 +86,7 @@
                         @if (!isComponent()) {
                         <div class="field">
                             <label class="field__label"
-                                   for="schema-plural-title">Plural Title<span class="field__req"
+                                   for="schema-plural-title">{{ t('schema.pluralTitle') }}<span class="field__req"
                                       aria-hidden="true">*</span></label>
                             <mat-form-field appearance="outline"
                                             subscriptSizing="dynamic">
@@ -98,7 +100,7 @@
                                          aria-hidden="true">
                                         <use href="icons.svg#i-alert" />
                                     </svg>
-                                    This field is required
+                                    {{ t('common.required') }}
                                 </mat-error>
                             </mat-form-field>
                         </div>
@@ -107,7 +109,7 @@
 
                     <div class="field">
                         <label class="field__label"
-                               for="schema-type">Type<span class="field__req"
+                               for="schema-type">{{ t('common.type') }}<span class="field__req"
                                   aria-hidden="true">*</span></label>
                         <mat-form-field appearance="outline"
                                         subscriptSizing="dynamic">
@@ -123,10 +125,10 @@
                                      aria-hidden="true">
                                     <use href="icons.svg#i-alert" />
                                 </svg>
-                                This field is required
+                                {{ t('common.required') }}
                             </mat-error>
                         </mat-form-field>
-                        <span class="field__hint">Lowercase letters and underscores, formatted as you type.</span>
+                        <span class="field__hint">{{ t('schema.typeHint') }}</span>
                     </div>
                 </div>
             </section>
@@ -134,13 +136,13 @@
             <section class="card">
                 <header class="card__header">
                     <div class="card__heading">
-                        <h2 class="card__title">Fields</h2>
+                        <h2 class="card__title">{{ t('common.fields') }}</h2>
                         <p class="card__desc">
-                            What editors fill in for each {{ isComponent() ? 'section of this component' : 'post of this type' }}.
+                            {{ t(isComponent() ? 'schema.fieldsDescComponent' : 'schema.fieldsDescPostType') }}
                         </p>
                     </div>
                     @if (fieldCount) {
-                    <span class="badge badge--neutral">{{ fieldCount }}<span class="visually-hidden"> fields</span></span>
+                    <span class="badge badge--neutral">{{ fieldCount }}<span class="visually-hidden"> {{ t('schema.fieldsCount', { count: fieldCount }) }}</span></span>
                     }
                 </header>
                 <div class="card__body">
@@ -152,13 +154,9 @@
                                 <use href="icons.svg#i-braces" />
                             </svg>
                         </span>
-                        <p class="empty__title">No fields yet</p>
+                        <p class="empty__title">{{ t('common.noFields') }}</p>
                         <p class="empty__text">
-                            {{
-                            isComponent()
-                            ? 'Sections of this component will have no fields until you add them.'
-                            : 'Posts of this type will have only a title until you add fields.'
-                            }}
+                            {{ t(isComponent() ? 'schema.noFieldsComponent' : 'schema.noFieldsPostType') }}
                         </p>
                     </div>
                     } @else {
@@ -179,7 +177,7 @@
                              aria-hidden="true">
                             <use href="icons.svg#i-plus" />
                         </svg>
-                        Add field
+                        {{ t('schema.addField') }}
                     </button>
                 </div>
             </section>

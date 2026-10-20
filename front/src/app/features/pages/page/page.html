@@ -5,9 +5,9 @@
       (ngSubmit)="save(form)">
     <div class="editor-bar">
         <div class="editor-bar__heading">
-            <span class="editor-bar__eyebrow">{{ edit() ? 'Edit page' : 'New page' }}</span>
+            <span class="editor-bar__eyebrow">{{ edit() ? t('page.edit') : t('page.new') }}</span>
             <h1 class="editor-bar__title"
-                [class.is-placeholder]="!model().title">{{ model().title || 'Untitled' }}</h1>
+                [class.is-placeholder]="!model().title">{{ model().title || t('common.untitled') }}</h1>
         </div>
         <div class="editor-bar__actions">
             @if (edit()) {
@@ -26,7 +26,7 @@
                     <use href="icons.svg#i-trash" />
                 </svg>
                 }
-                {{ removing ? 'Deleting…' : 'Delete' }}
+                {{ removing ? t('common.deleting') : t('common.delete') }}
             </button>
             }
             <button mat-flat-button
@@ -37,7 +37,7 @@
                       class="spinner"
                       aria-hidden="true"></span>
                 }
-                {{ saving ? 'Saving…' : 'Save' }}
+                {{ saving ? t('common.saving') : t('common.save') }}
             </button>
         </div>
     </div>
@@ -47,14 +47,14 @@
             <section class="card">
                 <header class="card__header">
                     <div class="card__heading">
-                        <h2 class="card__title">Basic information</h2>
-                        <p class="card__desc">Title and address of the page on the public site.</p>
+                        <h2 class="card__title">{{ t('common.basicInfo') }}</h2>
+                        <p class="card__desc">{{ t('page.basicDesc') }}</p>
                     </div>
                 </header>
                 <div class="card__body">
                     <div class="field">
                         <label class="field__label"
-                               for="page-title">Title<span class="field__req"
+                               for="page-title">{{ t('common.title') }}<span class="field__req"
                                   aria-hidden="true">*</span></label>
                         <mat-form-field appearance="outline"
                                         subscriptSizing="dynamic">
@@ -68,14 +68,14 @@
                                      aria-hidden="true">
                                     <use href="icons.svg#i-alert" />
                                 </svg>
-                                This field is required
+                                {{ t('common.required') }}
                             </mat-error>
                         </mat-form-field>
                     </div>
 
                     <div class="field">
                         <label class="field__label"
-                               for="page-url">Url<span class="field__req"
+                               for="page-url">{{ t('page.url') }}<span class="field__req"
                                   aria-hidden="true">*</span></label>
                         <mat-form-field appearance="outline"
                                         subscriptSizing="dynamic">
@@ -89,9 +89,9 @@
                                      aria-hidden="true">
                                     <use href="icons.svg#i-alert" />
                                 </svg>
-                                This field is required
+                                {{ t('common.required') }}
                             </mat-error>
-                            <mat-hint>Address segment on the public site, for example mapa or galeria/skaly.</mat-hint>
+                            <mat-hint>{{ t('page.urlHint') }}</mat-hint>
                         </mat-form-field>
                     </div>
                 </div>
@@ -100,14 +100,14 @@
             <section class="card">
                 <header class="card__header">
                     <div class="card__heading">
-                        <h2 class="card__title">Search engines</h2>
-                        <p class="card__desc">Optional. Used as the page title and description in search results.</p>
+                        <h2 class="card__title">{{ t('page.seo') }}</h2>
+                        <p class="card__desc">{{ t('page.seoDesc') }}</p>
                     </div>
                 </header>
                 <div class="card__body">
                     <div class="field">
                         <label class="field__label"
-                               for="page-seo-title">SEO Title</label>
+                               for="page-seo-title">{{ t('page.seoTitle') }}</label>
                         <mat-form-field appearance="outline"
                                         subscriptSizing="dynamic">
                             <input matInput
@@ -119,7 +119,7 @@
 
                     <div class="field">
                         <label class="field__label"
-                               for="page-seo-description">SEO Description</label>
+                               for="page-seo-description">{{ t('page.seoDescription') }}</label>
                         <mat-form-field appearance="outline"
                                         subscriptSizing="dynamic">
                             <textarea matInput
@@ -135,11 +135,11 @@
             <section class="card">
                 <header class="card__header">
                     <div class="card__heading">
-                        <h2 class="card__title">Components</h2>
-                        <p class="card__desc">Sections of the page in display order. Drag to reorder.</p>
+                        <h2 class="card__title">{{ t('page.components') }}</h2>
+                        <p class="card__desc">{{ t('page.componentsDesc') }}</p>
                     </div>
                     @if (rows().length) {
-                    <span class="badge badge--neutral">{{ rows().length }}<span class="visually-hidden"> components</span></span>
+                    <span class="badge badge--neutral">{{ rows().length }}<span class="visually-hidden"> {{ t('page.componentsCount', { count: rows().length }) }}</span></span>
                     }
                 </header>
                 <div class="card__body">
@@ -151,8 +151,8 @@
                                 <use href="icons.svg#i-blocks" />
                             </svg>
                         </span>
-                        <p class="empty__title">No components yet</p>
-                        <p class="empty__text">Add the first component to build this page.</p>
+                        <p class="empty__title">{{ t('page.noComponents') }}</p>
+                        <p class="empty__text">{{ t('page.noComponentsText') }}</p>
                     </div>
                     }
 
@@ -165,7 +165,7 @@
                             cdkDrag>
                             <div class="block-card__handle"
                                  cdkDragHandle
-                                 title="Drag to reorder">
+                                 [title]="t('page.dragToReorder')">
                                 <svg class="icon"
                                      aria-hidden="true">
                                     <use href="icons.svg#i-grip" />
@@ -189,7 +189,7 @@
                              aria-hidden="true">
                             <use href="icons.svg#i-plus" />
                         </svg>
-                        Add component
+                        {{ t('page.addComponent') }}
                     </button>
                 </div>
             </section>

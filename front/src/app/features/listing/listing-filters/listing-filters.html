@@ -19,11 +19,11 @@
                          [(ngModel)]="field.value"
                          (ngModelChange)="changed.emit()">
             <mat-radio-button class="segmented__option"
-                              [value]="true">True</mat-radio-button>
+                              [value]="true">{{ t('filters.true') }}</mat-radio-button>
             <mat-radio-button class="segmented__option"
-                              [value]="false">False</mat-radio-button>
+                              [value]="false">{{ t('filters.false') }}</mat-radio-button>
             <mat-radio-button class="segmented__option"
-                              value="all">All</mat-radio-button>
+                              value="all">{{ t('filters.all') }}</mat-radio-button>
         </mat-radio-group>
     </fieldset>
     }
@@ -35,7 +35,7 @@
         <mat-form-field appearance="outline"
                         subscriptSizing="dynamic">
             <mat-select multiple
-                        placeholder="All"
+                        [placeholder]="t('filters.all')"
                         [aria-labelledby]="'filter-' + field.id + '-label'"
                         [(ngModel)]="field.values"
                         (ngModelChange)="changed.emit()">
@@ -54,7 +54,7 @@
         <mat-form-field appearance="outline"
                         subscriptSizing="dynamic">
             <mat-select multiple
-                        placeholder="All"
+                        [placeholder]="t('filters.all')"
                         [aria-labelledby]="'filter-' + field.id + '-label'"
                         [(ngModel)]="field.values"
                         (ngModelChange)="changed.emit()">
@@ -73,7 +73,7 @@
         <mat-form-field appearance="outline"
                         subscriptSizing="dynamic">
             <mat-select multiple
-                        placeholder="All"
+                        [placeholder]="t('filters.all')"
                         [aria-labelledby]="'filter-' + field.id + '-label'"
                         [(ngModel)]="field.values"
                         (ngModelChange)="changed.emit()">
@@ -91,7 +91,7 @@
         <div class="range">
             <div class="field">
                 <label class="field__label"
-                       [for]="'filter-' + field.id + '-min'">Min</label>
+                       [for]="'filter-' + field.id + '-min'">{{ t('filters.min') }}</label>
                 <mat-form-field appearance="outline"
                                 subscriptSizing="dynamic">
                     <input matInput
@@ -103,7 +103,7 @@
             </div>
             <div class="field">
                 <label class="field__label"
-                       [for]="'filter-' + field.id + '-max'">Max</label>
+                       [for]="'filter-' + field.id + '-max'">{{ t('filters.max') }}</label>
                 <mat-form-field appearance="outline"
                                 subscriptSizing="dynamic">
                     <input matInput
@@ -123,7 +123,7 @@
         <div class="range">
             <div class="field">
                 <label class="field__label"
-                       [for]="'filter-' + field.id + '-from'">From</label>
+                       [for]="'filter-' + field.id + '-from'">{{ t('filters.from') }}</label>
                 <mat-form-field appearance="outline"
                                 subscriptSizing="dynamic">
                     <input matInput
@@ -144,7 +144,7 @@
             </div>
             <div class="field">
                 <label class="field__label"
-                       [for]="'filter-' + field.id + '-to'">To</label>
+                       [for]="'filter-' + field.id + '-to'">{{ t('filters.to') }}</label>
                 <mat-form-field appearance="outline"
                                 subscriptSizing="dynamic">
                     <input matInput
@@ -169,7 +169,7 @@
 </div>
 } @else {
 <div class="empty empty--compact">
-    <p class="empty__title">Nothing to filter by</p>
-    <p class="empty__text">Filters appear for True/False, select, number, date and catalogue fields.</p>
+    <p class="empty__title">{{ t('filters.nothing') }}</p>
+    <p class="empty__text">{{ t('filters.nothingText') }}</p>
 </div>
 }

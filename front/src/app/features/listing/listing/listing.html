@@ -1,11 +1,12 @@
-@let t = title();
+@let heading = title();
+@let key = familyKey();
 @let f = filters();
 <div class="page">
     <header class="page-header">
         <div class="page-header__top">
             <div class="page-heading">
-                <h1 class="page-title">{{ t }}</h1>
-                <span class="badge">{{ matchCount() }}<span class="visually-hidden"> items</span></span>
+                <h1 class="page-title">{{ heading }}</h1>
+                <span class="badge">{{ matchCount() }}<span class="visually-hidden"> {{ t('listing.items', { count: matchCount() }) }}</span></span>
             </div>
             <button mat-flat-button
                     type="button"
@@ -15,20 +16,7 @@
                      aria-hidden="true">
                     <use href="icons.svg#i-plus" />
                 </svg>
-                @switch (family()) {
-                @case ('posts') {
-                New {{ $any(model())?.title?.toLowerCase() }}
-                }
-                @case ('pages') {
-                New page
-                }
-                @case ('components') {
-                New component
-                }
-                @case ('postTypes') {
-                New post type
-                }
-                }
+                {{ t(`listing.new.${key}`, { type: $any(model())?.title?.toLowerCase() ?? '' }) }}
             </button>
         </div>
 
@@ -42,7 +30,7 @@
                      aria-hidden="true">
                     <use href="icons.svg#i-pencil" />
                 </svg>
-                Edit type
+                {{ t('listing.editType') }}
             </button>
             }
 
@@ -61,7 +49,7 @@
                     <use href="icons.svg#i-upload" />
                 </svg>
                 }
-                {{ importStatus() ? 'Importing…' : 'Import' }}
+                {{ importStatus() ? t('common.importing') : t('common.import') }}
             </button>
             <input #importInput
                    type="file"
@@ -85,7 +73,7 @@
                     <use href="icons.svg#i-download" />
                 </svg>
                 }
-                {{ exportStatus() ? 'Exporting…' : 'Export' }}
+                {{ exportStatus() ? t('common.exporting') : t('common.export') }}
             </button>
             }
         </div>
@@ -94,7 +82,7 @@
     <div class="listing"
          [class.listing--single]="!isPosts()">
         <section class="card list-card listing-list"
-                 aria-label="List"
+                 [attr.aria-label]="t('listing.list')"
                  appInfiniteScroll
                  (reached)="incrementLimit()"
                  [enabled]="visible().length < filtered().length">
@@ -102,14 +90,14 @@
             <div class="list-toolbar">
                 @if (f) {
                 <label class="control control--search">
-                    <span class="visually-hidden">Search</span>
+                    <span class="visually-hidden">{{ t('common.search') }}</span>
                     <svg class="icon control__icon"
                          aria-hidden="true">
                         <use href="icons.svg#i-search" />
                     </svg>
                     <input class="input"
                            type="search"
-                           [placeholder]="'Search ' + t"
+                           [placeholder]="t(`listing.search.${key}`, { title: heading })"
                            [value]="f.textFilter.value ?? ''"
                            (input)="f.textFilter.value = $any($event.target).value; onFilterChange()" />
                 </label>
@@ -127,22 +115,22 @@
                     </svg>
                     @for (sort of sortTypes(); track sort.varName) {
                     @if (sortCurrent() === sort.varName) {
-                    <span class="sort-toggle__label">{{ sort.name }}</span>
+                    <span class="sort-toggle__label">{{ sortName(sort) }}</span>
                     }
                     }
                 </button>
                 <mat-menu #sortMenu="matMenu"
-                          aria-label="Sort by">
+                          [aria-label]="t('listing.sortBy')">
                     @for (sort of sortTypes(); track sort.varName; let i = $index) {
                     @if (i === 3) {
-                    <p class="menu__label">Fields</p>
+                    <p class="menu__label">{{ t('common.fields') }}</p>
                     }
                     <button mat-menu-item
                             type="button"
                             role="menuitemradio"
                             [attr.aria-checked]="sortCurrent() === sort.varName"
                             (click)="sortBy(sort.varName)">
-                        <span class="menu__text">{{ sort.name }}</span>
+                        <span class="menu__text">{{ sortName(sort) }}</span>
                         <svg class="icon menu__check"
                              aria-hidden="true">
                             <use href="icons.svg#i-check" />
@@ -163,7 +151,7 @@
                          aria-hidden="true">
                         <use href="icons.svg#i-sliders" />
                     </svg>
-                    Filters
+                    {{ t('listing.filters') }}
                 </button>
                 }
             </div>
@@ -190,8 +178,8 @@
                         }
                     </svg>
                 </span>
-                <p class="empty__title">No {{ t }} yet</p>
-                <p class="empty__text">Create the first one or import a JSON file.</p>
+                <p class="empty__title">{{ t(`listing.empty.${key}`, { title: heading }) }}</p>
+                <p class="empty__text">{{ t('listing.emptyText') }}</p>
             </div>
             } @else if (matchCount() === 0) {
             <div class="empty">
@@ -201,9 +189,9 @@
                         <use href="icons.svg#i-search" />
                     </svg>
                 </span>
-                <p class="empty__title">No {{ t }} match your search</p>
+                <p class="empty__title">{{ t('listing.noMatch', { title: heading }) }}</p>
                 <p class="empty__text">
-                    {{ isPosts() ? 'Change the search text or reset the filters.' : 'Change the search text.' }}
+                    {{ isPosts() ? t('listing.noMatchTextFilters') : t('listing.noMatchText') }}
                 </p>
             </div>
             } @else {
@@ -217,7 +205,7 @@
                        [routerLink]="editLink(model)">{{ model.title }}</a>
                     <button mat-icon-button
                             type="button"
-                            [attr.aria-label]="'Delete ' + model.title"
+                            [attr.aria-label]="t('listing.deleteItem', { title: model.title })"
                             [attr.aria-busy]="busy"
                             (click)="removeDialog(model)">
                         @if (busy) {
@@ -251,21 +239,21 @@
         @if (isPosts()) {
         <aside class="filters"
                [class.is-open]="filtersOpen()"
-               aria-label="Filters">
+               [attr.aria-label]="t('listing.filters')">
             <div class="sheet__grabber"
                  aria-hidden="true"></div>
             <div class="filters__head">
-                <h2 class="filters__title">Filters</h2>
+                <h2 class="filters__title">{{ t('listing.filters') }}</h2>
                 @if (baseModels().length) {
                 <button mat-button
                         type="button"
                         class="btn--sm"
-                        (click)="resetFilters()">Reset</button>
+                        (click)="resetFilters()">{{ t('listing.reset') }}</button>
                 }
                 <button mat-icon-button
                         type="button"
                         class="btn--sm filters__close"
-                        aria-label="Close filters"
+                        [attr.aria-label]="t('listing.closeFilters')"
                         (click)="filtersOpen.set(false)">
                     <svg class="icon"
                          aria-hidden="true">
@@ -279,8 +267,8 @@
                                  (changed)="onFilterChange()"></app-listing-filters>
             } @else {
             <div class="empty empty--compact">
-                <p class="empty__title">Nothing to filter yet</p>
-                <p class="empty__text">Filters appear when this list has posts.</p>
+                <p class="empty__title">{{ t('listing.nothingToFilter') }}</p>
+                <p class="empty__text">{{ t('listing.nothingToFilterText') }}</p>
             </div>
             }
         </aside>

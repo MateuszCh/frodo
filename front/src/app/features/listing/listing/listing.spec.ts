@@ -22,6 +22,11 @@ import type { Page, Post, PostType } from '../../../models/models';
 
 import type { Filters } from '../listing-filter';
 
+// These tests assert the English texts; the Polish default is covered in i18n.service.spec.ts
+// and in the Polish rendering tests.
+beforeEach(() => localStorage.setItem('frodo.lang', 'en'));
+afterEach(() => localStorage.removeItem('frodo.lang'));
+
 // ---------------------------------------------------------------------------
 // Minimal stubs — inputs/outputs must match originals so template bindings resolve.
 // ---------------------------------------------------------------------------

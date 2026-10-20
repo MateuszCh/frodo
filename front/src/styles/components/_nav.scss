@@ -90,6 +90,12 @@
     + .sidebar__footer {
         margin-top: 0;
     }
+
+    // theme and language rows stack as one block
+    + .sidebar__theme {
+        margin-top: 0;
+        padding-top: 0;
+    }
 }
 
 .sidebar__theme-label {
@@ -140,6 +146,13 @@
     > .icon {
         width: 18px;
         height: 18px;
+    }
+
+    // PL / EN instead of an icon
+    &--text {
+        font-size: var(--text-xs);
+        font-weight: var(--weight-semibold);
+        letter-spacing: var(--tracking-wide);
     }
 
     .theme-switch__option:hover & {

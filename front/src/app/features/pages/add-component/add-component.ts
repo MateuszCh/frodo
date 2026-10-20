@@ -1,10 +1,11 @@
-import { Component, OnInit, input, output, signal } from '@angular/core';
+import { Component, OnInit, inject, input, output, signal } from '@angular/core';
 import { FormsModule, ControlContainer, NgForm } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { ComponentEntity, PageComponent as PageComponentModel } from '../../../models/models';
 import { FieldInputComponent } from '../../fields/field-input/field-input';
+import { I18nService } from '../../../core/i18n/i18n.service';
 
 /**
  * Port of add-component.component.js — picks a component type for a page row and
@@ -23,6 +24,7 @@ import { FieldInputComponent } from '../../fields/field-input/field-input';
     templateUrl: './add-component.html',
 })
 export class AddComponentComponent implements OnInit {
+    protected readonly t = inject(I18nService).t;
     readonly components = input.required<ComponentEntity[]>();
     readonly model = input.required<PageComponentModel>();
     readonly order = input<number>(0);

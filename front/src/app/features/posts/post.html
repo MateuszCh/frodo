@@ -5,9 +5,9 @@
       (ngSubmit)="save(form)">
     <div class="editor-bar">
         <div class="editor-bar__heading">
-            <span class="editor-bar__eyebrow">{{ edit() ? 'Edit' : 'New' }} {{ postType().title.toLowerCase() }}</span>
+            <span class="editor-bar__eyebrow">{{ t(edit() ? 'post.edit' : 'post.new', { type: postType().title.toLowerCase() }) }}</span>
             <h1 class="editor-bar__title"
-                [class.is-placeholder]="!model().title">{{ model().title || 'Untitled' }}</h1>
+                [class.is-placeholder]="!model().title">{{ model().title || t('common.untitled') }}</h1>
         </div>
         <div class="editor-bar__actions">
             @if (edit()) {
@@ -26,7 +26,7 @@
                     <use href="icons.svg#i-trash" />
                 </svg>
                 }
-                {{ removing ? 'Deleting…' : 'Delete' }}
+                {{ removing ? t('common.deleting') : t('common.delete') }}
             </button>
             }
             <button mat-flat-button
@@ -37,7 +37,7 @@
                       class="spinner"
                       aria-hidden="true"></span>
                 }
-                {{ saving ? 'Saving…' : 'Save' }}
+                {{ saving ? t('common.saving') : t('common.save') }}
             </button>
         </div>
     </div>
@@ -45,11 +45,11 @@
     <div class="page page--form">
         <div class="form-stack">
             <section class="card"
-                     aria-label="Title">
+                     [attr.aria-label]="t('common.title')">
                 <div class="card__body">
                     <div class="field">
                         <label class="field__label"
-                               for="post-title">Title<span class="field__req"
+                               for="post-title">{{ t('common.title') }}<span class="field__req"
                                   aria-hidden="true">*</span></label>
                         <mat-form-field appearance="outline"
                                         subscriptSizing="dynamic">
@@ -63,7 +63,7 @@
                                      aria-hidden="true">
                                     <use href="icons.svg#i-alert" />
                                 </svg>
-                                This field is required
+                                {{ t('common.required') }}
                             </mat-error>
                         </mat-form-field>
                     </div>
@@ -73,7 +73,7 @@
             <section class="card">
                 <header class="card__header">
                     <div class="card__heading">
-                        <h2 class="card__title">Fields</h2>
+                        <h2 class="card__title">{{ t('common.fields') }}</h2>
                     </div>
                 </header>
                 @if (!fields().length) {
@@ -84,8 +84,8 @@
                             <use href="icons.svg#i-braces" />
                         </svg>
                     </span>
-                    <p class="empty__title">No fields yet</p>
-                    <p class="empty__text">This post type has only a title. Add fields in Post types.</p>
+                    <p class="empty__title">{{ t('common.noFields') }}</p>
+                    <p class="empty__text">{{ t('post.noFieldsText') }}</p>
                 </div>
                 } @else {
                 <div class="card__body">

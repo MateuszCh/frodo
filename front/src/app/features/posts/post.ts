@@ -9,6 +9,7 @@ import { Post, PostType } from '../../models/models';
 import { PostsService } from '../../core/posts.service';
 import { ToolsService } from '../../core/tools.service';
 import { FieldInputComponent } from '../fields/field-input/field-input';
+import { I18nService } from '../../core/i18n/i18n.service';
 
 @Component({
     selector: 'app-post',
@@ -22,6 +23,7 @@ import { FieldInputComponent } from '../fields/field-input/field-input';
     templateUrl: './post.html',
 })
 export class PostComponent implements OnInit {
+    protected readonly t = inject(I18nService).t;
     readonly type = input<string>('');
     readonly postType = input.required<PostType>();
     readonly post = input<Post>();
@@ -66,7 +68,7 @@ export class PostComponent implements OnInit {
                 if (editing) {
                     this.actionStatus.set('');
                     this.model.set(response);
-                    this.tools.alert(`${response.title} updated successfully`);
+                    this.tools.alert(this.t('post.updated', { title: response.title }));
                 } else if (response.url) {
                     this.router.navigateByUrl(response.url);
                 } else {
@@ -75,14 +77,14 @@ export class PostComponent implements OnInit {
             },
             error: (err) => {
                 this.actionStatus.set('');
-                this.tools.alert(err?.error?.error ?? err?.error ?? 'Error saving');
+                this.tools.alert(err?.error?.error ?? err?.error ?? this.t('common.errorSaving'));
             },
         });
     }
 
     removeDialog(): void {
-        const label = this.model().title || `${this.postType().type} post`;
-        this.tools.confirm(`Are you sure you want to delete ${label}?`).subscribe((ok) => {
+        const label = this.model().title || this.t('post.fallbackLabel', { type: this.postType().type });
+        this.tools.confirm(this.t('common.confirmDelete', { name: label })).subscribe((ok) => {
             if (ok) {
                 this.remove();
             }
@@ -95,8 +97,8 @@ export class PostComponent implements OnInit {
             next: () => this.router.navigate(['/posts', this.postType().type]),
             error: () => {
                 this.actionStatus.set('');
-                const label = this.model().title || `${this.postType().type} post`;
-                this.tools.alert(`There was an error removing ${label}`);
+                const label = this.model().title || this.t('post.fallbackLabel', { type: this.postType().type });
+                this.tools.alert(this.t('post.removeError', { label }));
             },
         });
     }

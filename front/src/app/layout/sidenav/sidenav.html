@@ -10,8 +10,8 @@
     </a>
 
     <nav class="nav"
-         aria-label="Main">
-        <p class="nav__group">Content</p>
+         [attr.aria-label]="t('nav.main')">
+        <p class="nav__group">{{ t('nav.content') }}</p>
         <a class="nav__item"
            routerLink="/pages"
            [attr.aria-current]="current.family === 'pages' ? 'page' : null">
@@ -19,7 +19,7 @@
                  aria-hidden="true">
                 <use href="icons.svg#i-layout" />
             </svg>
-            <span class="nav__label">Pages</span>
+            <span class="nav__label">{{ t('nav.pages') }}</span>
         </a>
         @for (type of postTypes(); track type._id) {
         <a class="nav__item"
@@ -33,7 +33,7 @@
         </a>
         }
 
-        <p class="nav__group">Media</p>
+        <p class="nav__group">{{ t('nav.media') }}</p>
         <a class="nav__item"
            routerLink="/files"
            [attr.aria-current]="current.family === 'files' ? 'page' : null">
@@ -41,10 +41,10 @@
                  aria-hidden="true">
                 <use href="icons.svg#i-image" />
             </svg>
-            <span class="nav__label">Files</span>
+            <span class="nav__label">{{ t('nav.files') }}</span>
         </a>
 
-        <p class="nav__group">Structure</p>
+        <p class="nav__group">{{ t('nav.structure') }}</p>
         <a class="nav__item"
            routerLink="/post-types"
            [attr.aria-current]="current.family === 'postTypes' ? 'page' : null">
@@ -52,7 +52,7 @@
                  aria-hidden="true">
                 <use href="icons.svg#i-braces" />
             </svg>
-            <span class="nav__label">Post types</span>
+            <span class="nav__label">{{ t('nav.postTypes') }}</span>
         </a>
         <a class="nav__item"
            routerLink="/components"
@@ -61,22 +61,22 @@
                  aria-hidden="true">
                 <use href="icons.svg#i-blocks" />
             </svg>
-            <span class="nav__label">Components</span>
+            <span class="nav__label">{{ t('nav.components') }}</span>
         </a>
     </nav>
 
     <div class="sidebar__theme">
         <span class="sidebar__theme-label"
-              id="theme-label">Theme</span>
+              id="theme-label">{{ t('nav.theme') }}</span>
         <div class="theme-switch"
              role="radiogroup"
              aria-labelledby="theme-label">
             <label class="theme-switch__option"
-                   title="Light">
+                   [title]="t('nav.themeLight')">
                 <input type="radio"
                        name="theme"
                        value="light"
-                       aria-label="Light theme"
+                       [attr.aria-label]="t('nav.themeLightLabel')"
                        [checked]="theme.theme() === 'light'"
                        (change)="theme.set('light')" />
                 <span class="theme-switch__label">
@@ -87,11 +87,11 @@
                 </span>
             </label>
             <label class="theme-switch__option"
-                   title="Dark">
+                   [title]="t('nav.themeDark')">
                 <input type="radio"
                        name="theme"
                        value="dark"
-                       aria-label="Dark theme"
+                       [attr.aria-label]="t('nav.themeDarkLabel')"
                        [checked]="theme.theme() === 'dark'"
                        (change)="theme.set('dark')" />
                 <span class="theme-switch__label">
@@ -104,6 +104,12 @@
         </div>
     </div>
 
+    <div class="sidebar__theme">
+        <span class="sidebar__theme-label"
+              aria-hidden="true">{{ t('nav.language') }}</span>
+        <app-language-switch></app-language-switch>
+    </div>
+
     <div class="sidebar__footer">
         @if (userService.isLogged()) {
         <a class="user"
@@ -113,13 +119,13 @@
                   aria-hidden="true">{{ userService.user().username?.charAt(0) }}</span>
             <span class="user__text">
                 <span class="user__name">{{ userService.user().username }}</span>
-                <span class="user__meta">Account settings</span>
+                <span class="user__meta">{{ t('nav.accountSettings') }}</span>
             </span>
         </a>
         }
         <button mat-icon-button
                 type="button"
-                aria-label="Log out"
+                [attr.aria-label]="t('nav.logOut')"
                 [attr.aria-busy]="logoutStatus()"
                 (click)="logout()">
             @if (logoutStatus()) {

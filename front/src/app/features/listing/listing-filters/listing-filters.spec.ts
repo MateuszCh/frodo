@@ -7,6 +7,11 @@ import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { ListingFiltersComponent } from './listing-filters';
 import type { Filters } from '../listing-filter';
 
+// These tests assert the English texts; the Polish default is covered in i18n.service.spec.ts
+// and in the Polish rendering tests.
+beforeEach(() => localStorage.setItem('frodo.lang', 'en'));
+afterEach(() => localStorage.removeItem('frodo.lang'));
+
 function makeFilters(): Filters {
     return {
         textFilter: { type: 'text', value: undefined },
