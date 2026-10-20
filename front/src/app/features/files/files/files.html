@@ -7,7 +7,7 @@
          [class.page]="!popup"
          [class.files--popup]="popup">
     @if (!popup) {
-    <header class="page-header files-header">
+    <header class="page-header page-header--sticky files-header">
         <div class="page-header__top">
             <div class="page-heading">
                 <h1 class="page-title">{{ t('files.title') }}</h1>
@@ -75,6 +75,7 @@
     }
 
     <mat-tab-group #tabs
+                   mat-stretch-tabs="false"
                    class="files-tabs">
         <!-- Library -->
         <mat-tab [label]="t('files.library')">

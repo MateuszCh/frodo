@@ -10,6 +10,29 @@
         overflow: clip;
     }
 
+    // MDC: the tabs stick under the sticky header
+    .mat-mdc-tab-header.mat-mdc-tab-header {
+        position: sticky;
+        top: calc(var(--page-header-top) + var(--page-header-h));
+        z-index: var(--z-sticky);
+        background: var(--sticky-bg);
+    }
+
+    // search and catalogues stick under the tabs; the padding moves out of the panel
+    // into the bar, so thumbnails scrolling underneath stay hidden
+    .tab-panel.files-select {
+        padding-top: var(--space-2);
+    }
+
+    .library__toolbar {
+        position: sticky;
+        top: calc(var(--page-header-top) + var(--page-header-h) + var(--sticky-tabs-h));
+        z-index: var(--z-sticky);
+        margin-bottom: var(--space-1);
+        padding-block: var(--space-3);
+        background: var(--sticky-bg);
+    }
+
     .mat-mdc-tab-body-active,
     .mat-mdc-tab-body-content {
         overflow: visible;
@@ -56,10 +79,13 @@
     .library--selected {
         grid-template-columns: minmax(0, 1fr) var(--layout-details-w);
 
+        // under the sticky header and tabs
         .library__details {
             position: sticky;
-            top: calc(var(--layout-canvas-inset) + var(--space-6));
-            max-height: calc(100dvh - 2 * var(--layout-canvas-inset) - var(--space-12));
+            top: calc(var(--page-header-top) + var(--page-header-h) + var(--sticky-tabs-h) + var(--space-6));
+            max-height: calc(
+                100dvh - var(--page-header-top) - var(--page-header-h) - var(--sticky-tabs-h) - var(--space-12)
+            );
             overflow-y: auto;
         }
     }

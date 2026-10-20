@@ -59,6 +59,27 @@
     }
 }
 
+// listings and file library: the header stays at the top while the list scrolls
+.page-header--sticky {
+    position: sticky;
+    top: var(--page-header-top);
+    z-index: var(--z-sticky);
+    height: var(--page-header-h);
+    align-content: center;
+    padding-block: var(--space-3);
+    background: var(--sticky-bg);
+
+    .page-header__top {
+        min-height: var(--control-h);
+    }
+}
+
+@media (min-width: 960px) {
+    .page-header--sticky {
+        padding-block: var(--space-4);
+    }
+}
+
 @media (min-width: 960px) {
     .page-header {
         display: flex;
