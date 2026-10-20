@@ -4,6 +4,7 @@ import localePl from '@angular/common/locales/pl';
 import { FieldType } from '../../models/models';
 import { Message, MessageKey, Plural, en, pl } from './messages';
 import { serverMessageInPolish } from './server-messages';
+import { polishAccusative, polishGender } from './polish-grammar';
 
 // DatePipe needs the locale data; en-US ships with Angular
 registerLocaleData(localePl);
@@ -58,6 +59,19 @@ export class I18nService {
             return message ?? '';
         }
         return serverMessageInPolish(message);
+    };
+
+    /** "Nowy marker", "Nowa ikona", "Nowe wydarzenie"; English "New marker". */
+    readonly newOfType = (title: string | null | undefined): string => {
+        const type = (title ?? '').trim().toLowerCase();
+        return type ? this.t(`post.new.${polishGender(type)}`, { type }) : this.t('listing.new.posts');
+    };
+
+    /** "Edytuj marker", "Edytuj ikonę"; "Edycja: strona główna" when unsure; English "Edit marker". */
+    readonly editOfType = (title: string | null | undefined): string => {
+        const type = (title ?? '').trim().toLowerCase();
+        const accusative = this.lang() === 'pl' ? polishAccusative(type) : type;
+        return accusative === null ? this.t('post.editFallback', { type }) : this.t('post.edit', { type: accusative });
     };
 
     /** Name of a field type in the post type editor. */

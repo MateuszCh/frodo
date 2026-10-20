@@ -68,7 +68,7 @@ export const pl = {
     'listing.title.components': 'komponenty',
     'listing.title.postTypes': 'typy wpisów',
     'listing.items': { one: 'pozycja', few: 'pozycje', many: 'pozycji', other: 'pozycji' },
-    'listing.new.posts': 'Nowy wpis',
+    'listing.new.posts': 'Nowy wpis', // when the post type has no title
     'listing.new.pages': 'Nowa strona',
     'listing.new.components': 'Nowy komponent',
     'listing.new.postTypes': 'Nowy typ wpisu',
@@ -139,8 +139,12 @@ export const pl = {
     'fieldType.catalogue': 'Katalog',
 
     // post editor
-    'post.edit': 'Edycja wpisu: {type}',
-    'post.new': 'Nowy wpis: {type}',
+    // {type} is the post type title; the adjective follows its gender (polish-grammar.ts)
+    'post.new.m': 'Nowy {type}',
+    'post.new.f': 'Nowa {type}',
+    'post.new.n': 'Nowe {type}',
+    'post.edit': 'Edytuj {type}', // {type} in the accusative: ikonę
+    'post.editFallback': 'Edycja: {type}', // when the accusative cannot be built safely
     'post.noFieldsText': 'Ten typ wpisu ma tylko tytuł. Pola dodasz w sekcji Typy wpisów.',
     'post.updated': 'Zapisano „{title}”',
     'post.removeError': 'Nie udało się usunąć: {label}',
@@ -351,7 +355,7 @@ export const en: Record<MessageKey, Message> = {
     'listing.title.components': 'components',
     'listing.title.postTypes': 'post types',
     'listing.items': { one: 'item', other: 'items' },
-    'listing.new.posts': 'New {type}',
+    'listing.new.posts': 'New post',
     'listing.new.pages': 'New page',
     'listing.new.components': 'New component',
     'listing.new.postTypes': 'New post type',
@@ -416,8 +420,11 @@ export const en: Record<MessageKey, Message> = {
     'fieldType.date': 'Date',
     'fieldType.catalogue': 'Catalogue',
 
+    'post.new.m': 'New {type}',
+    'post.new.f': 'New {type}',
+    'post.new.n': 'New {type}',
     'post.edit': 'Edit {type}',
-    'post.new': 'New {type}',
+    'post.editFallback': 'Edit {type}',
     'post.noFieldsText': 'This post type has only a title. Add fields in Post types.',
     'post.updated': '{title} updated successfully',
     'post.removeError': 'There was an error removing {label}',

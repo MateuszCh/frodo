@@ -5,7 +5,7 @@
       (ngSubmit)="save(form)">
     <div class="editor-bar">
         <div class="editor-bar__heading">
-            <span class="editor-bar__eyebrow">{{ t(edit() ? 'post.edit' : 'post.new', { type: postType().title.toLowerCase() }) }}</span>
+            <span class="editor-bar__eyebrow">{{ edit() ? editOfType(postType().title) : newOfType(postType().title) }}</span>
             <h1 class="editor-bar__title"
                 [class.is-placeholder]="!model().title">{{ model().title || t('common.untitled') }}</h1>
         </div>

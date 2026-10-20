@@ -16,7 +16,7 @@
                      aria-hidden="true">
                     <use href="icons.svg#i-plus" />
                 </svg>
-                {{ t(`listing.new.${key}`, { type: $any(model())?.title?.toLowerCase() ?? '' }) }}
+                {{ isPosts() ? newOfType($any(model())?.title) : t(`listing.new.${key}`) }}
             </button>
         </div>
 

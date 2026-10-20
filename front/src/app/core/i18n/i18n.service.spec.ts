@@ -127,6 +127,30 @@ describe('I18nService', () => {
         expect(service.server('Post removed successfully')).toBe('Post removed successfully');
     });
 
+    it('builds "New …" with the gender of the post type title', () => {
+        const service = createService(makeWindow(null));
+        expect(service.newOfType('Marker')).toBe('Nowy marker');
+        expect(service.newOfType('Ikona')).toBe('Nowa ikona');
+        expect(service.newOfType('Nawigacja')).toBe('Nowa nawigacja');
+        expect(service.newOfType('Wydarzenie')).toBe('Nowe wydarzenie');
+        expect(service.newOfType('')).toBe('Nowy wpis');
+
+        service.set('en');
+        expect(service.newOfType('Marker')).toBe('New marker');
+        expect(service.newOfType(undefined)).toBe('New post');
+    });
+
+    it('builds "Edit …" with the accusative, or a safe form when unsure', () => {
+        const service = createService(makeWindow(null));
+        expect(service.editOfType('Marker')).toBe('Edytuj marker');
+        expect(service.editOfType('Ikona')).toBe('Edytuj ikonę');
+        expect(service.editOfType('Wydarzenie')).toBe('Edytuj wydarzenie');
+        expect(service.editOfType('Strona główna')).toBe('Edycja: strona główna');
+
+        service.set('en');
+        expect(service.editOfType('Ikona')).toBe('Edit ikona');
+    });
+
     it('works without localStorage (private mode)', () => {
         const win = makeWindow(null);
         win.localStorage.getItem = vi.fn(() => {

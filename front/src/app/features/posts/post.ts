@@ -23,7 +23,10 @@ import { I18nService } from '../../core/i18n/i18n.service';
     templateUrl: './post.html',
 })
 export class PostComponent implements OnInit {
-    protected readonly t = inject(I18nService).t;
+    private readonly i18n = inject(I18nService);
+    protected readonly t = this.i18n.t;
+    protected readonly newOfType = this.i18n.newOfType;
+    protected readonly editOfType = this.i18n.editOfType;
     readonly type = input<string>('');
     readonly postType = input.required<PostType>();
     readonly post = input<Post>();

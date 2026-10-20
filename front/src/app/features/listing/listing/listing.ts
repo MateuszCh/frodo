@@ -51,6 +51,7 @@ export class ListingComponent {
     private readonly i18n = inject(I18nService);
     protected readonly t = this.i18n.t;
     protected readonly server = this.i18n.server;
+    protected readonly newOfType = this.i18n.newOfType;
 
     // resolve + route data, bound via withComponentInputBinding()
     readonly model = input<ListingModel>();

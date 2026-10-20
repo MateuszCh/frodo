@@ -98,6 +98,32 @@ describe('Polish interface', () => {
         expect(root.querySelector('.empty__title')?.textContent?.trim()).toBe('Brak stron');
         expect((root.querySelector('input[type="search"]') as HTMLInputElement).placeholder).toBe('Szukaj stron');
     });
+
+    it('names the "New" action after the gender of the post type', () => {
+        TestBed.configureTestingModule({
+            imports: [ListingComponent],
+            providers: [
+                provideRouter([]),
+                provideLocationMocks(),
+                provideNoopAnimations(),
+                { provide: LayoutService, useValue: { size: signal('size-x') } },
+                { provide: ToolsService, useValue: { confirm: vi.fn(() => of(true)), alert: vi.fn() } },
+                { provide: PagesService, useValue: {} },
+                { provide: PostsService, useValue: {} },
+                { provide: PostTypesService, useValue: {} },
+                { provide: ComponentsService, useValue: {} },
+                { provide: FilesService, useValue: { catalogues: signal<string[]>([]) } },
+            ],
+        });
+        const fixture = TestBed.createComponent(ListingComponent);
+        fixture.componentRef.setInput('family', 'posts');
+        fixture.componentRef.setInput('model', {
+            _id: 'pt1', id: 1, title: 'Ikona', pluralTitle: 'Ikony', type: 'icon', fields: [], posts: [],
+        });
+        fixture.detectChanges();
+
+        expect(buttonTexts(fixture.nativeElement)).toContain('Nowa ikona');
+    });
 });
 
 describe('LanguageSwitchComponent', () => {
