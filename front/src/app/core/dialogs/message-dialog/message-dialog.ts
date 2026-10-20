@@ -17,6 +17,9 @@ export interface MessageDialogData {
     templateUrl: './message-dialog.html',
 })
 export class MessageDialogComponent {
-    protected readonly t = inject(I18nService).t;
+    private readonly i18n = inject(I18nService);
+    protected readonly t = this.i18n.t;
+    /** Alerts often carry a backend message (save or import errors). */
+    protected readonly server = this.i18n.server;
     readonly data = inject<MessageDialogData>(MAT_DIALOG_DATA);
 }

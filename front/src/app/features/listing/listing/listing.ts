@@ -48,7 +48,9 @@ interface RemoveStatus {
     templateUrl: './listing.html',
 })
 export class ListingComponent {
-    protected readonly t = inject(I18nService).t;
+    private readonly i18n = inject(I18nService);
+    protected readonly t = this.i18n.t;
+    protected readonly server = this.i18n.server;
 
     // resolve + route data, bound via withComponentInputBinding()
     readonly model = input<ListingModel>();

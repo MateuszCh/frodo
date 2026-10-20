@@ -3,6 +3,7 @@ import { registerLocaleData } from '@angular/common';
 import localePl from '@angular/common/locales/pl';
 import { FieldType } from '../../models/models';
 import { Message, MessageKey, Plural, en, pl } from './messages';
+import { serverMessageInPolish } from './server-messages';
 
 // DatePipe needs the locale data; en-US ships with Angular
 registerLocaleData(localePl);
@@ -44,6 +45,19 @@ export class I18nService {
                 ? message
                 : this.pluralForm(message, PLURALS[lang].select(Number(params?.['count'] ?? 0)));
         return params ? text.replace(/\{(\w+)\}/g, (match, name: string) => String(params[name] ?? match)) : text;
+    };
+
+    /**
+     * A message sent by the backend, in the current language: Polish through the
+     * mapping in server-messages.ts, English as the server wrote it. Frontend texts
+     * and unknown messages pass through unchanged.
+     */
+    readonly server = (message: string | null | undefined): string => {
+        // an error body that is not text is shown as before
+        if (typeof message !== 'string' || !message || this.lang() === 'en') {
+            return message ?? '';
+        }
+        return serverMessageInPolish(message);
     };
 
     /** Name of a field type in the post type editor. */

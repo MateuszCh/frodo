@@ -53,7 +53,7 @@
                     @if (errorMessage()) {
                         <p class="message message--error" role="alert">
                             <svg class="icon" aria-hidden="true"><use href="icons.svg#i-alert" /></svg>
-                            {{ errorMessage() }}
+                            {{ server(errorMessage()) }}
                         </p>
                     }
                 </div>

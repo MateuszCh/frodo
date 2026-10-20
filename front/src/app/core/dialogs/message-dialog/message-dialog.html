@@ -1,7 +1,7 @@
 @if (data.title || data.confirm) {
     <h2 mat-dialog-title>{{ data.title || t('dialog.confirmDeletion') }}</h2>
 }
-<mat-dialog-content>{{ data.message }}</mat-dialog-content>
+<mat-dialog-content>{{ server(data.message) }}</mat-dialog-content>
 <mat-dialog-actions>
     @if (data.confirm) {
         <button mat-stroked-button type="button" [mat-dialog-close]="false">{{ t('common.cancel') }}</button>

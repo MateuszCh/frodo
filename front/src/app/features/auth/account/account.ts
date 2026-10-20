@@ -14,7 +14,9 @@ import { I18nService } from '../../../core/i18n/i18n.service';
     templateUrl: './account.html',
 })
 export class AccountComponent implements OnInit {
-    protected readonly t = inject(I18nService).t;
+    private readonly i18n = inject(I18nService);
+    protected readonly t = this.i18n.t;
+    protected readonly server = this.i18n.server;
     readonly user = input<User>();
 
     private userService = inject(UserService);

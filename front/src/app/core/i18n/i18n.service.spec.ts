@@ -94,6 +94,39 @@ describe('I18nService', () => {
         expect(service.fieldType('checkbox')).toBe('True/False');
     });
 
+    it('translates backend messages into Polish, with the captured parts', () => {
+        const { server } = createService(makeWindow(null));
+        expect(server('Post removed successfully')).toBe('Wpis został usunięty');
+        expect(server('marker type removed successfully')).toBe('Typ „marker” został usunięty');
+        expect(server('There already is page with "home" url.')).toBe('Strona z adresem „home” już istnieje.');
+        expect(server('Incorrect password')).toBe('Nieprawidłowe hasło');
+        expect(server('There is no post type with ')).toBe('Nie ma takiego typu wpisu');
+    });
+
+    it('translates each part of a Mongoose validation error', () => {
+        const { server } = createService(makeWindow(null));
+        expect(
+            server('Post validation failed: title: Title of post is required, type: Type of post is required'),
+        ).toBe('Nieprawidłowe dane: Tytuł wpisu jest wymagany; Typ wpisu jest wymagany');
+        expect(server('PostType validation failed: fields.0.id: id of field is required')).toBe(
+            'Nieprawidłowe dane: Id pola jest wymagane',
+        );
+    });
+
+    it('passes unknown messages, frontend texts and empty values through', () => {
+        const { server } = createService(makeWindow(null));
+        expect(server('E11000 duplicate key error')).toBe('E11000 duplicate key error');
+        expect(server('Zapisano „Kopalnia Guido”')).toBe('Zapisano „Kopalnia Guido”');
+        expect(server(undefined)).toBe('');
+        expect(server(null)).toBe('');
+    });
+
+    it('shows backend messages unchanged in English', () => {
+        const service = createService(makeWindow(null));
+        service.set('en');
+        expect(service.server('Post removed successfully')).toBe('Post removed successfully');
+    });
+
     it('works without localStorage (private mode)', () => {
         const win = makeWindow(null);
         win.localStorage.getItem = vi.fn(() => {

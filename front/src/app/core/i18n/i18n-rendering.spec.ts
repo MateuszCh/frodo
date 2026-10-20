@@ -50,6 +50,27 @@ describe('Polish interface', () => {
         expect(buttonTexts(root)).toEqual(['Cancel', 'Delete']);
     });
 
+    it('shows a backend message in an alert in Polish', () => {
+        TestBed.configureTestingModule({
+            imports: [MessageDialogComponent],
+            providers: [
+                provideNoopAnimations(),
+                { provide: MAT_DIALOG_DATA, useValue: { message: 'Duplicate field ids', confirm: false } },
+                { provide: MatDialogRef, useValue: { close: vi.fn() } },
+            ],
+        });
+        const fixture = TestBed.createComponent(MessageDialogComponent);
+        fixture.detectChanges();
+        const content = () => fixture.nativeElement.querySelector('mat-dialog-content').textContent.trim();
+
+        expect(content()).toBe('Id pól powtarzają się');
+        expect(buttonTexts(fixture.nativeElement)).toEqual(['OK']);
+
+        TestBed.inject(I18nService).set('en');
+        fixture.detectChanges();
+        expect(content()).toBe('Duplicate field ids');
+    });
+
     it('renders an empty pages listing in Polish', () => {
         TestBed.configureTestingModule({
             imports: [ListingComponent],
