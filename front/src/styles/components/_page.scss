@@ -98,13 +98,7 @@
 // the title in a bar stuck to the top of the canvas. One pattern for the post,
 // page, post type and component editors.
 
-// The form only groups the controls: without a box of its own the bar sticks across
-// the whole editor, and ToolsService.scrollToError() (which finds the invalid <form>
-// first) does not jump to the middle of a long form now that #scroll scrolls.
-.editor {
-    display: contents;
-}
-
+// the form wraps the bar and the page, so the bar sticks across the whole editor
 .editor-bar {
     // mobile: under the sticky top bar, so the menu button stays reachable
     position: sticky;
