@@ -43,15 +43,38 @@
     padding-top: var(--space-5);
 }
 
+// search on its own row, sort + catalogues below it
 .library__toolbar {
     display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
     gap: var(--space-2);
     margin-bottom: var(--space-4);
+
+    > .control--search {
+        grid-column: 1 / -1;
+    }
+
+    // mat-menu host stays out of the layout
+    > mat-menu {
+        display: contents;
+    }
 }
 
+// one row: search | sort | catalogues
 @media (min-width: 600px) {
     .library__toolbar {
-        grid-template-columns: minmax(0, 1fr) minmax(0, 240px);
+        display: flex;
+        align-items: center;
+
+        > .control--search {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        > .mat-mdc-form-field {
+            flex: 0 1 240px;
+            min-width: 0;
+        }
     }
 }
 

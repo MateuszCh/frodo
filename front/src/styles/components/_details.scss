@@ -14,6 +14,26 @@
     overflow-wrap: anywhere;
 }
 
+// name with the deselect button in the top-right corner
+.details__head {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
+
+    > .details__name {
+        flex: 1;
+        min-width: 0;
+    }
+}
+
+// full-size icon button (as the dialog close), centred on the first line of the name
+// and pulled towards the corner of the panel
+.details__close {
+    flex-shrink: 0;
+    margin-block: calc((var(--leading-lg) - var(--control-h)) / 2);
+    margin-right: calc(var(--space-2) * -1);
+}
+
 .details__actions {
     display: flex;
     flex-wrap: wrap;

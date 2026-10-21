@@ -225,6 +225,95 @@ describe('FilesComponent — filtering and paging', () => {
 });
 
 // ---------------------------------------------------------------------------
+// sorting
+// ---------------------------------------------------------------------------
+
+describe('FilesComponent — sorting', () => {
+    afterEach(() => sessionStorage.clear());
+
+    it('offers the same sort options as the listings', () => {
+        const { comp } = setup([makeFile()]);
+        expect(comp.sortTypes.map((s: { varName: string }) => s.varName)).toEqual([
+            '-created',
+            'created',
+            'title',
+        ]);
+    });
+
+    it('defaults to oldest first', () => {
+        const newer = makeFile({ created: 3 });
+        const older = makeFile({ created: 1 });
+        const { comp } = setup([newer, older]);
+        expect(comp.sortCurrent()).toBe('created');
+        expect(comp.filtered()).toEqual([older, newer]);
+    });
+
+    it('sortBy reorders the files and persists the choice to sessionStorage', () => {
+        const older = makeFile({ created: 1, title: 'b' });
+        const newer = makeFile({ created: 2, title: 'a' });
+        const { comp } = setup([older, newer]);
+
+        comp.sortBy('-created');
+        expect(comp.filtered()).toEqual([newer, older]);
+        expect(sessionStorage.getItem('sorting.files')).toBe('-created');
+
+        comp.sortBy('title');
+        expect(comp.filtered()).toEqual([newer, older]);
+        expect(sessionStorage.getItem('sorting.files')).toBe('title');
+    });
+
+    it('title sort falls back to the filename when a file has no title', () => {
+        const charlie = makeFile({ title: 'charlie', filename: 'x.jpg' });
+        const alpha = makeFile({ title: undefined, filename: 'alpha.jpg' });
+        const bravo = makeFile({ title: '', filename: 'bravo.jpg' });
+        const { comp } = setup([charlie, alpha, bravo]);
+        comp.sortBy('title');
+        expect(comp.filtered()).toEqual([alpha, bravo, charlie]);
+    });
+
+    it('keeps the original file objects so the selection survives a re-sort', () => {
+        const older = makeFile({ created: 1 });
+        const newer = makeFile({ created: 2 });
+        const { fixture, comp } = setup([older, newer]);
+        comp.select(older);
+        fixture.detectChanges();
+        comp.sortBy('-created');
+        fixture.detectChanges();
+        expect(comp.filtered()[1]).toBe(older);
+        expect(comp.selected()).toBe(older);
+    });
+
+    it('restores the persisted sort on init', () => {
+        sessionStorage.setItem('sorting.files', '-created');
+        const older = makeFile({ created: 1 });
+        const newer = makeFile({ created: 2 });
+        const { comp } = setup([older, newer]);
+        expect(comp.sortCurrent()).toBe('-created');
+        expect(comp.filtered()).toEqual([newer, older]);
+    });
+
+    it('sorts after filtering', () => {
+        const apple = makeFile({ filename: 'apple.jpg', created: 1 });
+        const banana1 = makeFile({ filename: 'banana1.jpg', created: 2 });
+        const banana2 = makeFile({ filename: 'banana2.jpg', created: 3 });
+        const { comp } = setup([apple, banana1, banana2]);
+        comp.searchText.set('banana');
+        comp.sortBy('-created');
+        expect(comp.filtered()).toEqual([banana2, banana1]);
+    });
+
+    it('uses the listing labels in Polish', () => {
+        localStorage.setItem('frodo.lang', 'pl');
+        const { comp } = setup([makeFile()]);
+        expect(comp.sortTypes.map((s: { varName: string }) => comp.sortName(s))).toEqual([
+            'najnowsze',
+            'najstarsze',
+            'tytuł',
+        ]);
+    });
+});
+
+// ---------------------------------------------------------------------------
 // select / chooseSelected / isImage
 // ---------------------------------------------------------------------------
 
@@ -238,6 +327,27 @@ describe('FilesComponent — selection', () => {
         fixture.detectChanges();
         comp.chooseSelected();
         expect(emitted).toEqual([file]);
+    });
+
+    it('selecting the selected file again deselects it', () => {
+        const apple = makeFile();
+        const banana = makeFile();
+        const { comp } = setup([apple, banana]);
+        comp.select(apple);
+        comp.select(banana);
+        expect(comp.selected()).toBe(banana);
+        comp.select(banana);
+        expect(comp.selected()).toBeUndefined();
+        comp.select(banana);
+        expect(comp.selected()).toBe(banana);
+    });
+
+    it('deselect clears the selection', () => {
+        const file = makeFile();
+        const { comp } = setup([file]);
+        comp.select(file);
+        comp.deselect();
+        expect(comp.selected()).toBeUndefined();
     });
 
     it('chooseSelected does nothing without a selection', () => {
@@ -834,6 +944,99 @@ describe('files.html — event handlers', () => {
 
         expect(comp.searchText()).toBe('abc');
         expect(comp.searchCatalogues()).toEqual(['gallery']);
+    });
+
+    it('sort button sits between the search input and the catalogue filter', () => {
+        const mocks = createMocks();
+        mocks.files.catalogues = signal<string[]>(['gallery']);
+        const { fixture } = setup([makeFile()], false, mocks);
+
+        const children = Array.from<HTMLElement>(
+            fixture.nativeElement.querySelector('.files-filters').children,
+        );
+        const search = children.findIndex((el) => el.classList.contains('control--search'));
+        const sort = children.findIndex((el) => el.classList.contains('sort-toggle'));
+        const catalogues = children.findIndex((el) => el.tagName === 'MAT-FORM-FIELD');
+
+        expect(search).toBeGreaterThan(-1);
+        expect(sort).toBeGreaterThan(search);
+        expect(catalogues).toBeGreaterThan(sort);
+    });
+
+    it('sort button shows the current sort', () => {
+        const { fixture, comp } = setup([makeFile()]);
+        const label = () =>
+            fixture.nativeElement.querySelector('.sort-toggle__label').textContent.trim();
+        expect(label()).toBe('oldest');
+
+        comp.sortBy('-created');
+        fixture.detectChanges();
+        expect(label()).toBe('newest');
+        sessionStorage.clear();
+    });
+
+    it('clicking the selected thumbnail again closes the details panel', () => {
+        const { fixture } = setup([makeFile()]);
+        const thumb: HTMLButtonElement = fixture.nativeElement.querySelector('.files-grid__item');
+
+        thumb.click();
+        fixture.detectChanges();
+        expect(thumb.getAttribute('aria-pressed')).toBe('true');
+        expect(fixture.nativeElement.querySelector('.files-edit')).not.toBeNull();
+
+        thumb.click();
+        fixture.detectChanges();
+        expect(thumb.getAttribute('aria-pressed')).toBe('false');
+        expect(fixture.nativeElement.querySelector('.files-edit')).toBeNull();
+    });
+
+    for (const popup of [false, true]) {
+        it(`the icon button in the details header deselects the file (popup: ${popup})`, () => {
+            const mocks = createMocks();
+            const file = makeFile();
+            mocks.files.getAllFiles.mockReturnValue(of([file]));
+            const { fixture, comp } = setup([file], popup, mocks);
+            comp.select(file);
+            fixture.detectChanges();
+
+            const close: HTMLButtonElement = fixture.nativeElement.querySelector(
+                '.files-edit .details__head .details__close',
+            );
+            expect(close.getAttribute('aria-label')).toBe('Deselect file');
+            close.click();
+            fixture.detectChanges();
+
+            expect(comp.selected()).toBeUndefined();
+            expect(fixture.nativeElement.querySelector('.files-edit')).toBeNull();
+        });
+    }
+
+    it('hides the sort button when there are no files', () => {
+        const { fixture } = setup([]);
+        expect(fixture.nativeElement.querySelector('.sort-toggle')).toBeNull();
+    });
+
+    it('sort menu lists the options, checks the current one and calls sortBy on click', () => {
+        const { fixture, comp } = setup([makeFile()]);
+        const spy = vi.spyOn(comp, 'sortBy');
+
+        fixture.nativeElement.querySelector('.sort-toggle').click();
+        fixture.detectChanges();
+
+        const items = Array.from<HTMLButtonElement>(
+            document.body.querySelectorAll('button[mat-menu-item]'),
+        );
+        expect(items.map((b) => b.textContent?.trim())).toEqual(['newest', 'oldest', 'title']);
+        expect(items.map((b) => b.getAttribute('aria-checked'))).toEqual([
+            'false',
+            'true',
+            'false',
+        ]);
+
+        items[0].click();
+        fixture.detectChanges();
+        expect(spy).toHaveBeenCalledWith('-created');
+        sessionStorage.clear();
     });
 
     it('edit panel inputs write back to the selected file', () => {

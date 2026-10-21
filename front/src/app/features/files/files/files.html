@@ -103,6 +103,37 @@
                                    [ngModel]="searchText()"
                                    (ngModelChange)="searchText.set($event)" />
                         </label>
+                        <button mat-stroked-button
+                                type="button"
+                                class="sort-toggle"
+                                [matMenuTriggerFor]="sortMenu">
+                            <svg matButtonIcon
+                                 class="icon"
+                                 aria-hidden="true">
+                                <use href="icons.svg#i-sort" />
+                            </svg>
+                            @for (sort of sortTypes; track sort.varName) {
+                            @if (sortCurrent() === sort.varName) {
+                            <span class="sort-toggle__label">{{ sortName(sort) }}</span>
+                            }
+                            }
+                        </button>
+                        <mat-menu #sortMenu="matMenu"
+                                  [aria-label]="t('listing.sortBy')">
+                            @for (sort of sortTypes; track sort.varName) {
+                            <button mat-menu-item
+                                    type="button"
+                                    role="menuitemradio"
+                                    [attr.aria-checked]="sortCurrent() === sort.varName"
+                                    (click)="sortBy(sort.varName)">
+                                <span class="menu__text">{{ sortName(sort) }}</span>
+                                <svg class="icon menu__check"
+                                     aria-hidden="true">
+                                    <use href="icons.svg#i-check" />
+                                </svg>
+                            </button>
+                            }
+                        </mat-menu>
                         @if (catalogues().length) {
                         <mat-form-field appearance="outline"
                                         subscriptSizing="dynamic">
@@ -187,7 +218,19 @@
                        [class.library__details]="!popup"
                        [attr.aria-label]="t('files.details')">
                     <div class="details">
-                        <p class="details__name files-edit__name">{{ file.filename }}</p>
+                        <div class="details__head">
+                            <p class="details__name files-edit__name">{{ file.filename }}</p>
+                            <button mat-icon-button
+                                    type="button"
+                                    class="details__close"
+                                    [attr.aria-label]="t('files.deselect')"
+                                    (click)="deselect()">
+                                <svg class="icon"
+                                     aria-hidden="true">
+                                    <use href="icons.svg#i-x" />
+                                </svg>
+                            </button>
+                        </div>
                         <div class="details__actions">
                             @if (popup) {
                             <button mat-flat-button

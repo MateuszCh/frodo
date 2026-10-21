@@ -17,6 +17,7 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatDialogModule } from '@angular/material/dialog';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatMenuModule } from '@angular/material/menu';
 import { MatSelectModule } from '@angular/material/select';
 import { MatProgressBarModule } from '@angular/material/progress-bar';
 
@@ -27,6 +28,7 @@ import { BytesPipe } from '../../../shared/bytes.pipe';
 import { ImgLoadedDirective } from '../../../shared/img-loaded.directive';
 import { InfiniteScrollDirective } from '../../../shared/infinite-scroll.directive';
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { SortType, applySort, buildSort, persistSort } from '../../listing/listing-filter';
 
 interface PendingUpload {
     file: File;
@@ -43,6 +45,7 @@ interface PendingUpload {
         MatButtonModule,
         MatFormFieldModule,
         MatInputModule,
+        MatMenuModule,
         MatSelectModule,
         MatProgressBarModule,
         MatDialogModule,
@@ -68,6 +71,10 @@ export class FilesComponent implements OnInit {
     protected readonly catalogues = signal<string[]>([]);
     protected readonly searchText = signal('');
     protected readonly searchCatalogues = signal<string[]>([]);
+    // same options and sessionStorage persistence as the pages / posts listings
+    private readonly sort = buildSort('files', 'files', undefined);
+    protected readonly sortTypes = this.sort.types;
+    protected readonly sortCurrent = signal(this.sort.current);
     protected readonly limit = signal(120);
     protected readonly selected = signal<FileItem | undefined>(undefined);
     protected readonly newCatalogue = signal('');
@@ -102,7 +109,14 @@ export class FilesComponent implements OnInit {
         if (cats.length) {
             list = list.filter((f) => (f.catalogues ?? []).some((c) => cats.indexOf(c) > -1));
         }
-        return list;
+        // sort by keys rather than copies so `selected() === file` still holds;
+        // files without a title sort by their filename
+        const keyed = list.map((file) => ({
+            file,
+            created: file.created,
+            title: file.title || file.filename,
+        }));
+        return applySort(keyed, this.sortCurrent()).map((k) => k.file);
     });
     protected readonly visible = computed(() => this.filtered().slice(0, this.limit()));
 
@@ -163,8 +177,13 @@ export class FilesComponent implements OnInit {
 
     // ---- selection / edit -----------------------------------------------------
 
+    /** Clicking the selected file again deselects it. */
     select(file: FileItem): void {
-        this.selected.set(file);
+        this.selected.set(this.selected() === file ? undefined : file);
+    }
+
+    deselect(): void {
+        this.selected.set(undefined);
     }
 
     chooseSelected(): void {
@@ -215,6 +234,25 @@ export class FilesComponent implements OnInit {
                 this.tools.alert(e?.error?.error ?? e?.error ?? this.t('common.errorRemoving'));
             },
         });
+    }
+
+    // ---- sorting --------------------------------------------------------------
+
+    /** Same labels as the listings' fixed sorts. */
+    protected sortName(sort: SortType): string {
+        switch (sort.varName) {
+            case '-created':
+                return this.t('listing.sort.newest');
+            case 'created':
+                return this.t('listing.sort.oldest');
+            default:
+                return this.t('listing.sort.title');
+        }
+    }
+
+    sortBy(varName: string): void {
+        this.sortCurrent.set(varName);
+        persistSort('files', varName);
     }
 
     incrementLimit(): void {
