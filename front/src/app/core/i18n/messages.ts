@@ -46,6 +46,7 @@ export const pl = {
     // shell and navigation
     'app.backToTop': 'Do góry',
     'app.openMenu': 'Otwórz menu',
+    'app.loading': 'Wczytywanie…',
     'nav.main': 'Menu główne',
     'nav.content': 'Treść',
     'nav.media': 'Multimedia',
@@ -258,6 +259,8 @@ export const pl = {
     'files.removed': 'Usunięto „{name}”',
     'files.uploaded': 'Pliki zostały przesłane',
     'files.errorUploading': 'Błąd przesyłania',
+    'files.loading': 'Wczytywanie plików…',
+    'files.errorLoading': 'Nie udało się wczytać plików',
     'files.noFilesToImport': 'W pliku nie ma poprawnych plików do zaimportowania',
     'files.imported': {
         one: 'Zaimportowano {count} plik',
@@ -335,6 +338,7 @@ export const en: Record<MessageKey, Message> = {
 
     'app.backToTop': 'Back to top',
     'app.openMenu': 'Open menu',
+    'app.loading': 'Loading…',
     'nav.main': 'Main',
     'nav.content': 'Content',
     'nav.media': 'Media',
@@ -526,6 +530,8 @@ export const en: Record<MessageKey, Message> = {
     'files.removed': '{name} removed successfully',
     'files.uploaded': 'Files uploaded successfully',
     'files.errorUploading': 'Error uploading',
+    'files.loading': 'Loading files…',
+    'files.errorLoading': 'Could not load files',
     'files.noFilesToImport': 'There is no correct files to import',
     'files.imported': {
         one: '{count} files was successfully imported',

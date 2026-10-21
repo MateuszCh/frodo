@@ -89,7 +89,9 @@
                      appInfiniteScroll
                      (reached)="incrementLimit()"
                      [enabled]="visible().length < filtered().length">
-                    @if (files().length) {
+                    <!-- shown while the popup loads, so the grid does not move; the
+                         catalogues get their options once the files are in -->
+                    @if (loading() || files().length) {
                     <div class="library__toolbar files-filters">
                         <label class="control control--search">
                             <span class="visually-hidden">{{ t('files.search') }}</span>
@@ -134,12 +136,13 @@
                             </button>
                             }
                         </mat-menu>
-                        @if (catalogues().length) {
+                        @if (loading() || catalogues().length) {
                         <mat-form-field appearance="outline"
                                         subscriptSizing="dynamic">
                             <mat-select multiple
                                         [aria-label]="t('files.catalogues')"
                                         [placeholder]="t('files.allCatalogues')"
+                                        [disabled]="loading()"
                                         [ngModel]="searchCatalogues()"
                                         (ngModelChange)="searchCatalogues.set($event)">
                                 @for (catalogue of catalogues(); track catalogue) {
@@ -151,7 +154,15 @@
                     </div>
                     }
 
-                    @if (!files().length) {
+                    @if (loading()) {
+                    <!-- spinner in the middle of the picker while the files load -->
+                    <div class="files-loader"
+                         role="status">
+                        <span class="spinner spinner--lg"
+                              aria-hidden="true"></span>
+                        <span class="visually-hidden">{{ t('files.loading') }}</span>
+                    </div>
+                    } @else if (!files().length) {
                     <div class="card">
                         <div class="empty">
                             <span class="empty__icon">

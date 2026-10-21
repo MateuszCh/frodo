@@ -68,6 +68,8 @@ export class FilesComponent implements OnInit {
     private tools = inject(ToolsService);
 
     protected readonly files = signal<FileItem[]>([]);
+    // popup only: the files are fetched after the dialog opens
+    protected readonly loading = signal(false);
     protected readonly catalogues = signal<string[]>([]);
     protected readonly searchText = signal('');
     protected readonly searchCatalogues = signal<string[]>([]);
@@ -122,10 +124,18 @@ export class FilesComponent implements OnInit {
 
     ngOnInit(): void {
         if (this.isPopup()) {
-            this.filesService.getAllFiles().subscribe((files) => {
-                const list = files ?? [];
-                this.files.set(list);
-                this.deriveCatalogues(list);
+            this.loading.set(true);
+            this.filesService.getAllFiles().subscribe({
+                next: (files) => {
+                    const list = files ?? [];
+                    this.files.set(list);
+                    this.deriveCatalogues(list);
+                    this.loading.set(false);
+                },
+                error: (e) => {
+                    this.loading.set(false);
+                    this.tools.alert(e?.error?.error ?? e?.error ?? this.t('files.errorLoading'));
+                },
             });
         } else {
             const files = this.allFiles() ?? [];

@@ -62,6 +62,13 @@
     height: 20px;
 }
 
+// on its own in an empty area (file picker loading)
+.spinner--lg {
+    width: 32px;
+    height: 32px;
+    border-width: 3px;
+}
+
 @keyframes spin {
     to {
         transform: rotate(360deg);

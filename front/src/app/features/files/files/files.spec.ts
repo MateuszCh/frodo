@@ -6,7 +6,7 @@ import { NgModel } from '@angular/forms';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatDialogRef } from '@angular/material/dialog';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import { FilesComponent } from './files';
 import { FilesService } from '../../../core/files.service';
@@ -142,6 +142,90 @@ describe('FilesComponent — init', () => {
         const { comp } = setup([], true, mocks);
         expect(mocks.files.getAllFiles).toHaveBeenCalled();
         expect(comp.files()).toEqual(files);
+    });
+
+    it('shows a spinner instead of "no files" while the popup loads', () => {
+        const mocks = createMocks();
+        const response = new Subject<FileItem[]>();
+        mocks.files.getAllFiles.mockReturnValue(response);
+        const { fixture, comp } = setup([], true, mocks);
+        const el: HTMLElement = fixture.nativeElement;
+
+        expect(comp.loading()).toBe(true);
+        const loader = el.querySelector('.files-loader');
+        expect(loader?.getAttribute('role')).toBe('status');
+        expect(loader?.querySelector('.spinner')).not.toBeNull();
+        expect(loader?.textContent?.trim()).toBe('Loading files…');
+        expect(el.textContent).not.toContain('No files yet');
+
+        response.next([makeFile()]);
+        fixture.detectChanges();
+
+        expect(comp.loading()).toBe(false);
+        expect(el.querySelector('.files-loader')).toBeNull();
+        expect(el.querySelectorAll('.files-grid__item')).toHaveLength(1);
+    });
+
+    it('shows the toolbar right away while the popup loads; catalogues fill in afterwards', async () => {
+        const mocks = createMocks();
+        const response = new Subject<FileItem[]>();
+        mocks.files.getAllFiles.mockReturnValue(response);
+        const { fixture } = setup([], true, mocks);
+        const el: HTMLElement = fixture.nativeElement;
+        const select = () => el.querySelector('.files-filters mat-select');
+        // ngModel applies [disabled] in a microtask
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        expect(el.querySelector('.files-filters .control--search input')).not.toBeNull();
+        expect(el.querySelector('.files-filters .sort-toggle')).not.toBeNull();
+        expect(select()?.getAttribute('aria-disabled')).toBe('true');
+
+        response.next([makeFile({ catalogues: ['gallery'] })]);
+        fixture.detectChanges();
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        expect(select()?.getAttribute('aria-disabled')).toBe('false');
+        (select() as HTMLElement).click();
+        fixture.detectChanges();
+        const options = Array.from(document.body.querySelectorAll('mat-option')).map((o) =>
+            o.textContent?.trim(),
+        );
+        expect(options).toEqual(['gallery']);
+    });
+
+    it('hides the catalogue filter once loaded when no file has a catalogue', () => {
+        const mocks = createMocks();
+        const response = new Subject<FileItem[]>();
+        mocks.files.getAllFiles.mockReturnValue(response);
+        const { fixture } = setup([], true, mocks);
+        response.next([makeFile()]);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('.files-filters')).not.toBeNull();
+        expect(fixture.nativeElement.querySelector('.files-filters mat-select')).toBeNull();
+    });
+
+    it('shows "no files" once the popup has loaded an empty list', () => {
+        const mocks = createMocks();
+        const { fixture } = setup([], true, mocks);
+        expect(fixture.nativeElement.querySelector('.files-loader')).toBeNull();
+        expect(fixture.nativeElement.textContent).toContain('No files yet');
+    });
+
+    it('stops loading and alerts when the popup fetch fails', () => {
+        const mocks = createMocks();
+        mocks.files.getAllFiles.mockReturnValue(throwError(() => ({ status: 500 })));
+        const { fixture, comp } = setup([], true, mocks);
+        expect(comp.loading()).toBe(false);
+        expect(mocks.tools.alert).toHaveBeenCalledWith('Could not load files');
+        expect(fixture.nativeElement.querySelector('.files-loader')).toBeNull();
+    });
+
+    it('never shows the spinner on the page, where the files come from the resolver', () => {
+        const { fixture, comp } = setup([], false);
+        expect(comp.loading()).toBe(false);
+        expect(fixture.nativeElement.querySelector('.files-loader')).toBeNull();
     });
 
     it('falls back to [] when the popup fetch returns null', () => {

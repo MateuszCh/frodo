@@ -12,6 +12,26 @@ app-root {
     height: 100%;
 }
 
+// Route loading (app-route-loader): a light veil of the app background over the whole
+// window, the spinner in its middle; it also stops clicks while the next page loads.
+.route-loader {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-route-loader);
+    display: grid;
+    place-items: center;
+    background: color-mix(in srgb, var(--color-bg) 60%, transparent);
+    color: var(--color-accent);
+    cursor: progress;
+    animation: route-loader-in var(--duration-normal) var(--ease-standard);
+}
+
+@keyframes route-loader-in {
+    from {
+        opacity: 0;
+    }
+}
+
 // Sticky header of the listings and the file library (.page-header--sticky):
 // where it sticks and how tall it is, so the bars below can stick under it.
 // Mobile: under the 56 px top bar, title row + actions row; desktop: one row.

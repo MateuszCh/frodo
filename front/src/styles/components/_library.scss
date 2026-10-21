@@ -98,12 +98,40 @@
     }
 }
 
+// Thumbnails and the details panel share one set of columns (the thumbnail grid is a
+// subgrid of .library): the panel takes the last three columns away from the grid,
+// so fewer thumbnails fit in a row but each keeps its size.
 @media (min-width: 1280px) {
+    .library {
+        grid-template-columns: repeat(auto-fill, minmax(var(--layout-thumb-min), 1fr));
+        column-gap: var(--space-3);
+
+        > .files-grid-pane {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: subgrid;
+            align-content: start;
+
+            > * {
+                grid-column: 1 / -1;
+            }
+
+            > .thumbs {
+                grid-template-columns: subgrid;
+            }
+        }
+    }
+
     .library--selected {
-        grid-template-columns: minmax(0, 1fr) var(--layout-details-w);
+        > .files-grid-pane {
+            grid-column: 1 / -4;
+        }
 
         // under the sticky header and tabs
         .library__details {
+            grid-column: -4 / -1;
+            // the column gap is a thumbnail gap; the panel keeps the design's distance
+            margin-left: var(--space-3);
             position: sticky;
             top: calc(var(--page-header-top) + var(--page-header-h) + var(--sticky-tabs-h) + var(--space-6));
             max-height: calc(
@@ -185,12 +213,33 @@ app-files {
     display: block;
 }
 
+// MDC: the dialog's component host (app-file-picker-dialog) is display: contents, so
+// app-files is the flex item of the dialog surface. It has to fill the surface, or the
+// heights below resolve against its content: the picker would neither scroll nor, with
+// its size containment, show anything.
+.file-picker-panel app-files {
+    flex: 1;
+    min-height: 0;
+}
+
 .picker {
+    // containing block of .files-loader
+    position: relative;
     height: 100%;
     overflow-y: auto;
     display: grid;
     grid-template-columns: minmax(0, 1fr);
     align-content: start;
+}
+
+// spinner in the middle of the picker while the files load; the toolbar above stays usable
+.files-loader {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--color-accent);
+    pointer-events: none;
 }
 
 .picker__main {
@@ -214,25 +263,55 @@ app-files {
     }
 }
 
+// As on the page, thumbnails and the details panel share the picker's columns (the
+// thumbnail grid is a subgrid of .picker), so the panel takes the last three columns
+// without resizing the thumbnails. The whole picker scrolls and the panel sticks: a
+// scrollbar on the thumbnail pane itself would narrow its last column.
 @media (min-width: 960px) {
     .picker {
-        overflow: hidden;
-        grid-template-rows: minmax(0, 1fr);
-        align-content: stretch;
+        container-type: size;
+        grid-template-columns: repeat(auto-fill, minmax(var(--layout-thumb-min), 1fr));
+        column-gap: var(--space-3);
+        padding-inline: var(--space-6);
+    }
+
+    .picker__main {
+        grid-column: 1 / -1;
+        grid-template-columns: subgrid;
+        column-gap: var(--space-3);
+        padding-inline: 0;
+
+        > * {
+            grid-column: 1 / -1;
+        }
+
+        > .thumbs {
+            grid-template-columns: subgrid;
+        }
+    }
+
+    .picker__details {
+        position: sticky;
+        top: 0;
+        align-self: start;
+        // the visible height of the picker
+        height: 100cqh;
+        overflow-y: auto;
+        border-top: 0;
+        border-left: 1px solid var(--color-border);
     }
 
     .picker--selected {
-        grid-template-columns: minmax(0, 1fr) var(--layout-details-w);
-    }
+        > .picker__main {
+            grid-column: 1 / -4;
+        }
 
-    .picker__main,
-    .picker__details {
-        overflow-y: auto;
-        min-height: 0;
-    }
-
-    .picker__details {
-        border-top: 0;
-        border-left: 1px solid var(--color-border);
+        // the column gap is a thumbnail gap; the panel keeps the design's distance
+        // and reaches the right edge of the dialog
+        > .picker__details {
+            grid-column: -4 / -1;
+            margin-left: var(--space-3);
+            margin-right: calc(var(--space-6) * -1);
+        }
     }
 }

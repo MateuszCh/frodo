@@ -3,6 +3,7 @@ import { RouterOutlet } from '@angular/router';
 import { MatSidenavContent, MatSidenavModule } from '@angular/material/sidenav';
 import { HeaderComponent } from './layout/header/header';
 import { SidenavComponent } from './layout/sidenav/sidenav';
+import { RouteLoaderComponent } from './layout/route-loader/route-loader';
 import { LayoutService } from './core/layout.service';
 import { injectRouteState } from './core/router-state';
 import { I18nService } from './core/i18n/i18n.service';
@@ -14,6 +15,7 @@ import { I18nService } from './core/i18n/i18n.service';
         MatSidenavModule,
         HeaderComponent,
         SidenavComponent,
+        RouteLoaderComponent,
     ],
     templateUrl: './app.html',
 })
