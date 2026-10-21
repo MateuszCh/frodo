@@ -5,7 +5,7 @@ import { HeaderComponent } from './layout/header/header';
 import { SidenavComponent } from './layout/sidenav/sidenav';
 import { RouteLoaderComponent } from './layout/route-loader/route-loader';
 import { LayoutService } from './core/layout.service';
-import { injectRouteState } from './core/router-state';
+import { injectRouteState, scrollToTopOnNavigation } from './core/router-state';
 import { I18nService } from './core/i18n/i18n.service';
 
 @Component({
@@ -41,6 +41,9 @@ export class App {
                 this.layout.closeSidenav();
             }
         });
+
+        // every new page opens at the top
+        scrollToTopOnNavigation(() => this.content());
     }
 
     onScroll(): void {
