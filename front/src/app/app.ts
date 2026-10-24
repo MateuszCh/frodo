@@ -1,30 +1,26 @@
 import { Component, computed, effect, inject, viewChild } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { MatSidenavContent, MatSidenavModule } from '@angular/material/sidenav';
-import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
-import { MatTooltipModule } from '@angular/material/tooltip';
 import { HeaderComponent } from './layout/header/header';
 import { SidenavComponent } from './layout/sidenav/sidenav';
+import { RouteLoaderComponent } from './layout/route-loader/route-loader';
 import { LayoutService } from './core/layout.service';
-import { injectRouteState } from './core/router-state';
-import { registerAppIcons } from './core/icons';
+import { injectRouteState, scrollToTopOnNavigation } from './core/router-state';
+import { I18nService } from './core/i18n/i18n.service';
 
 @Component({
     selector: 'app-root',
     imports: [
         RouterOutlet,
         MatSidenavModule,
-        MatButtonModule,
-        MatIconModule,
-        MatTooltipModule,
         HeaderComponent,
         SidenavComponent,
+        RouteLoaderComponent,
     ],
     templateUrl: './app.html',
-    styleUrl: './app.scss',
 })
 export class App {
+    protected readonly t = inject(I18nService).t;
     protected layout = inject(LayoutService);
     private route = injectRouteState();
 
@@ -38,8 +34,6 @@ export class App {
     );
 
     constructor() {
-        registerAppIcons();
-
         // close the over-mode sidenav after navigating on small screens
         effect(() => {
             this.route();
@@ -47,6 +41,9 @@ export class App {
                 this.layout.closeSidenav();
             }
         });
+
+        // every new page opens at the top
+        scrollToTopOnNavigation(() => this.content());
     }
 
     onScroll(): void {

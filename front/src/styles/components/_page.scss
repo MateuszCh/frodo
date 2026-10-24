@@ -1,0 +1,204 @@
+// Screen header (design/components.css, 13).
+// Mobile: title, counter and the primary action in one row, text actions below in a
+// horizontally scrolling row. From 960 px everything sits in one row.
+
+.page-header {
+    display: grid;
+    gap: var(--space-3);
+    margin-bottom: var(--space-6);
+}
+
+.page-header__top {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    min-width: 0;
+}
+
+.page-heading {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-width: 0;
+    margin-right: auto;
+}
+
+.page-title {
+    font-size: var(--text-2xl);
+    line-height: var(--leading-2xl);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-tight);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    // titles from the logic come in lower case ("pages", "post types")
+    &::first-letter {
+        text-transform: uppercase;
+    }
+}
+
+.page-header__secondary {
+    display: flex;
+    gap: var(--space-1);
+    overflow-x: auto;
+    scrollbar-width: none;
+    margin-inline: calc(var(--layout-gutter) * -1);
+    padding-inline: var(--layout-gutter);
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    &:empty {
+        display: none;
+    }
+
+    > .mat-mdc-button-base {
+        flex: none;
+    }
+}
+
+// listings and file library: the header stays at the top while the list scrolls
+.page-header--sticky {
+    position: sticky;
+    top: var(--page-header-top);
+    z-index: var(--z-sticky);
+    height: var(--page-header-h);
+    align-content: center;
+    padding-block: var(--space-3);
+    background: var(--sticky-bg);
+
+    .page-header__top {
+        min-height: var(--control-h);
+    }
+}
+
+@media (min-width: 960px) {
+    .page-header--sticky {
+        padding-block: var(--space-4);
+    }
+}
+
+@media (min-width: 960px) {
+    .page-header {
+        display: flex;
+        align-items: center;
+        gap: var(--space-2);
+        margin-bottom: var(--space-8);
+    }
+
+    .page-header__top {
+        display: contents;
+    }
+
+    .page-heading {
+        order: 1;
+    }
+
+    .page-header__secondary {
+        order: 2;
+        margin: 0;
+        padding: 0;
+        overflow: visible;
+    }
+
+    .page-header__top > .mat-mdc-unelevated-button {
+        order: 3;
+        margin-left: var(--space-2);
+    }
+
+    .page-title {
+        font-size: var(--text-3xl);
+        line-height: var(--leading-3xl);
+    }
+}
+
+// Editor bar (design/components.css, 13): what is edited above the live title;
+// mobile: actions in a bar fixed to the bottom of the screen, from 960 px beside
+// the title in a bar stuck to the top of the canvas. One pattern for the post,
+// page, post type and component editors.
+
+// the form wraps the bar and the page, so the bar sticks across the whole editor
+.editor-bar {
+    // mobile: under the sticky top bar, so the menu button stays reachable
+    position: sticky;
+    top: calc(env(safe-area-inset-top, 0px) + var(--layout-topbar-h));
+    z-index: var(--z-sticky);
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--layout-gutter);
+    background: var(--color-bg);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.editor-bar__heading {
+    display: grid;
+    min-width: 0;
+    margin-right: auto;
+}
+
+.editor-bar__eyebrow {
+    font-size: var(--text-sm);
+    line-height: var(--leading-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-subtle);
+}
+
+.editor-bar__title {
+    font-size: var(--text-xl);
+    line-height: var(--leading-xl);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-tight);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    &.is-placeholder {
+        color: var(--color-text-subtle);
+    }
+}
+
+.editor-bar__actions {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: var(--z-sticky);
+    display: flex;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--layout-gutter) calc(var(--space-3) + env(safe-area-inset-bottom, 0px));
+    background: var(--color-surface);
+    border-top: 1px solid var(--color-border);
+
+    > .mat-mdc-unelevated-button {
+        flex: 1;
+        order: 2;
+    }
+}
+
+@media (min-width: 960px) {
+    .editor-bar {
+        top: var(--layout-canvas-inset);
+        padding: var(--space-5) var(--layout-gutter);
+        background: var(--color-surface);
+        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+    }
+
+    .editor-bar__title {
+        font-size: var(--text-2xl);
+        line-height: var(--leading-2xl);
+    }
+
+    .editor-bar__actions {
+        position: static;
+        padding: 0;
+        background: transparent;
+        border: 0;
+
+        > .mat-mdc-unelevated-button {
+            flex: none;
+        }
+    }
+}

@@ -1,0 +1,145 @@
+// App shell: mat-sidenav-container (design/components.css, 26).
+// Mobile: top bar, content on the app background in white cards, drawer from the left.
+// From 960 px: 264 px navigation and the white canvas, 12 px from the window edge.
+// mat-sidenav-content#scroll is the scrolling element; headers stick to it.
+
+app-root {
+    display: block;
+    height: 100%;
+}
+
+.app-container {
+    height: 100%;
+}
+
+// Route loading (app-route-loader): a light veil of the app background over the whole
+// window, the spinner in its middle; it also stops clicks while the next page loads.
+.route-loader {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-route-loader);
+    display: grid;
+    place-items: center;
+    background: color-mix(in srgb, var(--color-bg) 60%, transparent);
+    color: var(--color-accent);
+    cursor: progress;
+    animation: route-loader-in var(--duration-normal) var(--ease-standard);
+}
+
+@keyframes route-loader-in {
+    from {
+        opacity: 0;
+    }
+}
+
+// Sticky header of the listings and the file library (.page-header--sticky):
+// where it sticks and how tall it is, so the bars below can stick under it.
+// Mobile: under the 56 px top bar, title row + actions row; desktop: one row.
+:root {
+    --page-header-top: calc(env(safe-area-inset-top, 0px) + var(--layout-topbar-h));
+    --page-header-h: calc(2 * var(--control-h) + 3 * var(--space-3));
+    --list-toolbar-h: calc(2 * var(--control-h) + 2 * var(--space-3) + var(--space-2) + 1px);
+    --sticky-tabs-h: 45px;
+    // what is behind the sticky bars: the app background on mobile, the canvas from 960 px
+    --sticky-bg: var(--color-bg);
+    // file library: search above catalogues below 600 px, side by side from 600 px
+    --library-toolbar-h: calc(2 * var(--control-h) + var(--space-2) + 2 * var(--space-3));
+}
+
+@media (min-width: 600px) {
+    :root {
+        --library-toolbar-h: calc(var(--control-h) + 2 * var(--space-3));
+    }
+}
+
+@media (min-width: 960px) {
+    :root {
+        --page-header-top: 0px;
+        --page-header-h: calc(var(--control-h) + 2 * var(--space-4));
+        --list-toolbar-h: calc(var(--control-h) + 2 * var(--space-3) + 1px);
+        --sticky-bg: var(--color-surface);
+    }
+}
+
+// keyboard focus does not land behind the sticky bars
+#scroll:has(.page-header--sticky) {
+    scroll-padding-top: calc(var(--page-header-top) + var(--page-header-h) + var(--list-toolbar-h));
+}
+
+#scroll:has(.files .page-header--sticky) {
+    scroll-padding-top: calc(
+        var(--page-header-top) + var(--page-header-h) + var(--sticky-tabs-h) + var(--library-toolbar-h)
+    );
+}
+
+// mobile drawer floats over the content
+.app-sidenav.mat-drawer-over {
+    --mat-sidenav-container-width: min(300px, 85vw);
+    --mat-sidenav-container-background-color: var(--color-surface-overlay);
+    --mat-sidenav-container-elevation-shadow: var(--shadow-lg);
+}
+
+.canvas {
+    min-width: 0;
+
+    // routed components are plain blocks
+    > * {
+        display: block;
+    }
+}
+
+@media (min-width: 960px) {
+    .canvas:not(.page--login) {
+        background: var(--color-surface);
+        border-radius: var(--radius-xl);
+        margin: var(--layout-canvas-inset) var(--layout-canvas-inset) var(--layout-canvas-inset) 0;
+        min-height: calc(100dvh - 2 * var(--layout-canvas-inset));
+    }
+}
+
+// content column of a screen
+.page {
+    width: 100%;
+    max-width: var(--layout-content-max);
+    margin: 0 auto;
+    padding: var(--space-5) var(--layout-gutter) var(--space-12);
+    padding-left: max(var(--layout-gutter), env(safe-area-inset-left, 0px));
+    padding-right: max(var(--layout-gutter), env(safe-area-inset-right, 0px));
+}
+
+// editors: 720 px column; extra room for the fixed action bar on mobile
+.page--form {
+    max-width: calc(var(--layout-form-max) + 2 * var(--layout-gutter));
+    padding-bottom: calc(var(--space-16) + var(--control-h));
+}
+
+@media (min-width: 960px) {
+    .page {
+        padding-top: var(--space-10);
+        padding-bottom: var(--space-16);
+    }
+
+    .page--form {
+        padding-bottom: var(--space-16);
+    }
+}
+
+.form-stack {
+    display: grid;
+    gap: var(--space-5);
+}
+
+.page--form > .form-stack {
+    gap: var(--space-6);
+}
+
+.form-grid {
+    display: grid;
+    gap: var(--space-5);
+}
+
+@media (min-width: 600px) {
+    .form-grid--2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}

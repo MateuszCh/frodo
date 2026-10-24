@@ -1,0 +1,701 @@
+@use '@angular/material' as mat;
+
+// Angular Material on top of the design tokens (design/05-wdrozenie.md, 2.3).
+//
+// 1. mat.theme() only provides the typography (IBM Plex Sans) and density. Its
+//    palette does not matter: the system tokens are pointed at our semantic
+//    tokens right below, and `theme-type: color-scheme` makes any system colour
+//    we do not map follow the light/dark `color-scheme` set in _tokens.scss.
+// 2. Shapes, heights and states go through the mat.*-overrides() mixins.
+//    Every value is a var(--…), never a literal, so the dark theme works.
+// 3. MDC internals (.mdc-*, .mat-mdc-*) are used only where no token exists;
+//    each such rule is marked `// MDC:` because the names change between versions.
+//    Material's component styles load after this file, so those rules use a
+//    doubled class to win on specificity.
+
+$plain-family: 'IBM Plex Sans, ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, sans-serif';
+
+html {
+    @include mat.theme(
+        (
+            color: (
+                primary: mat.$cyan-palette,
+                theme-type: color-scheme,
+            ),
+            typography: (
+                brand-family: $plain-family,
+                plain-family: $plain-family,
+                bold-weight: 600,
+                medium-weight: 500,
+                regular-weight: 400,
+            ),
+            density: 0,
+        )
+    );
+
+    // ---- system tokens → semantic tokens ------------------------------------
+    --mat-sys-primary: var(--color-accent);
+    --mat-sys-on-primary: var(--color-text-on-accent);
+    --mat-sys-primary-container: var(--color-accent-subtle);
+    --mat-sys-on-primary-container: var(--color-accent-subtle-text);
+    --mat-sys-secondary: var(--color-accent);
+    --mat-sys-on-secondary: var(--color-text-on-accent);
+    --mat-sys-secondary-container: var(--color-surface-selected);
+    --mat-sys-on-secondary-container: var(--color-accent-subtle-text);
+    --mat-sys-tertiary: var(--color-accent);
+    --mat-sys-on-tertiary: var(--color-text-on-accent);
+    --mat-sys-background: var(--color-bg);
+    --mat-sys-on-background: var(--color-text);
+    --mat-sys-surface: var(--color-surface);
+    --mat-sys-surface-bright: var(--color-surface);
+    --mat-sys-surface-dim: var(--color-surface-sunken);
+    --mat-sys-surface-variant: var(--color-surface-sunken);
+    --mat-sys-surface-container-lowest: var(--color-surface);
+    --mat-sys-surface-container-low: var(--color-surface-overlay);
+    --mat-sys-surface-container: var(--color-surface-overlay);
+    --mat-sys-surface-container-high: var(--color-surface-overlay);
+    --mat-sys-surface-container-highest: var(--color-fill-hover);
+    --mat-sys-on-surface: var(--color-text);
+    --mat-sys-on-surface-variant: var(--color-text-muted);
+    --mat-sys-inverse-surface: var(--color-text);
+    --mat-sys-inverse-on-surface: var(--color-surface);
+    --mat-sys-inverse-primary: var(--color-accent-subtle);
+    --mat-sys-outline: var(--color-border-strong);
+    --mat-sys-outline-variant: var(--color-border);
+    --mat-sys-error: var(--color-error);
+    --mat-sys-on-error: var(--color-text-on-danger);
+    --mat-sys-error-container: var(--color-error-bg);
+    --mat-sys-on-error-container: var(--color-error);
+
+    // ---- buttons ---------------------------------------------------------------
+    // filled = primary (one per screen), outlined = secondary, text = ghost
+    @include mat.button-overrides(
+        (
+            filled-container-color: var(--color-accent),
+            filled-label-text-color: var(--color-text-on-accent),
+            filled-disabled-container-color: var(--color-fill-pressed),
+            filled-disabled-label-text-color: var(--color-text-disabled),
+            filled-container-shape: var(--radius-full),
+            filled-container-height: var(--control-h),
+            filled-horizontal-padding: var(--space-5),
+            filled-label-text-size: var(--text-sm),
+            filled-label-text-weight: var(--weight-semibold),
+            filled-label-text-tracking: var(--tracking-normal),
+            filled-hover-state-layer-opacity: 0,
+            filled-focus-state-layer-opacity: 0,
+            filled-pressed-state-layer-opacity: 0,
+            filled-ripple-color: transparent,
+            filled-touch-target-display: none,
+            outlined-label-text-color: var(--color-text),
+            outlined-outline-color: var(--color-border-control),
+            outlined-outline-width: 1px,
+            outlined-disabled-label-text-color: var(--color-text-disabled),
+            outlined-disabled-outline-color: var(--color-border),
+            outlined-container-shape: var(--radius-full),
+            outlined-container-height: var(--control-h),
+            outlined-horizontal-padding: var(--space-5),
+            outlined-label-text-size: var(--text-sm),
+            outlined-label-text-weight: var(--weight-semibold),
+            outlined-label-text-tracking: var(--tracking-normal),
+            outlined-hover-state-layer-opacity: 0,
+            outlined-focus-state-layer-opacity: 0,
+            outlined-pressed-state-layer-opacity: 0,
+            outlined-ripple-color: transparent,
+            outlined-touch-target-display: none,
+            text-label-text-color: var(--color-text-muted),
+            text-disabled-label-text-color: var(--color-text-disabled),
+            text-container-shape: var(--radius-full),
+            text-container-height: var(--control-h),
+            text-horizontal-padding: var(--space-5),
+            text-with-icon-horizontal-padding: var(--space-5),
+            text-label-text-size: var(--text-sm),
+            text-label-text-weight: var(--weight-semibold),
+            text-label-text-tracking: var(--tracking-normal),
+            text-hover-state-layer-opacity: 0,
+            text-focus-state-layer-opacity: 0,
+            text-pressed-state-layer-opacity: 0,
+            text-ripple-color: transparent,
+            text-touch-target-display: none,
+        )
+    );
+
+    @include mat.icon-button-overrides(
+        (
+            icon-color: var(--color-text-muted),
+            disabled-icon-color: var(--color-text-disabled),
+            container-shape: var(--radius-full),
+            state-layer-size: var(--control-h),
+            icon-size: var(--icon-md),
+            hover-state-layer-opacity: 0,
+            focus-state-layer-opacity: 0,
+            pressed-state-layer-opacity: 0,
+            ripple-color: transparent,
+            touch-target-display: none,
+        )
+    );
+
+    // ---- form field (outline, label above the field) -------------------------
+    @include mat.form-field-overrides(
+        (
+            container-height: var(--control-h),
+            container-vertical-padding: calc((var(--control-h) - var(--leading-md)) / 2),
+            container-text-size: var(--text-md),
+            container-text-line-height: var(--leading-md),
+            container-text-tracking: var(--tracking-normal),
+            outlined-container-shape: var(--radius-md),
+            outlined-outline-width: 1px,
+            outlined-focus-outline-width: 1px,
+            outlined-outline-color: var(--color-border-strong),
+            outlined-hover-outline-color: var(--color-text-muted),
+            outlined-focus-outline-color: var(--color-focus-ring),
+            outlined-error-outline-color: var(--color-error),
+            outlined-error-hover-outline-color: var(--color-error),
+            outlined-error-focus-outline-color: var(--color-error),
+            outlined-disabled-outline-color: var(--color-border),
+            outlined-input-text-color: var(--color-text),
+            outlined-disabled-input-text-color: var(--color-text-disabled),
+            outlined-input-text-placeholder-color: var(--color-text-subtle),
+            outlined-caret-color: var(--color-accent),
+            outlined-error-caret-color: var(--color-error),
+            outlined-label-text-color: var(--color-text-muted),
+            outlined-focus-label-text-color: var(--color-accent-subtle-text),
+            outlined-hover-label-text-color: var(--color-text),
+            outlined-error-label-text-color: var(--color-error),
+            outlined-error-focus-label-text-color: var(--color-error),
+            outlined-error-hover-label-text-color: var(--color-error),
+            error-text-color: var(--color-error),
+            subscript-text-size: var(--text-sm),
+            subscript-text-line-height: var(--leading-sm),
+            subscript-text-weight: var(--weight-regular),
+            subscript-text-tracking: var(--tracking-normal),
+            enabled-select-arrow-color: var(--color-text-subtle),
+            focus-select-arrow-color: var(--color-text-subtle),
+            disabled-select-arrow-color: var(--color-text-disabled),
+            trailing-icon-color: var(--color-text-muted),
+            leading-icon-color: var(--color-text-subtle),
+            select-option-text-color: var(--color-text),
+            select-disabled-option-text-color: var(--color-text-disabled),
+            hover-state-layer-opacity: 0,
+            focus-state-layer-opacity: 0,
+        )
+    );
+
+    @include mat.select-overrides(
+        (
+            panel-background-color: var(--color-surface-overlay),
+            container-elevation-shadow: var(--shadow-md),
+            enabled-trigger-text-color: var(--color-text),
+            disabled-trigger-text-color: var(--color-text-disabled),
+            placeholder-text-color: var(--color-text-subtle),
+            enabled-arrow-color: var(--color-text-subtle),
+            focused-arrow-color: var(--color-text-subtle),
+            disabled-arrow-color: var(--color-text-disabled),
+            invalid-arrow-color: var(--color-error),
+            trigger-text-size: var(--text-md),
+            trigger-text-line-height: var(--leading-md),
+            trigger-text-tracking: var(--tracking-normal),
+        )
+    );
+
+    @include mat.option-overrides(
+        (
+            label-text-color: var(--color-text),
+            label-text-size: var(--text-md),
+            label-text-line-height: var(--leading-md),
+            label-text-tracking: var(--tracking-normal),
+            hover-state-layer-color: var(--color-fill-hover),
+            focus-state-layer-color: var(--color-fill-hover),
+            selected-state-layer-color: var(--color-surface-selected),
+            selected-state-label-text-color: var(--color-accent-subtle-text),
+        )
+    );
+
+    @include mat.menu-overrides(
+        (
+            container-color: var(--color-surface-overlay),
+            container-shape: var(--radius-md),
+            container-elevation-shadow: var(--shadow-md),
+            item-label-text-color: var(--color-text),
+            item-label-text-size: var(--text-md),
+            item-label-text-line-height: var(--leading-md),
+            item-label-text-weight: var(--weight-regular),
+            item-label-text-tracking: var(--tracking-normal),
+            item-icon-color: var(--color-accent-subtle-text),
+            item-icon-size: var(--icon-md),
+            item-hover-state-layer-color: var(--color-fill-hover),
+            item-focus-state-layer-color: var(--color-fill-hover),
+            item-leading-spacing: var(--space-3),
+            item-trailing-spacing: var(--space-3),
+            item-with-icon-leading-spacing: var(--space-3),
+            item-with-icon-trailing-spacing: var(--space-3),
+            item-spacing: var(--space-3),
+            divider-color: var(--color-border),
+        )
+    );
+
+    @include mat.dialog-overrides(
+        (
+            container-color: var(--color-surface-overlay),
+            container-shape: var(--radius-xl),
+            container-elevation-shadow: var(--shadow-lg),
+            container-max-width: 440px,
+            container-small-max-width: calc(100vw - 2 * var(--space-4)),
+            container-min-width: 0,
+            subhead-color: var(--color-text),
+            subhead-size: var(--text-xl),
+            subhead-line-height: var(--leading-xl),
+            subhead-weight: var(--weight-semibold),
+            subhead-tracking: var(--tracking-tight),
+            supporting-text-color: var(--color-text),
+            supporting-text-size: var(--text-md),
+            supporting-text-line-height: var(--leading-md),
+            supporting-text-tracking: var(--tracking-normal),
+            headline-padding: var(--space-6) var(--space-6) var(--space-3),
+            content-padding: var(--space-6),
+            with-actions-content-padding: var(--space-6) var(--space-6) 0,
+            actions-padding: var(--space-6),
+            actions-alignment: flex-end,
+        )
+    );
+
+    @include mat.tabs-overrides(
+        (
+            container-height: 44px,
+            divider-color: var(--color-border),
+            divider-height: 1px,
+            active-indicator-color: var(--color-accent),
+            active-focus-indicator-color: var(--color-accent),
+            active-hover-indicator-color: var(--color-accent),
+            active-indicator-height: 2px,
+            active-indicator-shape: 2px,
+            active-label-text-color: var(--color-accent-subtle-text),
+            active-focus-label-text-color: var(--color-accent-subtle-text),
+            active-hover-label-text-color: var(--color-accent-subtle-text),
+            inactive-label-text-color: var(--color-text-muted),
+            inactive-hover-label-text-color: var(--color-text),
+            inactive-focus-label-text-color: var(--color-text),
+            label-text-size: var(--text-sm),
+            label-text-weight: var(--weight-semibold),
+            label-text-tracking: var(--tracking-normal),
+            active-ripple-color: transparent,
+            inactive-ripple-color: transparent,
+            pagination-icon-color: var(--color-text-muted),
+            background-color: transparent,
+            foreground-color: var(--color-text),
+        )
+    );
+
+    @include mat.checkbox-overrides(
+        (
+            selected-icon-color: var(--color-accent),
+            selected-hover-icon-color: var(--color-accent-hover),
+            selected-focus-icon-color: var(--color-accent),
+            selected-pressed-icon-color: var(--color-accent-pressed),
+            selected-checkmark-color: var(--color-text-on-accent),
+            unselected-icon-color: var(--color-border-strong),
+            unselected-hover-icon-color: var(--color-text-muted),
+            unselected-focus-icon-color: var(--color-border-strong),
+            disabled-selected-icon-color: var(--color-fill-pressed),
+            disabled-selected-checkmark-color: var(--color-text-disabled),
+            disabled-unselected-icon-color: var(--color-border),
+            disabled-label-color: var(--color-text-disabled),
+            label-text-color: var(--color-text),
+            label-text-size: var(--text-md),
+            label-text-line-height: var(--leading-md),
+            label-text-tracking: var(--tracking-normal),
+            selected-hover-state-layer-opacity: 0,
+            selected-focus-state-layer-opacity: 0,
+            selected-pressed-state-layer-opacity: 0,
+            unselected-hover-state-layer-opacity: 0,
+            unselected-focus-state-layer-opacity: 0,
+            unselected-pressed-state-layer-opacity: 0,
+            state-layer-size: 20px,
+            touch-target-display: none,
+        )
+    );
+
+    @include mat.radio-overrides(
+        (
+            selected-icon-color: var(--color-accent),
+            selected-hover-icon-color: var(--color-accent-hover),
+            selected-focus-icon-color: var(--color-accent),
+            selected-pressed-icon-color: var(--color-accent-pressed),
+            unselected-icon-color: var(--color-border-strong),
+            unselected-hover-icon-color: var(--color-text-muted),
+            unselected-focus-icon-color: var(--color-border-strong),
+            label-text-color: var(--color-text-muted),
+            label-text-size: var(--text-sm),
+            label-text-weight: var(--weight-medium),
+            label-text-tracking: var(--tracking-normal),
+            ripple-color: transparent,
+            checked-ripple-color: transparent,
+            touch-target-display: none,
+        )
+    );
+
+    @include mat.datepicker-overrides(
+        (
+            calendar-container-background-color: var(--color-surface-overlay),
+            calendar-container-text-color: var(--color-text),
+            calendar-container-shape: var(--radius-lg),
+            calendar-container-touch-shape: var(--radius-xl),
+            calendar-container-elevation-shadow: var(--shadow-md),
+            calendar-container-touch-elevation-shadow: var(--shadow-lg),
+            calendar-text-size: var(--text-sm),
+            calendar-body-label-text-color: var(--color-text-subtle),
+            calendar-body-label-text-size: var(--text-xs),
+            calendar-body-label-text-weight: var(--weight-semibold),
+            calendar-header-text-color: var(--color-text-subtle),
+            calendar-header-text-size: var(--text-xs),
+            calendar-header-text-weight: var(--weight-semibold),
+            calendar-header-divider-color: transparent,
+            calendar-period-button-text-color: var(--color-text),
+            calendar-period-button-text-size: var(--text-sm),
+            calendar-period-button-text-weight: var(--weight-semibold),
+            calendar-period-button-icon-color: var(--color-text-muted),
+            calendar-navigation-button-icon-color: var(--color-text-muted),
+            calendar-date-text-color: var(--color-text),
+            calendar-date-hover-state-background-color: var(--color-fill-hover),
+            calendar-date-focus-state-background-color: var(--color-fill-hover),
+            calendar-date-selected-state-background-color: var(--color-accent),
+            calendar-date-selected-state-text-color: var(--color-text-on-accent),
+            calendar-date-today-outline-color: var(--color-border-strong),
+            calendar-date-today-selected-state-outline-color: var(--color-accent),
+            calendar-date-today-disabled-state-outline-color: var(--color-border),
+            calendar-date-disabled-state-text-color: var(--color-text-disabled),
+            calendar-date-outline-color: transparent,
+            calendar-date-in-range-state-background-color: var(--color-accent-subtle),
+            toggle-icon-color: var(--color-text-muted),
+            toggle-active-state-icon-color: var(--color-accent),
+        )
+    );
+
+    @include mat.progress-bar-overrides(
+        (
+            active-indicator-color: var(--color-accent),
+            active-indicator-height: 6px,
+            track-color: var(--color-fill-hover),
+            track-height: 6px,
+            track-shape: var(--radius-full),
+        )
+    );
+
+    @include mat.sidenav-overrides(
+        (
+            container-width: var(--layout-sidebar-w),
+            container-shape: 0,
+            container-background-color: var(--color-nav-bg),
+            container-text-color: var(--color-nav-text),
+            container-divider-color: transparent,
+            container-elevation-shadow: none,
+            content-background-color: var(--color-bg),
+            content-text-color: var(--color-text),
+            scrim-color: var(--color-backdrop),
+        )
+    );
+}
+
+// ---- button states without a token -------------------------------------------
+// Hover and pressed change the container (background) instead of Material's state
+// layer, which is switched off above. Focus is the system ring (2 px + 2 px gap).
+
+.mat-mdc-button-base.mat-mdc-button-base:focus-visible {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+}
+
+.mat-mdc-unelevated-button:not(:disabled):hover {
+    --mat-button-filled-container-color: var(--color-accent-hover);
+}
+
+.mat-mdc-unelevated-button:not(:disabled):active {
+    --mat-button-filled-container-color: var(--color-accent-pressed);
+}
+
+// MDC: the outlined button has a transparent container by default
+.mat-mdc-outlined-button.mat-mdc-button-base {
+    background-color: var(--color-surface);
+    transition:
+        background-color var(--duration-instant) var(--ease-standard),
+        border-color var(--duration-fast) var(--ease-standard);
+
+    &:not(:disabled):hover {
+        --mat-button-outlined-outline-color: var(--color-border-strong);
+        background-color: var(--color-surface-hover);
+    }
+
+    &:not(:disabled):active {
+        background-color: var(--color-fill-hover);
+    }
+}
+
+.mat-mdc-button.mat-mdc-button-base,
+.mat-mdc-icon-button.mat-mdc-button-base {
+    transition:
+        background-color var(--duration-instant) var(--ease-standard),
+        color var(--duration-instant) var(--ease-standard);
+
+    &:not(:disabled):hover {
+        --mat-button-text-label-text-color: var(--color-text);
+        --mat-icon-button-icon-color: var(--color-text);
+        background-color: var(--color-fill-hover);
+    }
+
+    &:not(:disabled):active {
+        --mat-button-text-label-text-color: var(--color-text);
+        --mat-icon-button-icon-color: var(--color-text);
+        background-color: var(--color-fill-pressed);
+    }
+}
+
+// MDC: line-height of the label (Material's label-large is 20 px)
+.mat-mdc-button-base .mdc-button__label {
+    line-height: 1;
+}
+
+// icons and spinners projected with [matButtonIcon] (Material spaces only mat-icon)
+.mat-mdc-button-base > [matButtonIcon] {
+    width: 18px;
+    height: 18px;
+    margin-left: -2px;
+    margin-right: var(--space-2);
+}
+
+// ---- form field: label above the field ----------------------------------------
+.mat-mdc-form-field.mat-mdc-form-field {
+    width: 100%;
+    min-width: 0;
+}
+
+// MDC: 12 px inner padding instead of 16 px
+.mat-mdc-form-field .mat-mdc-text-field-wrapper.mdc-text-field--outlined {
+    padding-left: var(--space-3);
+    padding-right: var(--space-3);
+}
+
+.mat-mdc-form-field.mat-form-field-appearance-outline {
+    // MDC: white field on every surface (cards, sunken filter panel)
+    .mdc-text-field--outlined {
+        background-color: var(--color-surface);
+        border-radius: var(--radius-md);
+        transition: box-shadow var(--duration-fast) var(--ease-standard);
+    }
+
+    // focus ring: 1 px border + ring + halo (--shadow-focus)
+    &.mat-focused .mdc-text-field--outlined {
+        box-shadow: var(--shadow-focus);
+    }
+
+    &.mat-focused.mat-form-field-invalid .mdc-text-field--outlined {
+        box-shadow:
+            0 0 0 1px var(--color-error),
+            0 0 0 4px var(--color-error-halo);
+    }
+
+    &.mat-form-field-disabled .mdc-text-field--outlined {
+        background-color: var(--color-surface-sunken);
+    }
+}
+
+// MDC: textarea grows from 112 px and is resized vertically only
+.mat-mdc-form-field textarea.mat-mdc-input-element {
+    // 112 px in total: the field adds its vertical padding around the textarea
+    min-height: calc(112px - var(--control-h) + var(--leading-md));
+    resize: vertical;
+}
+
+.mat-mdc-form-field input[type='number'].mat-mdc-input-element {
+    font-variant-numeric: tabular-nums;
+}
+
+// technical values (type, field id) in the monospace font
+.mat-mdc-form-field .mat-mdc-input-element.mono {
+    font-family: var(--font-mono);
+    font-size: 13px;
+}
+
+// MDC: hint and error sit 6 px under the field, flush with its edge
+.mat-mdc-form-field .mat-mdc-form-field-subscript-wrapper {
+    .mat-mdc-form-field-hint-wrapper,
+    .mat-mdc-form-field-error-wrapper {
+        padding: var(--space-1-5) 0 0;
+    }
+}
+
+.mat-mdc-form-field-hint.mat-mdc-form-field-hint {
+    color: var(--color-text-subtle);
+}
+
+.mat-mdc-form-field-error.mat-mdc-form-field-error {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-1-5);
+    font-weight: var(--weight-medium);
+
+    > .icon {
+        width: var(--icon-sm);
+        height: var(--icon-sm);
+        margin-top: 2px;
+    }
+}
+
+// MDC: suffix (datepicker toggle) sits 4 px from the edge like .control__suffix
+.mat-mdc-form-field .mat-mdc-form-field-icon-suffix {
+    margin-right: calc(var(--space-2) * -1);
+}
+
+// ---- datepicker toggle: small ghost icon button inside the field ------------------
+.mat-datepicker-toggle {
+    --mat-icon-button-state-layer-size: var(--control-h-sm);
+    --mat-icon-button-icon-size: var(--icon-sm);
+}
+
+// ---- select: chevron instead of the triangle ------------------------------------
+// MDC: arrow wrapper and svg
+.mat-mdc-select .mat-mdc-select-arrow {
+    width: var(--icon-md);
+    height: var(--icon-md);
+    background-color: currentColor;
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.75' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E")
+        center / contain no-repeat;
+    transition: transform var(--duration-normal) var(--ease-standard);
+
+    svg {
+        display: none;
+    }
+}
+
+.mat-mdc-select[aria-expanded='true'] .mat-mdc-select-arrow {
+    transform: rotate(180deg);
+}
+
+// MDC: the panel uses the menu look (radius, border, padding)
+div.mat-mdc-select-panel.mat-mdc-select-panel {
+    padding: var(--space-1);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+.mat-mdc-option.mat-mdc-option {
+    min-height: 40px;
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-sm);
+
+    &.mdc-list-item--selected:not(.mdc-list-item--disabled) .mdc-list-item__primary-text {
+        font-weight: var(--weight-semibold);
+    }
+
+    &.mat-mdc-option-active.mdc-list-item--selected {
+        background-color: var(--color-surface-selected);
+    }
+}
+
+// MDC: checkmark and multiselect checkbox inside options
+.mat-mdc-option .mat-pseudo-checkbox-minimal::after {
+    color: var(--color-accent-subtle-text);
+}
+
+.mat-mdc-option .mat-pseudo-checkbox-full {
+    border-color: var(--color-border-strong);
+    border-radius: var(--radius-xs);
+
+    &.mat-pseudo-checkbox-checked {
+        background: var(--color-accent);
+        border-color: var(--color-accent);
+
+        &::after {
+            color: var(--color-text-on-accent);
+        }
+    }
+}
+
+// ---- menu ---------------------------------------------------------------------------
+// MDC: panel border, padding and item shape
+div.mat-mdc-menu-panel.mat-mdc-menu-panel {
+    min-width: 200px;
+    max-width: min(360px, calc(100vw - 32px));
+    border: 1px solid var(--color-border);
+}
+
+.mat-mdc-menu-content.mat-mdc-menu-content {
+    padding: var(--space-1);
+    display: grid;
+    gap: 2px;
+}
+
+.mat-mdc-menu-item.mat-mdc-menu-item {
+    min-height: 40px;
+    border-radius: var(--radius-sm);
+
+    &:focus-visible {
+        outline: none;
+        box-shadow: inset 0 0 0 2px var(--color-focus-ring);
+    }
+
+    &[aria-checked='true'] {
+        background-color: var(--color-surface-selected);
+        --mat-menu-item-label-text-color: var(--color-accent-subtle-text);
+        --mat-menu-item-label-text-weight: var(--weight-semibold);
+    }
+
+    .mat-mdc-menu-item-text {
+        display: flex;
+        align-items: center;
+        gap: var(--space-3);
+        width: 100%;
+    }
+}
+
+// ---- checkbox ----------------------------------------------------------------------
+// MDC: the box keeps the 6 px radius; the label sits 12 px from it
+.mat-mdc-checkbox .mdc-checkbox .mdc-checkbox__background {
+    border-width: 1.5px;
+    border-radius: var(--radius-xs);
+}
+
+.mat-mdc-checkbox .mdc-form-field > label {
+    padding-left: calc(var(--space-3) - 1px);
+}
+
+.mat-mdc-checkbox .mdc-checkbox__native-control:focus-visible ~ .mdc-checkbox__background {
+    outline: 2px solid var(--color-focus-ring);
+    outline-offset: 2px;
+}
+
+// ---- tabs ----------------------------------------------------------------------------
+// MDC: tab shape and hover fill
+.mat-mdc-tab-group .mat-mdc-tab.mdc-tab {
+    flex-grow: 0;
+    padding: 0 var(--space-4);
+    border-radius: var(--radius-sm) var(--radius-sm) 0 0;
+    transition: background-color var(--duration-instant) var(--ease-standard);
+
+    &:hover {
+        background-color: var(--color-fill-hover);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-focus-ring);
+        outline-offset: -2px;
+    }
+
+    .mdc-tab-indicator__content--underline {
+        margin: 0 var(--space-3);
+    }
+}
+
+// ---- dialog ----------------------------------------------------------------------------
+// MDC: the backdrop takes the semantic scrim
+.cdk-overlay-dark-backdrop {
+    background: var(--color-backdrop);
+}
+
+// MDC: the title reserves a 40 px line box through ::before
+.mat-mdc-dialog-container .mat-mdc-dialog-title::before {
+    display: none;
+}
+
+// a message under a title is supporting text; a lone message (alert) is the content
+.mat-mdc-dialog-container .mat-mdc-dialog-title + .mat-mdc-dialog-content {
+    color: var(--color-text-muted);
+}

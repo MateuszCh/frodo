@@ -1,0 +1,251 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Makiety widoków Frodo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<style>
+/* Oprawa strony przeglądu (nie jest częścią projektu aplikacji). */
+.hub {
+  max-width: 1440px; margin: 0 auto; padding-block: var(--space-12) var(--space-16);
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: var(--space-12);
+}
+@media (min-width: 768px) {
+  .hub { padding-left: max(32px, env(safe-area-inset-left, 0px)); padding-right: max(32px, env(safe-area-inset-right, 0px)); }
+}
+.hub__intro { display: grid; gap: var(--space-4); max-width: 76ch; }
+.hub__eyebrow { font-size: var(--text-sm); font-weight: var(--weight-semibold); color: var(--color-accent-subtle-text); }
+.hub__intro h1 { font-size: clamp(32px, 5vw, 44px); line-height: 1.1; letter-spacing: -0.03em; font-weight: var(--weight-semibold); text-wrap: balance; }
+.hub__lead { font-size: var(--text-lg); line-height: var(--leading-lg); color: var(--color-text-muted); }
+.hub__how { margin: 0; padding-left: 1.2em; display: grid; gap: var(--space-1); color: var(--color-text-muted); }
+.hub__how code { font-family: var(--font-mono); font-size: 13px; background: var(--color-surface); border: 1px solid var(--color-border); padding: 0 5px; border-radius: 4px; }
+.hub__theme { display: flex; flex-wrap: wrap; align-items: center; gap: var(--space-3); }
+.hub__theme-label { font-size: var(--text-sm); font-weight: var(--weight-semibold); }
+.hub__theme-note { font-size: var(--text-sm); color: var(--color-text-subtle); }
+.hub__links { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+
+.view { display: grid; gap: var(--space-5); padding-top: var(--space-10); border-top: 1px solid var(--color-border); scroll-margin-top: var(--space-4); }
+.view__head { display: flex; flex-wrap: wrap; align-items: flex-start; gap: var(--space-3) var(--space-6); }
+.view__titles { display: grid; gap: var(--space-2); max-width: 78ch; margin-right: auto; }
+.view__num { font-family: var(--font-mono); font-size: var(--text-sm); color: var(--color-text-subtle); }
+.view__titles h2 { font-size: var(--text-2xl); line-height: var(--leading-2xl); letter-spacing: var(--tracking-tight); font-weight: var(--weight-semibold); }
+.view__titles p { color: var(--color-text-muted); }
+.states { display: flex; flex-wrap: wrap; gap: var(--space-2); }
+.state-chip {
+  height: 32px; padding: 0 var(--space-3); border-radius: var(--radius-full);
+  border: 1px solid var(--color-border-control); background: var(--color-surface);
+  font-size: var(--text-sm); font-weight: var(--weight-medium); color: var(--color-text-muted); cursor: pointer;
+}
+.state-chip:hover { background: var(--color-surface-hover); color: var(--color-text); }
+.state-chip[aria-pressed="true"] { background: var(--color-accent-subtle); border-color: var(--color-accent-subtle); color: var(--color-accent-subtle-text); font-weight: var(--weight-semibold); }
+.state-chip:focus-visible { outline: 2px solid var(--color-focus-ring); outline-offset: 2px; }
+
+.frames { display: grid; gap: var(--space-5); align-items: start; }
+@media (min-width: 1100px) { .frames { grid-template-columns: 300px minmax(0, 1fr); } }
+.frame { display: grid; gap: var(--space-2); min-width: 0; }
+.frame__cap { display: flex; justify-content: space-between; gap: var(--space-3); font-size: var(--text-sm); color: var(--color-text-subtle); }
+.frame__cap a { color: var(--color-text-link); font-weight: var(--weight-medium); }
+.scaler { position: relative; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-bg); }
+.scaler--phone { max-width: 300px; border-radius: 28px; }
+.scaler > iframe { position: absolute; top: 0; left: 0; border: 0; transform-origin: 0 0; background: var(--color-bg); }
+.hub__foot { font-size: var(--text-sm); color: var(--color-text-subtle); max-width: 80ch; }
+</style>
+</head>
+<body>
+<script src="../icons.js"></script>
+
+<main class="hub">
+  <header class="hub__intro">
+    <p class="hub__eyebrow">Frodo · redesign · etap 4 · kierunek C „Sage”</p>
+    <h1>Makiety widoków</h1>
+    <p class="hub__lead">Sześć kluczowych ekranów z audytu, każdy jako samodzielny, responsywny plik HTML na tokenach i komponentach design systemu. Treść pochodzi ze struktury danych serwisu GeoSilesia.</p>
+    <ul class="hub__how">
+      <li>Przyciski stanów przełączają obie ramki: telefon (390 px) i desktop (1280 px).</li>
+      <li>Każdy plik otwiera się też osobno. Wtedy w rogu ekranu jest przełącznik stanów, a stan można podać w adresie, np. <code>01-lista-wpisow.html#pusta</code>.</li>
+      <li>Ten sam plik zmienia układ przy 960 px, jak aplikacja: wystarczy zwęzić okno przeglądarki.</li>
+      <li>Motyw: przełącznik Light/Dark w stopce nawigacji każdej makiety albo przyrostek w adresie, np. <code>05-pliki.html#postep~dark</code>.</li>
+    </ul>
+    <div class="hub__theme">
+      <span class="hub__theme-label" id="hub-theme-label">Motyw makiet</span>
+      <div class="theme-switch" role="radiogroup" aria-labelledby="hub-theme-label">
+        <label class="theme-switch__option" title="Light"><input type="radio" name="hub-theme" value="light" aria-label="Jasny"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg></span></label>
+        <label class="theme-switch__option" title="Dark"><input type="radio" name="hub-theme" value="dark" aria-label="Ciemny"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg></span></label>
+      </div>
+      <span class="hub__theme-note">Bez wyboru makiety pokazują motyw z ustawień systemu, tak jak aplikacja przy pierwszym wejściu.</span>
+    </div>
+    <div class="hub__links">
+      <a class="btn btn--secondary btn--sm" href="../03-komponenty.html">Komponenty (etap 3)</a>
+      <a class="btn btn--ghost btn--sm" href="../index.html">Kierunki (etap 2)</a>
+    </div>
+  </header>
+
+  <section class="view" id="lista" data-file="01-lista-wpisow.html">
+    <div class="view__head">
+      <div class="view__titles"><span class="view__num">01-lista-wpisow.html</span><h2>Lista wpisów</h2>
+        <p>Typ wpisu „marker” z akcjami, sortowaniem, filtrami (panel albo arkusz), usuwaniem i importem. Wariant „Lista stron” pokazuje listing bez filtrów, wspólny dla stron, komponentów i typów wpisów.</p></div>
+    </div>
+    <div class="states" role="group" aria-label="Stany">
+      <button class="state-chip" type="button" data-state="domyslny">Domyślny</button>
+      <button class="state-chip" type="button" data-state="filtry">Filtry (mobile)</button>
+      <button class="state-chip" type="button" data-state="sortowanie">Sortowanie</button>
+      <button class="state-chip" type="button" data-state="usuwanie">Potwierdzenie usunięcia</button>
+      <button class="state-chip" type="button" data-state="usunieto">Usunięto</button>
+      <button class="state-chip" type="button" data-state="import">Import w toku</button>
+      <button class="state-chip" type="button" data-state="blad-importu">Błąd importu</button>
+      <button class="state-chip" type="button" data-state="pusta">Pusta lista</button>
+      <button class="state-chip" type="button" data-state="brak-wynikow">Brak wyników</button>
+      <button class="state-chip" type="button" data-state="strony">Lista stron</button>
+    </div>
+  </section>
+
+  <section class="view" id="wpis" data-file="02-edytor-wpisu.html">
+    <div class="view__head">
+      <div class="view__titles"><span class="view__num">02-edytor-wpisu.html</span><h2>Edytor wpisu</h2>
+        <p>Wpis typu „wydarzenie”: pole tekstowe, data z „Clear” i dwa repeatery. Wariant „marker” zawiera liczby i multiselect. Akcje są na mobile przyklejone do dołu ekranu.</p></div>
+    </div>
+    <div class="states" role="group" aria-label="Stany">
+      <button class="state-chip" type="button" data-state="edycja">Edycja wydarzenia</button>
+      <button class="state-chip" type="button" data-state="marker">Edycja markera</button>
+      <button class="state-chip" type="button" data-state="nowy">Nowy wpis</button>
+      <button class="state-chip" type="button" data-state="blad">Błąd walidacji</button>
+      <button class="state-chip" type="button" data-state="zapis">Zapis w toku</button>
+      <button class="state-chip" type="button" data-state="zapisano">Zapisano</button>
+      <button class="state-chip" type="button" data-state="blad-zapisu">Błąd zapisu</button>
+      <button class="state-chip" type="button" data-state="usuwanie">Usuwanie</button>
+      <button class="state-chip" type="button" data-state="brak-pol">Typ bez pól</button>
+    </div>
+  </section>
+
+  <section class="view" id="strona" data-file="03-edytor-strony.html">
+    <div class="view__head">
+      <div class="view__titles"><span class="view__num">03-edytor-strony.html</span><h2>Edytor strony</h2>
+        <p>„Strona główna” z komponentami serwisu: baner z repeaterem slajdów i polami plików, mapa z checkboxem, komponenty zwinięte. Obejmuje przeciąganie, wybór komponentu i dialog wyboru pliku.</p></div>
+    </div>
+    <div class="states" role="group" aria-label="Stany">
+      <button class="state-chip" type="button" data-state="edycja">Edycja</button>
+      <button class="state-chip" type="button" data-state="przeciaganie">Przeciąganie</button>
+      <button class="state-chip" type="button" data-state="nowy-komponent">Nowy komponent</button>
+      <button class="state-chip" type="button" data-state="wybor-pliku">Wybór pliku</button>
+      <button class="state-chip" type="button" data-state="nowa">Nowa strona</button>
+      <button class="state-chip" type="button" data-state="blad">Błąd walidacji</button>
+      <button class="state-chip" type="button" data-state="zapis">Zapis w toku</button>
+      <button class="state-chip" type="button" data-state="blad-serwera">Błąd serwera</button>
+    </div>
+  </section>
+
+  <section class="view" id="typ" data-file="04-edytor-typu.html">
+    <div class="view__head">
+      <div class="view__titles"><span class="view__num">04-edytor-typu.html</span><h2>Edytor typu wpisu i komponentu</h2>
+        <p>Typ „wydarzenie” z definicjami pól, w tym repeatery z polami wiersza. Wariant „Gallery” to edytor komponentu, bez pola Plural Title, z polem typu katalog.</p></div>
+    </div>
+    <div class="states" role="group" aria-label="Stany">
+      <button class="state-chip" type="button" data-state="edycja">Edycja</button>
+      <button class="state-chip" type="button" data-state="blad">Błąd walidacji</button>
+      <button class="state-chip" type="button" data-state="blad-serwera">Duplicate field ids</button>
+      <button class="state-chip" type="button" data-state="zapis">Zapis w toku</button>
+      <button class="state-chip" type="button" data-state="usuwanie">Usuwanie</button>
+      <button class="state-chip" type="button" data-state="nowy">Nowy typ</button>
+      <button class="state-chip" type="button" data-state="komponent">Komponent „Gallery”</button>
+    </div>
+  </section>
+
+  <section class="view" id="pliki" data-file="05-pliki.html">
+    <div class="view__head">
+      <div class="view__titles"><span class="view__num">05-pliki.html</span><h2>Biblioteka plików</h2>
+        <p>Zakładka „Library”: siatka miniatur i panel szczegółów, od 1280 px obok siebie. Zakładka „Upload”: wybór plików, opis każdego pliku i postęp wysyłania.</p></div>
+    </div>
+    <div class="states" role="group" aria-label="Stany">
+      <button class="state-chip" type="button" data-state="biblioteka">Wybrany plik</button>
+      <button class="state-chip" type="button" data-state="bez-zaznaczenia">Bez zaznaczenia</button>
+      <button class="state-chip" type="button" data-state="zapis">Zapis</button>
+      <button class="state-chip" type="button" data-state="usuwanie">Usuwanie</button>
+      <button class="state-chip" type="button" data-state="brak-wynikow">Brak wyników</button>
+      <button class="state-chip" type="button" data-state="pusta">Pusta biblioteka</button>
+      <button class="state-chip" type="button" data-state="wysylanie-start">Upload: start</button>
+      <button class="state-chip" type="button" data-state="wysylanie">Upload: opis</button>
+      <button class="state-chip" type="button" data-state="postep">Upload w toku</button>
+      <button class="state-chip" type="button" data-state="wyslano">Wysłano</button>
+    </div>
+  </section>
+
+  <section class="view" id="logowanie" data-file="06-logowanie-konto.html">
+    <div class="view__head">
+      <div class="view__titles"><span class="view__num">06-logowanie-konto.html</span><h2>Logowanie, konto, 404</h2>
+        <p>Logowanie bez nawigacji, zmiana hasła w szkielecie aplikacji i strona nieznanego adresu.</p></div>
+    </div>
+    <div class="states" role="group" aria-label="Stany">
+      <button class="state-chip" type="button" data-state="logowanie">Logowanie</button>
+      <button class="state-chip" type="button" data-state="walidacja">Puste pola</button>
+      <button class="state-chip" type="button" data-state="w-toku">W toku</button>
+      <button class="state-chip" type="button" data-state="blad">Błędne hasło</button>
+      <button class="state-chip" type="button" data-state="brak-konta">Brak konta</button>
+      <button class="state-chip" type="button" data-state="konto">Konto</button>
+      <button class="state-chip" type="button" data-state="konto-blad">Konto: błąd</button>
+      <button class="state-chip" type="button" data-state="konto-sukces">Konto: sukces</button>
+      <button class="state-chip" type="button" data-state="blad-404">404</button>
+    </div>
+  </section>
+
+  <p class="hub__foot">Statyczne makiety, niezależne od kodu aplikacji. Korzystają wyłącznie z <code>tokens.css</code>, <code>components.css</code> i <code>icons.js</code> z folderu <code>design/</code>. Obrazy w miniaturach to grafiki poglądowe. Font ładowany z Google Fonts tylko na potrzeby podglądu.</p>
+</main>
+
+<script>
+(() => {
+  const PHONE = { w: 390, h: 800 }, DESKTOP = { w: 1280, h: 820 };
+  const frames = [];
+  const views = [];
+  let theme = '';
+  const hash = (state) => '#' + state + (theme ? '~' + theme : '');
+
+  document.querySelectorAll('.view').forEach((view) => {
+    const file = view.dataset.file;
+    const chips = [...view.querySelectorAll('.state-chip')];
+    const first = chips[0].dataset.state;
+    const wrap = document.createElement('div');
+    wrap.className = 'frames';
+    wrap.innerHTML =
+      '<div class="frame"><div class="frame__cap"><span>Telefon 390 px</span></div><div class="scaler scaler--phone" data-w="' + PHONE.w + '" data-h="' + PHONE.h + '"><iframe loading="lazy" title="' + file + ', telefon"></iframe></div></div>' +
+      '<div class="frame"><div class="frame__cap"><span>Desktop 1280 px</span><a class="js-open" href="' + file + '#' + first + '" target="_blank" rel="noopener">Otwórz osobno ↗</a></div><div class="scaler" data-w="' + DESKTOP.w + '" data-h="' + DESKTOP.h + '"><iframe loading="lazy" title="' + file + ', desktop"></iframe></div></div>';
+    view.append(wrap);
+    const iframes = [...wrap.querySelectorAll('iframe')];
+    const open = wrap.querySelector('.js-open');
+    const setState = (state) => {
+      view.dataset.current = state;
+      chips.forEach((c) => c.setAttribute('aria-pressed', String(c.dataset.state === state)));
+      iframes.forEach((f) => { f.src = file + hash(state); });
+      open.href = file + hash(state);
+    };
+    views.push(() => setState(view.dataset.current));
+    chips.forEach((c) => c.addEventListener('click', () => setState(c.dataset.state)));
+    setState(first);
+    frames.push(...wrap.querySelectorAll('.scaler'));
+  });
+
+  const fit = () => frames.forEach((s) => {
+    const w = +s.dataset.w, h = +s.dataset.h, scale = s.clientWidth / w;
+    const f = s.querySelector('iframe');
+    f.style.width = w + 'px'; f.style.height = h + 'px'; f.style.transform = 'scale(' + scale + ')';
+    s.style.height = Math.round(h * scale) + 'px';
+  });
+  document.querySelectorAll('input[name="hub-theme"]').forEach((i) => i.addEventListener('change', () => {
+    theme = i.value;
+    document.documentElement.dataset.theme = theme;
+    views.forEach((refresh) => refresh());
+  }));
+  const systemDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  document.querySelectorAll('input[name="hub-theme"]').forEach((i) => { i.checked = i.value === (systemDark ? 'dark' : 'light'); });
+
+  new ResizeObserver(fit).observe(document.body);
+  fit();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,27 @@
+// Menu content (design/components.css, 4). The panel itself is mat-menu, styled
+// in _material.scss; these are the pieces placed inside it.
+
+.menu__label {
+    padding: var(--space-2) var(--space-3) var(--space-1);
+    font-size: var(--text-xs);
+    line-height: var(--leading-xs);
+    font-weight: var(--weight-semibold);
+    color: var(--color-text-subtle);
+}
+
+// sort names come from the logic in lower case ("newest")
+.menu__text {
+    display: inline-block;
+
+    &::first-letter {
+        text-transform: uppercase;
+    }
+}
+
+.menu__check {
+    margin-left: auto;
+}
+
+.mat-mdc-menu-item:not([aria-checked='true']) .menu__check {
+    visibility: hidden;
+}

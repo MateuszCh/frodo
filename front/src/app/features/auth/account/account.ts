@@ -6,14 +6,17 @@ import { MatInputModule } from '@angular/material/input';
 import { UserService } from '../../../core/user.service';
 import { ToolsService } from '../../../core/tools.service';
 import { User } from '../../../models/models';
+import { I18nService } from '../../../core/i18n/i18n.service';
 
 @Component({
     selector: 'app-account',
     imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatInputModule],
     templateUrl: './account.html',
-    styleUrl: './account.scss',
 })
 export class AccountComponent implements OnInit {
+    private readonly i18n = inject(I18nService);
+    protected readonly t = this.i18n.t;
+    protected readonly server = this.i18n.server;
     readonly user = input<User>();
 
     private userService = inject(UserService);
@@ -52,12 +55,12 @@ export class AccountComponent implements OnInit {
             .subscribe({
                 next: () => {
                     this.passwordStatus.set(false);
-                    this.successMessage.set('Password changed successfully');
+                    this.successMessage.set(this.t('account.changed'));
                 },
                 error: (err) => {
                     this.passwordStatus.set(false);
                     this.errorMessage.set(
-                        err?.error?.error ?? err?.error ?? 'Error changing password',
+                        err?.error?.error ?? err?.error ?? this.t('account.error'),
                     );
                 },
             });

@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Frodo logowanie i konto</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="mock-states" content="logowanie=Logowanie | walidacja=Logowanie: puste pola | w-toku=Logowanie w toku | blad=Logowanie: błędne hasło | brak-konta=Brak konta użytkownika | konto=Konto: zmiana hasła | konto-blad=Konto: błąd z serwera | konto-sukces=Konto: hasło zmienione | blad-404=Strona nie istnieje (404)">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+<style>
+  .account-form { display: grid; gap: var(--space-5); }
+  .account-form > .btn { justify-self: start; }
+  @media (max-width: 599px) { .account-form > .btn { justify-self: stretch; } }
+  .page--account { max-width: calc(560px + 2 * var(--layout-gutter)); padding-bottom: var(--space-16); }
+</style>
+</head>
+<body>
+<script src="../icons.js"></script>
+
+<!-- ================= LOGOWANIE (bez nawigacji) ================= -->
+<main class="auth" data-only="logowanie walidacja w-toku blad brak-konta">
+  <div class="auth__card">
+    <span class="brand auth__brand"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></span>
+    <h1 class="auth__title">Sign in</h1>
+    <p class="auth__lead" data-except="brak-konta">Manage pages, posts and files of your site.</p>
+
+    <form class="auth__form" novalidate data-except="brak-konta">
+      <label class="field"><span class="field__label">Username</span>
+        <input class="input" name="username" autocomplete="username" required value="bilbo" data-except="walidacja">
+        <input class="input is-invalid" name="username" autocomplete="username" required aria-invalid="true" aria-describedby="u-err" data-only="walidacja">
+        <span class="field__error" id="u-err" data-only="walidacja"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>This field is required</span></label>
+      <label class="field"><span class="field__label">Password</span>
+        <input class="input" type="password" name="password" autocomplete="current-password" required value="passphrase" data-except="walidacja">
+        <input class="input is-invalid" type="password" name="password" autocomplete="current-password" required aria-invalid="true" aria-describedby="p-err" data-only="walidacja">
+        <span class="field__error" id="p-err" data-only="walidacja"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>This field is required</span></label>
+      <button class="btn btn--primary" type="submit" data-except="w-toku">Sign in</button>
+      <button class="btn btn--primary is-busy" type="submit" aria-busy="true" data-only="w-toku"><span class="spinner" aria-hidden="true"></span>Signing in…</button>
+      <div class="form-message-slot" aria-live="polite">
+        <p class="message message--error" role="alert" data-only="blad"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>Incorrect password</p>
+      </div>
+    </form>
+
+    <p class="message message--info" data-only="brak-konta"><svg class="icon" aria-hidden="true"><use href="#i-info"/></svg>No user account exists yet. Contact the administrator.</p>
+  </div>
+</main>
+
+<!-- ================= KONTO I 404 (w szkielecie aplikacji) ================= -->
+<div class="app" data-only="konto konto-blad konto-sukces blad-404">
+  <aside class="sidebar" aria-label="Main">
+    <a class="brand" href="#"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></a>
+    <nav class="nav">
+      <p class="nav__group">Content</p>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-layout"/></svg><span class="nav__label">Pages</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Markers</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Wydarzenia</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Icons</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Navigation</span></a>
+      <p class="nav__group">Media</p>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg><span class="nav__label">Files</span></a>
+      <p class="nav__group">Structure</p>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-braces"/></svg><span class="nav__label">Post types</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-blocks"/></svg><span class="nav__label">Components</span></a>
+    </nav>
+    <div class="sidebar__theme"><span class="sidebar__theme-label" id="theme-label">Theme</span>
+      <div class="theme-switch" role="radiogroup" aria-labelledby="theme-label">
+        <label class="theme-switch__option" title="Light"><input type="radio" name="theme" value="light" checked aria-label="Light theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg></span></label>
+        <label class="theme-switch__option" title="Dark"><input type="radio" name="theme" value="dark" aria-label="Dark theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg></span></label>
+      </div>
+    </div>
+    <div class="sidebar__footer">
+      <a class="user" href="#" data-on="konto konto-blad konto-sukces:is-active"><span class="avatar" aria-hidden="true">b</span><span style="min-width:0"><span class="user__name">bilbo</span><span class="user__meta">Account settings</span></span></a>
+      <button class="btn btn--ghost btn--icon" type="button" aria-label="Log out"><svg class="icon" aria-hidden="true"><use href="#i-logout"/></svg></button>
+    </div>
+  </aside>
+
+  <div class="main" id="scroll">
+    <header class="topbar">
+      <button class="btn btn--ghost btn--icon js-nav" type="button" aria-label="Open menu"><svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg></button>
+      <a class="brand" href="#"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></a>
+    </header>
+    <div class="canvas">
+      <!-- konto -->
+      <div class="page page--account" data-only="konto konto-blad konto-sukces">
+        <header class="page-header"><div class="page-header__top"><div class="page-heading"><h1 class="page-title">Account</h1></div></div></header>
+        <section class="card">
+          <header class="card__header"><div class="card__heading"><h2 class="card__title">Change password</h2><p class="card__desc">Signed in as bilbo.</p></div></header>
+          <div class="card__body">
+            <form class="account-form" novalidate>
+              <label class="field"><span class="field__label">Current password<span class="field__req" aria-hidden="true">*</span></span><input class="input" type="password" autocomplete="current-password" required value="passphrase"></label>
+              <label class="field"><span class="field__label">New password<span class="field__req" aria-hidden="true">*</span></span><input class="input" type="password" autocomplete="new-password" required value="new-passphrase"></label>
+              <label class="field"><span class="field__label">Confirm new password<span class="field__req" aria-hidden="true">*</span></span>
+                <input class="input" type="password" autocomplete="new-password" required value="new-passphrase" data-except="konto-blad">
+                <input class="input" type="password" autocomplete="new-password" required value="new-passphrse" data-only="konto-blad"></label>
+              <button class="btn btn--primary" type="submit">Change password</button>
+              <div class="form-message-slot" aria-live="polite">
+                <p class="message message--error" role="alert" data-only="konto-blad"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>Passwords do not match</p>
+                <p class="message message--success" role="status" data-only="konto-sukces"><svg class="icon" aria-hidden="true"><use href="#i-check-circle"/></svg>Password changed successfully</p>
+              </div>
+            </form>
+          </div>
+        </section>
+      </div>
+
+      <!-- 404 -->
+      <div class="page" data-only="blad-404">
+        <div class="error-page">
+          <p class="error-page__code">404</p>
+          <h1 class="error-page__title">Page not found</h1>
+          <p class="error-page__text">The address may be mistyped, or the page was removed. Choose a section from the menu.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+<div class="backdrop js-backdrop js-close"></div>
+
+<script src="mock.js"></script>
+</body>
+</html>

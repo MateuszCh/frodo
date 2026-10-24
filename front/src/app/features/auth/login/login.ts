@@ -5,14 +5,18 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { UserService } from '../../../core/user.service';
+import { LanguageSwitchComponent } from '../../../layout/language-switch/language-switch';
+import { I18nService } from '../../../core/i18n/i18n.service';
 
 @Component({
     selector: 'app-login',
-    imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatInputModule],
+    imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, LanguageSwitchComponent],
     templateUrl: './login.html',
-    styleUrl: './login.scss',
 })
 export class LoginComponent {
+    private readonly i18n = inject(I18nService);
+    protected readonly t = this.i18n.t;
+    protected readonly server = this.i18n.server;
     readonly exist = input<boolean>(false);
 
     private userService = inject(UserService);
@@ -38,7 +42,7 @@ export class LoginComponent {
                 },
                 error: (error) => {
                     this.actionStatus.set(false);
-                    this.errorMessage.set(error?.error?.error ?? error?.error ?? 'Login failed');
+                    this.errorMessage.set(error?.error?.error ?? error?.error ?? this.t('login.failed'));
                 },
             });
     }

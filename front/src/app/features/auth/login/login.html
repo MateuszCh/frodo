@@ -1,29 +1,71 @@
-<section class="auth">
-    <h1 class="center font-3 fs-6">Frodo</h1>
-    @if (exist()) {
-        <form #form="ngForm" class="auth-form" (ngSubmit)="login(form)">
-            <mat-form-field class="full-width">
-                <mat-label>Username</mat-label>
-                <input matInput name="username" required [(ngModel)]="data.username" />
-                <mat-error>This is required</mat-error>
-            </mat-form-field>
-            <mat-form-field class="full-width">
-                <mat-label>Password</mat-label>
-                <input
-                    matInput
-                    type="password"
-                    name="password"
-                    required
-                    [(ngModel)]="data.password"
-                />
-                <mat-error>This is required</mat-error>
-            </mat-form-field>
-            <button mat-raised-button color="primary" type="submit" [class.busy]="actionStatus()">
-                Sign in
-            </button>
-            <p class="form-message error">{{ errorMessage() }}</p>
-        </form>
-    } @else {
-        <p class="center">There is no username, please contact admin</p>
-    }
-</section>
+<main class="auth">
+    <div class="auth__card">
+        <span class="brand auth__brand">
+            <svg class="brand__mark" aria-hidden="true"><use href="icons.svg#logo-mark" /></svg>
+            <span class="brand__word">Frodo</span>
+        </span>
+        <h1 class="auth__title">{{ t('login.title') }}</h1>
+        @if (exist()) {
+            <p class="auth__lead">{{ t('login.lead') }}</p>
+            <form #form="ngForm" class="auth__form" (ngSubmit)="login(form)">
+                <div class="field">
+                    <label class="field__label" for="login-username">{{ t('login.username') }}</label>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <input
+                            matInput
+                            id="login-username"
+                            name="username"
+                            autocomplete="username"
+                            required
+                            [(ngModel)]="data.username"
+                        />
+                        <mat-error>
+                            <svg class="icon" aria-hidden="true"><use href="icons.svg#i-alert" /></svg>
+                            {{ t('common.required') }}
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <div class="field">
+                    <label class="field__label" for="login-password">{{ t('login.password') }}</label>
+                    <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                        <input
+                            matInput
+                            type="password"
+                            id="login-password"
+                            name="password"
+                            autocomplete="current-password"
+                            required
+                            [(ngModel)]="data.password"
+                        />
+                        <mat-error>
+                            <svg class="icon" aria-hidden="true"><use href="icons.svg#i-alert" /></svg>
+                            {{ t('common.required') }}
+                        </mat-error>
+                    </mat-form-field>
+                </div>
+                <button mat-flat-button type="submit" [attr.aria-busy]="actionStatus()">
+                    @if (actionStatus()) {
+                        <span matButtonIcon class="spinner" aria-hidden="true"></span>
+                    }
+                    {{ actionStatus() ? t('login.submitting') : t('login.submit') }}
+                </button>
+                <div class="form-message-slot" aria-live="polite">
+                    @if (errorMessage()) {
+                        <p class="message message--error" role="alert">
+                            <svg class="icon" aria-hidden="true"><use href="icons.svg#i-alert" /></svg>
+                            {{ server(errorMessage()) }}
+                        </p>
+                    }
+                </div>
+            </form>
+        } @else {
+            <p class="message message--info">
+                <svg class="icon" aria-hidden="true"><use href="icons.svg#i-info" /></svg>
+                {{ t('login.noAccount') }}
+            </p>
+        }
+        <div class="auth__language">
+            <app-language-switch></app-language-switch>
+        </div>
+    </div>
+</main>

@@ -6,13 +6,14 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatButtonModule } from '@angular/material/button';
-import { provideNativeDateAdapter } from '@angular/material/core';
 import { MatDialog } from '@angular/material/dialog';
 import { Field } from '../../../models/models';
 import { FilesService } from '../../../core/files.service';
 import { parseOptions } from '../../../shared/parse-options';
 import { FilePickerDialogComponent } from '../../files/file-picker-dialog/file-picker-dialog';
 import { RepeaterComponent } from '../repeater/repeater';
+import { provideAppDateAdapter } from '../../../core/i18n/date-adapter';
+import { I18nService } from '../../../core/i18n/i18n.service';
 
 /**
  * Port of field.component.js — renders the right input for a field type,
@@ -22,7 +23,7 @@ import { RepeaterComponent } from '../repeater/repeater';
     selector: 'app-field',
     // share the ancestor <form> so ngModel controls register for validation
     viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],
-    providers: [provideNativeDateAdapter()],
+    providers: [provideAppDateAdapter()],
     imports: [
         FormsModule,
         MatFormFieldModule,
@@ -37,9 +38,9 @@ import { RepeaterComponent } from '../repeater/repeater';
         forwardRef(() => RepeaterComponent),
     ],
     templateUrl: './field-input.html',
-    styleUrl: './field-input.scss',
 })
 export class FieldInputComponent implements OnInit {
+    protected readonly t = inject(I18nService).t;
     readonly field = input.required<Field>();
     readonly model = input.required<Record<string, unknown>>();
     /** prefix to keep ngModel control names unique (e.g. across repeater rows). */

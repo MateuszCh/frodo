@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Frodo edytor wpisu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="mock-states" content="edycja=Edycja wydarzenia | marker=Edycja markera | nowy=Nowy wpis | blad=Błąd walidacji | zapis=Zapis w toku | zapisano=Zapisano (alert) | blad-zapisu=Błąd zapisu (alert) | usuwanie=Potwierdzenie usunięcia | brak-pol=Typ bez pól">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+</head>
+<body>
+<script src="../icons.js"></script>
+
+<div class="app">
+  <aside class="sidebar" aria-label="Main">
+    <a class="brand" href="#"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></a>
+    <nav class="nav">
+      <p class="nav__group">Content</p>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-layout"/></svg><span class="nav__label">Pages</span></a>
+      <a class="nav__item" href="#" data-on="marker:is-active"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Markers</span></a>
+      <a class="nav__item" href="#" data-on="edycja nowy blad zapis zapisano blad-zapisu usuwanie brak-pol:is-active"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Wydarzenia</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Icons</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Navigation</span></a>
+      <p class="nav__group">Media</p>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg><span class="nav__label">Files</span></a>
+      <p class="nav__group">Structure</p>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-braces"/></svg><span class="nav__label">Post types</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-blocks"/></svg><span class="nav__label">Components</span></a>
+    </nav>
+    <div class="sidebar__theme"><span class="sidebar__theme-label" id="theme-label">Theme</span>
+      <div class="theme-switch" role="radiogroup" aria-labelledby="theme-label">
+        <label class="theme-switch__option" title="Light"><input type="radio" name="theme" value="light" checked aria-label="Light theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg></span></label>
+        <label class="theme-switch__option" title="Dark"><input type="radio" name="theme" value="dark" aria-label="Dark theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg></span></label>
+      </div>
+    </div>
+    <div class="sidebar__footer">
+      <a class="user" href="#"><span class="avatar" aria-hidden="true">b</span><span style="min-width:0"><span class="user__name">bilbo</span><span class="user__meta">Account settings</span></span></a>
+      <button class="btn btn--ghost btn--icon" type="button" aria-label="Log out"><svg class="icon" aria-hidden="true"><use href="#i-logout"/></svg></button>
+    </div>
+  </aside>
+
+  <div class="main" id="scroll">
+    <header class="topbar">
+      <button class="btn btn--ghost btn--icon js-nav" type="button" aria-label="Open menu"><svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg></button>
+      <a class="brand" href="#"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></a>
+    </header>
+
+    <form class="canvas" novalidate>
+      <!-- ============ pasek edytora ============ -->
+      <div class="editor-bar">
+        <div class="editor-bar__heading">
+          <span class="editor-bar__eyebrow" data-only="edycja zapis zapisano blad-zapisu usuwanie brak-pol">Edit wydarzenie</span>
+          <span class="editor-bar__eyebrow" data-only="marker">Edit marker</span>
+          <span class="editor-bar__eyebrow" data-only="nowy blad">New wydarzenie</span>
+          <h1 class="editor-bar__title" data-only="edycja zapis zapisano blad-zapisu usuwanie brak-pol">Noc Muzeów w Kopalni Guido</h1>
+          <h1 class="editor-bar__title" data-only="marker">Kopalnia Guido</h1>
+          <h1 class="editor-bar__title is-placeholder" data-only="nowy blad">Untitled</h1>
+        </div>
+        <div class="editor-bar__actions">
+          <button class="btn btn--ghost" type="button" data-except="nowy blad" data-on="usuwanie:is-focus"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Delete</button>
+          <button class="btn btn--primary" type="submit" data-except="zapis">Save</button>
+          <button class="btn btn--primary is-busy" type="submit" aria-busy="true" data-only="zapis"><span class="spinner" aria-hidden="true"></span>Saving…</button>
+        </div>
+      </div>
+
+      <div class="page page--form">
+        <div class="form-stack">
+          <!-- ============ tytuł ============ -->
+          <section class="card" aria-label="Title">
+            <div class="card__body">
+              <label class="field">
+                <span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span>
+                <input class="input" required value="Noc Muzeów w Kopalni Guido" data-only="edycja zapis zapisano blad-zapisu usuwanie brak-pol">
+                <input class="input" required value="Kopalnia Guido" data-only="marker">
+                <input class="input" required data-only="nowy">
+                <input class="input is-invalid" required aria-invalid="true" aria-describedby="title-err" data-only="blad">
+                <span class="field__error" id="title-err" data-only="blad"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>This field is required</span>
+              </label>
+            </div>
+          </section>
+
+          <!-- ============ pola: wydarzenie ============ -->
+          <section class="card" data-only="edycja nowy blad zapis zapisano blad-zapisu usuwanie">
+            <header class="card__header"><div class="card__heading"><h2 class="card__title">Fields</h2></div></header>
+            <div class="card__body">
+              <label class="field"><span class="field__label">Date and place</span>
+                <input class="input" value="16 maja 2026, 19:00 · Zabrze, Kopalnia Guido" data-except="nowy blad">
+                <input class="input" data-only="nowy blad">
+              </label>
+
+              <div class="field"><label class="field__label" for="pub">Date of publication</label>
+                <div class="field-row">
+                  <span class="control control--suffix">
+                    <input class="input" id="pub" value="4/20/2026" data-except="nowy blad">
+                    <input class="input" placeholder="MM/DD/YYYY" data-only="nowy blad">
+                    <span class="control__suffix"><button class="btn btn--ghost btn--sm btn--icon" type="button" aria-label="Open calendar"><svg class="icon" aria-hidden="true"><use href="#i-calendar"/></svg></button></span>
+                  </span>
+                  <button class="btn btn--ghost" type="button"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>Clear</button>
+                </div>
+              </div>
+
+              <!-- repeater: Paragraphs -->
+              <div class="repeater">
+                <div class="repeater__head"><span class="field__label">Paragraphs</span><span class="badge badge--neutral" data-except="nowy blad">2</span></div>
+                <p class="field__hint" data-only="nowy blad">No rows yet.</p>
+                <div class="repeater__rows" data-except="nowy blad">
+                  <div class="repeater__row">
+                    <div class="repeater__row-head"><span class="repeater__row-index"></span><button class="btn btn--ghost btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Delete row</button></div>
+                    <label class="field"><span class="field__label">Paragraph</span><textarea class="input" rows="3">Kopalnia Guido zaprasza na nocne zwiedzanie poziomów 170 i 320. Przewodnicy opowiedzą o pracy górników i o tym, jak powstawały pokłady węgla.</textarea></label>
+                  </div>
+                  <div class="repeater__row">
+                    <div class="repeater__row-head"><span class="repeater__row-index"></span><button class="btn btn--ghost btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Delete row</button></div>
+                    <label class="field"><span class="field__label">Paragraph</span><textarea class="input" rows="3">Wejścia co 30 minut od 19:00 do 1:00. Obowiązują bezpłatne wejściówki do odebrania w kasie.</textarea></label>
+                  </div>
+                </div>
+                <button class="btn btn--secondary btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add row</button>
+              </div>
+
+              <!-- repeater: Links -->
+              <div class="repeater">
+                <div class="repeater__head"><span class="field__label">Links</span><span class="badge badge--neutral" data-except="nowy blad">1</span></div>
+                <p class="field__hint" data-only="nowy blad">No rows yet.</p>
+                <div class="repeater__rows" data-except="nowy blad">
+                  <div class="repeater__row">
+                    <div class="repeater__row-head"><span class="repeater__row-index"></span><button class="btn btn--ghost btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Delete row</button></div>
+                    <div class="form-grid form-grid--2">
+                      <label class="field"><span class="field__label">Text</span><input class="input" value="Program wydarzenia"></label>
+                      <label class="field"><span class="field__label">Link</span><input class="input" value="/aktualnosci/noc-muzeow-2026"></label>
+                    </div>
+                  </div>
+                </div>
+                <button class="btn btn--secondary btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add row</button>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ pola: marker ============ -->
+          <section class="card" data-only="marker">
+            <header class="card__header"><div class="card__heading"><h2 class="card__title">Fields</h2></div></header>
+            <div class="card__body">
+              <label class="field"><span class="field__label">Place</span><input class="input" value="Zabrze, ul. 3 Maja 93"></label>
+              <div class="form-grid form-grid--2">
+                <label class="field"><span class="field__label">Latitude</span><input class="input" type="number" step="any" value="50.2976"></label>
+                <label class="field"><span class="field__label">Longitude</span><input class="input" type="number" step="any" value="18.7735"></label>
+              </div>
+              <label class="field"><span class="field__label">Link</span><input class="input" value="/geostanowiska/kopalnia-guido"></label>
+              <div class="field"><span class="field__label">Categories</span>
+                <div class="field-row">
+                  <span class="control control--select"><button class="input" type="button"><span class="select__value">Dziedzictwo poprzemysłowe, Geologia</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span>
+                  <button class="btn btn--ghost" type="button"><svg class="icon" aria-hidden="true"><use href="#i-x"/></svg>Clear</button>
+                </div>
+              </div>
+            </div>
+          </section>
+
+          <!-- ============ typ bez pól ============ -->
+          <section class="card" data-only="brak-pol">
+            <header class="card__header"><div class="card__heading"><h2 class="card__title">Fields</h2></div></header>
+            <div class="empty empty--compact">
+              <span class="empty__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-braces"/></svg></span>
+              <p class="empty__title">No fields yet</p>
+              <p class="empty__text">This post type has only a title. Add fields in Post types.</p>
+            </div>
+          </section>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="backdrop js-backdrop js-close"></div>
+
+<!-- ============ dialogi ============ -->
+<div class="dialog-layer" data-only="zapisano">
+  <div class="dialog" role="dialog" aria-modal="true" aria-describedby="ok-body">
+    <p class="dialog__body" id="ok-body" style="color:var(--color-text)">Noc Muzeów w Kopalni Guido updated successfully</p>
+    <div class="dialog__actions"><button class="btn btn--primary" type="button">OK</button></div>
+  </div>
+</div>
+<div class="dialog-layer" data-only="blad-zapisu">
+  <div class="dialog" role="dialog" aria-modal="true" aria-describedby="err-body">
+    <p class="dialog__body" id="err-body" style="color:var(--color-text)">Error saving</p>
+    <div class="dialog__actions"><button class="btn btn--primary" type="button">OK</button></div>
+  </div>
+</div>
+<div class="dialog-layer" data-only="usuwanie">
+  <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="del-title" aria-describedby="del-body">
+    <h2 class="dialog__title" id="del-title">Confirm deletion</h2>
+    <p class="dialog__body" id="del-body">Are you sure you want to delete Noc Muzeów w Kopalni Guido?</p>
+    <div class="dialog__actions"><button class="btn btn--secondary" type="button">Cancel</button><button class="btn btn--danger" type="button">Delete</button></div>
+  </div>
+</div>
+
+<script src="mock.js"></script>
+</body>
+</html>

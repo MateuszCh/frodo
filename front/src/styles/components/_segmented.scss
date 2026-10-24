@@ -1,0 +1,82 @@
+// Segmented switch: the True / False / All filter (design/components.css, 6).
+// mat-radio-group + mat-radio-button; the radio circle is hidden but its native
+// input covers the whole segment, so click, keyboard and screen readers keep working.
+
+.segmented {
+    display: inline-grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 2px;
+    padding: 3px;
+    max-width: 100%;
+    border: 1px solid var(--color-border-control);
+    border-radius: var(--radius-full);
+    background: var(--color-surface);
+}
+
+.segmented--block {
+    display: grid;
+    width: 100%;
+}
+
+// MDC: mat-radio-button internals
+.segmented__option.mat-mdc-radio-button {
+    position: relative;
+    min-width: 0;
+
+    .mdc-form-field {
+        display: block;
+    }
+
+    .mdc-radio {
+        position: absolute;
+        inset: 0;
+        width: auto;
+        height: auto;
+        padding: 0;
+        margin: 0;
+        opacity: 0;
+        z-index: 1;
+    }
+
+    .mdc-radio__native-control {
+        position: absolute;
+        inset: 0;
+        width: 100%;
+        height: 100%;
+        margin: 0;
+        cursor: pointer;
+    }
+
+    label {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: calc(var(--control-h) - 8px);
+        padding: 0 var(--space-4);
+        border-radius: var(--radius-full);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        color: var(--color-text-muted);
+        white-space: nowrap;
+        transition:
+            background-color var(--duration-instant) var(--ease-standard),
+            color var(--duration-instant) var(--ease-standard);
+    }
+
+    &:hover label {
+        background: var(--color-fill-hover);
+        color: var(--color-text);
+    }
+
+    &.mat-mdc-radio-checked label {
+        background: var(--color-accent-subtle);
+        color: var(--color-accent-subtle-text);
+        font-weight: var(--weight-semibold);
+    }
+
+    &:has(.mdc-radio__native-control:focus-visible) label {
+        outline: 2px solid var(--color-focus-ring);
+        outline-offset: 1px;
+    }
+}

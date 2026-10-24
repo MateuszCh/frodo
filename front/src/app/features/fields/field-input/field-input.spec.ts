@@ -13,6 +13,11 @@ import { FilesService } from '../../../core/files.service';
 import { makeField } from '../../../testing/test-helpers';
 import type { Field } from '../../../models/models';
 
+// These tests assert the English texts; the Polish default is covered in i18n.service.spec.ts
+// and in the Polish rendering tests.
+beforeEach(() => localStorage.setItem('frodo.lang', 'en'));
+afterEach(() => localStorage.removeItem('frodo.lang'));
+
 // ---------------------------------------------------------------------------
 // Host
 // ---------------------------------------------------------------------------
@@ -194,12 +199,34 @@ describe('FieldInputComponent — template per field type', () => {
         expect(openSelectAndReadOptions(fixture)).toEqual(['banners', 'gallery']);
     });
 
-    it('renders a checkbox with the title and current value', () => {
+    it('renders a checkbox labelled with the title only (no ": value")', () => {
         const { fixture } = setup(makeField('checkbox', 'flag', 'Active'), { flag: true });
         const checkbox = fixture.nativeElement.querySelector('mat-checkbox');
         expect(checkbox).not.toBeNull();
-        expect(checkbox.textContent).toContain('Active');
-        expect(checkbox.textContent).toContain('true');
+        expect(checkbox.textContent.trim()).toBe('Active');
+    });
+
+    it('puts the label above the field and ties it to the control id', () => {
+        const { fixture } = setup(makeField('text', 'name', 'Name'), {}, createMocks(), 'p_');
+        const label: HTMLLabelElement = fixture.nativeElement.querySelector('label.field__label');
+        const input: HTMLInputElement = fixture.nativeElement.querySelector('input[type="text"]');
+        expect(label.textContent?.trim()).toBe('Name');
+        expect(label.htmlFor).toBe('field-p_name');
+        expect(input.id).toBe('field-p_name');
+        expect(input.name).toBe('p_name');
+    });
+
+    it('shows "No file selected" when no file is set', () => {
+        const { fixture } = setup(makeField('file', 'img', 'Image'), {});
+        expect(fixture.nativeElement.querySelector('.file-field__empty')?.textContent).toContain(
+            'No file selected',
+        );
+    });
+
+    it('shows a PDF tile instead of an image preview for PDF files', () => {
+        const { fixture } = setup(makeField('file', 'doc', 'Document'), { doc: '/uploads/guide.PDF' });
+        expect(fixture.nativeElement.querySelector('.file-field__preview img')).toBeNull();
+        expect(fixture.nativeElement.querySelector('.file-field__file')?.textContent).toContain('PDF');
     });
 
     it('renders a datepicker input for date fields', () => {

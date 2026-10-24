@@ -7,7 +7,6 @@ import { FilesComponent } from '../files/files';
     selector: 'app-file-picker-dialog',
     imports: [FilesComponent],
     templateUrl: './file-picker-dialog.html',
-    styleUrl: './file-picker-dialog.scss',
 })
 export class FilePickerDialogComponent {
     private ref = inject(MatDialogRef<FilePickerDialogComponent, FileItem>);

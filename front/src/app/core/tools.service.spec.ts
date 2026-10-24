@@ -98,6 +98,40 @@ describe('ToolsService', () => {
             expect(scrollSpy).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' });
         });
 
+        it('skips the invalid <form> and scrolls to its first invalid field', () => {
+            // NgForm marks the <form> invalid too, and it precedes every field in the DOM
+            document.body.innerHTML = `
+                <form class="ng-invalid">
+                    <div class="mat-mdc-form-field ng-valid"><input class="ng-valid" /></div>
+                    <div id="title" class="mat-mdc-form-field ng-invalid"><input class="ng-invalid" /></div>
+                    <div id="url" class="mat-mdc-form-field ng-invalid"><input class="ng-invalid" /></div>
+                </form>`;
+            const form = document.querySelector('form')!;
+            const title = document.getElementById('title')!;
+            const url = document.getElementById('url')!;
+            form.scrollIntoView = vi.fn();
+            title.scrollIntoView = vi.fn();
+            url.scrollIntoView = vi.fn();
+
+            service.scrollToError('body');
+            vi.runAllTimers();
+
+            expect(form.scrollIntoView).not.toHaveBeenCalled();
+            expect(title.scrollIntoView).toHaveBeenCalledWith({ behavior: 'smooth', block: 'center' });
+            expect(url.scrollIntoView).not.toHaveBeenCalled();
+        });
+
+        it('does not scroll when only the form itself is invalid', () => {
+            document.body.innerHTML = '<form class="ng-invalid"></form>';
+            const form = document.querySelector('form')!;
+            form.scrollIntoView = vi.fn();
+
+            service.scrollToError('body');
+            vi.runAllTimers();
+
+            expect(form.scrollIntoView).not.toHaveBeenCalled();
+        });
+
         it('does not throw when no invalid element exists', () => {
             expect(() => {
                 service.scrollToError('body');

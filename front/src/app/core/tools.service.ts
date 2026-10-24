@@ -24,13 +24,15 @@ export class ToolsService {
             .afterClosed() as Observable<boolean>;
     }
 
-    /** Scroll the first invalid form control into view (old scrollToError). */
+    /**
+     * Scroll the first invalid field into view (old scrollToError). The <form> carries
+     * .ng-invalid as well and comes first in the DOM, so it is skipped; the field's
+     * mat-form-field precedes its input, so the error under it scrolls in too.
+     */
     scrollToError(container = '#scroll'): void {
         setTimeout(() => {
             const root = document.querySelector(container) ?? document;
-            const invalid = root.querySelector(
-                '.ng-invalid[formcontrolname], .mat-mdc-form-field.ng-invalid, .ng-invalid',
-            );
+            const invalid = root.querySelector('.ng-invalid:not(form)');
             invalid?.scrollIntoView({ behavior: 'smooth', block: 'center' });
         });
     }

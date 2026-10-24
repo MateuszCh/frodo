@@ -6,12 +6,17 @@ import { NgModel } from '@angular/forms';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { MatDialogRef } from '@angular/material/dialog';
 import { HttpEventType, HttpResponse } from '@angular/common/http';
-import { of, throwError } from 'rxjs';
+import { Subject, of, throwError } from 'rxjs';
 
 import { FilesComponent } from './files';
 import { FilesService } from '../../../core/files.service';
 import { ToolsService } from '../../../core/tools.service';
 import type { FileItem } from '../../../models/models';
+
+// These tests assert the English texts; the Polish default is covered in i18n.service.spec.ts
+// and in the Polish rendering tests.
+beforeEach(() => localStorage.setItem('frodo.lang', 'en'));
+afterEach(() => localStorage.removeItem('frodo.lang'));
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -139,6 +144,90 @@ describe('FilesComponent — init', () => {
         expect(comp.files()).toEqual(files);
     });
 
+    it('shows a spinner instead of "no files" while the popup loads', () => {
+        const mocks = createMocks();
+        const response = new Subject<FileItem[]>();
+        mocks.files.getAllFiles.mockReturnValue(response);
+        const { fixture, comp } = setup([], true, mocks);
+        const el: HTMLElement = fixture.nativeElement;
+
+        expect(comp.loading()).toBe(true);
+        const loader = el.querySelector('.files-loader');
+        expect(loader?.getAttribute('role')).toBe('status');
+        expect(loader?.querySelector('.spinner')).not.toBeNull();
+        expect(loader?.textContent?.trim()).toBe('Loading files…');
+        expect(el.textContent).not.toContain('No files yet');
+
+        response.next([makeFile()]);
+        fixture.detectChanges();
+
+        expect(comp.loading()).toBe(false);
+        expect(el.querySelector('.files-loader')).toBeNull();
+        expect(el.querySelectorAll('.files-grid__item')).toHaveLength(1);
+    });
+
+    it('shows the toolbar right away while the popup loads; catalogues fill in afterwards', async () => {
+        const mocks = createMocks();
+        const response = new Subject<FileItem[]>();
+        mocks.files.getAllFiles.mockReturnValue(response);
+        const { fixture } = setup([], true, mocks);
+        const el: HTMLElement = fixture.nativeElement;
+        const select = () => el.querySelector('.files-filters mat-select');
+        // ngModel applies [disabled] in a microtask
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        expect(el.querySelector('.files-filters .control--search input')).not.toBeNull();
+        expect(el.querySelector('.files-filters .sort-toggle')).not.toBeNull();
+        expect(select()?.getAttribute('aria-disabled')).toBe('true');
+
+        response.next([makeFile({ catalogues: ['gallery'] })]);
+        fixture.detectChanges();
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        expect(select()?.getAttribute('aria-disabled')).toBe('false');
+        (select() as HTMLElement).click();
+        fixture.detectChanges();
+        const options = Array.from(document.body.querySelectorAll('mat-option')).map((o) =>
+            o.textContent?.trim(),
+        );
+        expect(options).toEqual(['gallery']);
+    });
+
+    it('hides the catalogue filter once loaded when no file has a catalogue', () => {
+        const mocks = createMocks();
+        const response = new Subject<FileItem[]>();
+        mocks.files.getAllFiles.mockReturnValue(response);
+        const { fixture } = setup([], true, mocks);
+        response.next([makeFile()]);
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('.files-filters')).not.toBeNull();
+        expect(fixture.nativeElement.querySelector('.files-filters mat-select')).toBeNull();
+    });
+
+    it('shows "no files" once the popup has loaded an empty list', () => {
+        const mocks = createMocks();
+        const { fixture } = setup([], true, mocks);
+        expect(fixture.nativeElement.querySelector('.files-loader')).toBeNull();
+        expect(fixture.nativeElement.textContent).toContain('No files yet');
+    });
+
+    it('stops loading and alerts when the popup fetch fails', () => {
+        const mocks = createMocks();
+        mocks.files.getAllFiles.mockReturnValue(throwError(() => ({ status: 500 })));
+        const { fixture, comp } = setup([], true, mocks);
+        expect(comp.loading()).toBe(false);
+        expect(mocks.tools.alert).toHaveBeenCalledWith('Could not load files');
+        expect(fixture.nativeElement.querySelector('.files-loader')).toBeNull();
+    });
+
+    it('never shows the spinner on the page, where the files come from the resolver', () => {
+        const { fixture, comp } = setup([], false);
+        expect(comp.loading()).toBe(false);
+        expect(fixture.nativeElement.querySelector('.files-loader')).toBeNull();
+    });
+
     it('falls back to [] when the popup fetch returns null', () => {
         const mocks = createMocks();
         mocks.files.getAllFiles.mockReturnValue(of(null));
@@ -220,6 +309,95 @@ describe('FilesComponent — filtering and paging', () => {
 });
 
 // ---------------------------------------------------------------------------
+// sorting
+// ---------------------------------------------------------------------------
+
+describe('FilesComponent — sorting', () => {
+    afterEach(() => sessionStorage.clear());
+
+    it('offers the same sort options as the listings', () => {
+        const { comp } = setup([makeFile()]);
+        expect(comp.sortTypes.map((s: { varName: string }) => s.varName)).toEqual([
+            '-created',
+            'created',
+            'title',
+        ]);
+    });
+
+    it('defaults to oldest first', () => {
+        const newer = makeFile({ created: 3 });
+        const older = makeFile({ created: 1 });
+        const { comp } = setup([newer, older]);
+        expect(comp.sortCurrent()).toBe('created');
+        expect(comp.filtered()).toEqual([older, newer]);
+    });
+
+    it('sortBy reorders the files and persists the choice to sessionStorage', () => {
+        const older = makeFile({ created: 1, title: 'b' });
+        const newer = makeFile({ created: 2, title: 'a' });
+        const { comp } = setup([older, newer]);
+
+        comp.sortBy('-created');
+        expect(comp.filtered()).toEqual([newer, older]);
+        expect(sessionStorage.getItem('sorting.files')).toBe('-created');
+
+        comp.sortBy('title');
+        expect(comp.filtered()).toEqual([newer, older]);
+        expect(sessionStorage.getItem('sorting.files')).toBe('title');
+    });
+
+    it('title sort falls back to the filename when a file has no title', () => {
+        const charlie = makeFile({ title: 'charlie', filename: 'x.jpg' });
+        const alpha = makeFile({ title: undefined, filename: 'alpha.jpg' });
+        const bravo = makeFile({ title: '', filename: 'bravo.jpg' });
+        const { comp } = setup([charlie, alpha, bravo]);
+        comp.sortBy('title');
+        expect(comp.filtered()).toEqual([alpha, bravo, charlie]);
+    });
+
+    it('keeps the original file objects so the selection survives a re-sort', () => {
+        const older = makeFile({ created: 1 });
+        const newer = makeFile({ created: 2 });
+        const { fixture, comp } = setup([older, newer]);
+        comp.select(older);
+        fixture.detectChanges();
+        comp.sortBy('-created');
+        fixture.detectChanges();
+        expect(comp.filtered()[1]).toBe(older);
+        expect(comp.selected()).toBe(older);
+    });
+
+    it('restores the persisted sort on init', () => {
+        sessionStorage.setItem('sorting.files', '-created');
+        const older = makeFile({ created: 1 });
+        const newer = makeFile({ created: 2 });
+        const { comp } = setup([older, newer]);
+        expect(comp.sortCurrent()).toBe('-created');
+        expect(comp.filtered()).toEqual([newer, older]);
+    });
+
+    it('sorts after filtering', () => {
+        const apple = makeFile({ filename: 'apple.jpg', created: 1 });
+        const banana1 = makeFile({ filename: 'banana1.jpg', created: 2 });
+        const banana2 = makeFile({ filename: 'banana2.jpg', created: 3 });
+        const { comp } = setup([apple, banana1, banana2]);
+        comp.searchText.set('banana');
+        comp.sortBy('-created');
+        expect(comp.filtered()).toEqual([banana2, banana1]);
+    });
+
+    it('uses the listing labels in Polish', () => {
+        localStorage.setItem('frodo.lang', 'pl');
+        const { comp } = setup([makeFile()]);
+        expect(comp.sortTypes.map((s: { varName: string }) => comp.sortName(s))).toEqual([
+            'najnowsze',
+            'najstarsze',
+            'tytuł',
+        ]);
+    });
+});
+
+// ---------------------------------------------------------------------------
 // select / chooseSelected / isImage
 // ---------------------------------------------------------------------------
 
@@ -233,6 +411,27 @@ describe('FilesComponent — selection', () => {
         fixture.detectChanges();
         comp.chooseSelected();
         expect(emitted).toEqual([file]);
+    });
+
+    it('selecting the selected file again deselects it', () => {
+        const apple = makeFile();
+        const banana = makeFile();
+        const { comp } = setup([apple, banana]);
+        comp.select(apple);
+        comp.select(banana);
+        expect(comp.selected()).toBe(banana);
+        comp.select(banana);
+        expect(comp.selected()).toBeUndefined();
+        comp.select(banana);
+        expect(comp.selected()).toBe(banana);
+    });
+
+    it('deselect clears the selection', () => {
+        const file = makeFile();
+        const { comp } = setup([file]);
+        comp.select(file);
+        comp.deselect();
+        expect(comp.selected()).toBeUndefined();
     });
 
     it('chooseSelected does nothing without a selection', () => {
@@ -711,19 +910,24 @@ describe('FilesComponent — template', () => {
         const thumbs: HTMLImageElement[] = Array.from(
             fixture.nativeElement.querySelectorAll('.files-grid__item img'),
         );
-        expect(thumbs.map((i) => i.getAttribute('src'))).toEqual([
-            '/uploads/photo.jpg',
-            'images/pdf-placeholder.png',
-        ]);
+        expect(thumbs.map((i) => i.getAttribute('src'))).toEqual(['/uploads/photo.jpg']);
+        // PDFs get a tile with the file icon instead of an image
+        const tiles: HTMLElement[] = Array.from(
+            fixture.nativeElement.querySelectorAll('.files-grid__item .thumb__file'),
+        );
+        expect(tiles.map((t) => t.textContent?.trim())).toEqual(['PDF']);
+        expect(fixture.nativeElement.querySelector('.files-grid__item.current')?.getAttribute('aria-label')).toBe(
+            'photo.jpg',
+        );
         expect(fixture.nativeElement.querySelector('.files-edit__name').textContent).toContain(
             'photo.jpg',
         );
 
-        // a selected PDF gets the placeholder preview in the edit panel
+        // a selected PDF gets the file tile as its preview in the edit panel
         comp.select(pdf);
         fixture.detectChanges();
-        const preview = fixture.nativeElement.querySelector('.files-edit__preview img');
-        expect(preview.getAttribute('src')).toBe('images/pdf-placeholder.png');
+        expect(fixture.nativeElement.querySelector('.files-edit__preview img')).toBeNull();
+        expect(fixture.nativeElement.querySelector('.files-edit__preview .thumb__file')).not.toBeNull();
     });
 
     it('selects a file when its grid item is clicked', () => {
@@ -749,12 +953,44 @@ describe('FilesComponent — template', () => {
         expect(fixture.nativeElement.querySelector('.files-upload__edit')).not.toBeNull();
     });
 
+    it('labels the upload button with the number of pending files', () => {
+        const { fixture, comp } = setup([]);
+        comp.onFilesSelect(
+            fileInputEvent([
+                new File(['1'], 'a.jpg', { type: 'image/jpeg' }),
+                new File(['2'], 'b.pdf', { type: 'application/pdf' }),
+            ]),
+        );
+        comp.tabs().selectedIndex = 1;
+        fixture.detectChanges();
+
+        expect(buttonByText(fixture, 'Upload 2 files')).toBeDefined();
+        expect(buttonByText(fixture, 'Clear list')).toBeDefined();
+        // the PDF gets a file tile, not the placeholder image
+        const thumbs = fixture.nativeElement.querySelectorAll('.pending__thumb');
+        expect(thumbs[0].querySelector('img')).not.toBeNull();
+        expect(thumbs[1].querySelector('img')).toBeNull();
+    });
+
+    it('shows the upload empty state before any file is selected', async () => {
+        const { fixture, comp } = setup([]);
+        comp.tabs().selectedIndex = 1;
+        fixture.detectChanges();
+        // the tab body attaches its content in a follow-up CD pass
+        await fixture.whenStable();
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('.upload-empty')?.textContent).toContain(
+            'Upload images or PDF files',
+        );
+    });
+
     it('hides the header actions in popup mode and shows the close button', () => {
         const mocks = createMocks();
         mocks.files.getAllFiles.mockReturnValue(of([]));
         const { fixture } = setup([], true, mocks);
         expect(fixture.nativeElement.querySelector('.files-actions')).toBeNull();
         expect(fixture.nativeElement.querySelector('.files-popup-close')).not.toBeNull();
+        expect(fixture.nativeElement.querySelector('.dialog__title')?.textContent?.trim()).toBe('Choose a file');
     });
 
     it('shows the empty state and skips meta rows for a file without metadata', () => {
@@ -767,11 +1003,11 @@ describe('FilesComponent — template', () => {
         const { fixture, comp } = setup([bare]);
         comp.select(bare);
         fixture.detectChanges();
-        expect(fixture.nativeElement.querySelectorAll('.files-edit__meta li')).toHaveLength(0);
+        expect(fixture.nativeElement.querySelectorAll('.files-edit__meta dt')).toHaveLength(0);
 
         comp.files.set([]);
         fixture.detectChanges();
-        expect(fixture.nativeElement.textContent).toContain('There are no files yet');
+        expect(fixture.nativeElement.textContent).toContain('No files yet');
     });
 });
 
@@ -792,6 +1028,99 @@ describe('files.html — event handlers', () => {
 
         expect(comp.searchText()).toBe('abc');
         expect(comp.searchCatalogues()).toEqual(['gallery']);
+    });
+
+    it('sort button sits between the search input and the catalogue filter', () => {
+        const mocks = createMocks();
+        mocks.files.catalogues = signal<string[]>(['gallery']);
+        const { fixture } = setup([makeFile()], false, mocks);
+
+        const children = Array.from<HTMLElement>(
+            fixture.nativeElement.querySelector('.files-filters').children,
+        );
+        const search = children.findIndex((el) => el.classList.contains('control--search'));
+        const sort = children.findIndex((el) => el.classList.contains('sort-toggle'));
+        const catalogues = children.findIndex((el) => el.tagName === 'MAT-FORM-FIELD');
+
+        expect(search).toBeGreaterThan(-1);
+        expect(sort).toBeGreaterThan(search);
+        expect(catalogues).toBeGreaterThan(sort);
+    });
+
+    it('sort button shows the current sort', () => {
+        const { fixture, comp } = setup([makeFile()]);
+        const label = () =>
+            fixture.nativeElement.querySelector('.sort-toggle__label').textContent.trim();
+        expect(label()).toBe('oldest');
+
+        comp.sortBy('-created');
+        fixture.detectChanges();
+        expect(label()).toBe('newest');
+        sessionStorage.clear();
+    });
+
+    it('clicking the selected thumbnail again closes the details panel', () => {
+        const { fixture } = setup([makeFile()]);
+        const thumb: HTMLButtonElement = fixture.nativeElement.querySelector('.files-grid__item');
+
+        thumb.click();
+        fixture.detectChanges();
+        expect(thumb.getAttribute('aria-pressed')).toBe('true');
+        expect(fixture.nativeElement.querySelector('.files-edit')).not.toBeNull();
+
+        thumb.click();
+        fixture.detectChanges();
+        expect(thumb.getAttribute('aria-pressed')).toBe('false');
+        expect(fixture.nativeElement.querySelector('.files-edit')).toBeNull();
+    });
+
+    for (const popup of [false, true]) {
+        it(`the icon button in the details header deselects the file (popup: ${popup})`, () => {
+            const mocks = createMocks();
+            const file = makeFile();
+            mocks.files.getAllFiles.mockReturnValue(of([file]));
+            const { fixture, comp } = setup([file], popup, mocks);
+            comp.select(file);
+            fixture.detectChanges();
+
+            const close: HTMLButtonElement = fixture.nativeElement.querySelector(
+                '.files-edit .details__head .details__close',
+            );
+            expect(close.getAttribute('aria-label')).toBe('Deselect file');
+            close.click();
+            fixture.detectChanges();
+
+            expect(comp.selected()).toBeUndefined();
+            expect(fixture.nativeElement.querySelector('.files-edit')).toBeNull();
+        });
+    }
+
+    it('hides the sort button when there are no files', () => {
+        const { fixture } = setup([]);
+        expect(fixture.nativeElement.querySelector('.sort-toggle')).toBeNull();
+    });
+
+    it('sort menu lists the options, checks the current one and calls sortBy on click', () => {
+        const { fixture, comp } = setup([makeFile()]);
+        const spy = vi.spyOn(comp, 'sortBy');
+
+        fixture.nativeElement.querySelector('.sort-toggle').click();
+        fixture.detectChanges();
+
+        const items = Array.from<HTMLButtonElement>(
+            document.body.querySelectorAll('button[mat-menu-item]'),
+        );
+        expect(items.map((b) => b.textContent?.trim())).toEqual(['newest', 'oldest', 'title']);
+        expect(items.map((b) => b.getAttribute('aria-checked'))).toEqual([
+            'false',
+            'true',
+            'false',
+        ]);
+
+        items[0].click();
+        fixture.detectChanges();
+        expect(spy).toHaveBeenCalledWith('-created');
+        sessionStorage.clear();
     });
 
     it('edit panel inputs write back to the selected file', () => {
@@ -935,16 +1264,16 @@ describe('files.html — event handlers', () => {
         fixture.detectChanges();
         expect(comp.pending()[1].meta.catalogues).toContain('prints');
 
-        // remove the selected pending file via its Delete button
+        // remove the selected pending file via its Remove button (first in the panel)
         const editAside = fixture.debugElement.query(By.css('.files-upload__edit'));
         (editAside.nativeElement.querySelector('button') as HTMLButtonElement).click();
         fixture.detectChanges();
         expect(comp.pending()).toHaveLength(1);
 
-        buttonByText(fixture, 'Upload').click();
+        buttonByText(fixture, 'Upload 1 file').click();
         expect(mocks.files.upload).toHaveBeenCalled();
 
-        buttonByText(fixture, 'Delete files').click();
+        buttonByText(fixture, 'Clear list').click();
         fixture.detectChanges();
         expect(comp.pending()).toEqual([]);
         vi.restoreAllMocks();
@@ -960,10 +1289,11 @@ describe('files.html — event handlers', () => {
         comp.tabs().selectedIndex = 1;
         fixture.detectChanges();
 
-        buttonByText(fixture, 'Upload').click();
+        buttonByText(fixture, 'Upload 1 file').click();
         fixture.detectChanges();
 
         expect(fixture.nativeElement.querySelector('mat-progress-bar')).not.toBeNull();
+        expect(fixture.nativeElement.querySelector('.progress__label')?.textContent).toContain('25%');
     });
 
     it('hides the pending edit panel when no pending file is selected', async () => {
