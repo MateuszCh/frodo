@@ -1,4 +1,4 @@
-import { Component, inject, input, signal } from '@angular/core';
+import { Component, ElementRef, afterRenderEffect, inject, input, signal, viewChild } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -25,6 +25,14 @@ export class LoginComponent {
     protected data: { username?: string; password?: string } = {};
     protected readonly actionStatus = signal(false);
     protected readonly errorMessage = signal<string | undefined>(undefined);
+
+    private readonly username = viewChild<ElementRef<HTMLInputElement>>('username');
+
+    constructor() {
+        // the field appears once the form renders (only when a user account exists);
+        // the autofocus attribute would work only on the first page load, not after a log out
+        afterRenderEffect(() => this.username()?.nativeElement.focus());
+    }
 
     login(form: NgForm): void {
         this.errorMessage.set(undefined);

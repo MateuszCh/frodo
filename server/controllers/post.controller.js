@@ -1,6 +1,7 @@
 const Post = require('../models/post'),
     Counter = require('../models/counter'),
     fs = require('fs'),
+    { writeExport } = require('../exports'),
     PostType = require('../models/postType');
 
 module.exports = {
@@ -124,10 +125,8 @@ module.exports = {
                     null,
                     4,
                 );
-                fs.writeFile(`${__dirname}/../../${postType}.json`, formattedPosts, (err) => {
-                    if (err) next();
-                    res.send(`/export/${postType}.json`);
-                });
+                // the type comes from the URL: writeExport keeps its file name inside the export folder
+                writeExport(postType, formattedPosts, (err, url) => (err ? next(err) : res.send(url)));
             })
             .catch(next);
     },

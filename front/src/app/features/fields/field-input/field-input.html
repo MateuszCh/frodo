@@ -130,6 +130,9 @@
     @case ('repeater') {
         <app-repeater class="repeater" [parentModel]="data" [field]="f" [namePrefix]="ctrl"></app-repeater>
     }
+    @case ('component') {
+        <app-component-field class="component-field" [parentModel]="data" [field]="f" [namePrefix]="ctrl"></app-component-field>
+    }
     @case ('file') {
         <div class="field">
             <span class="field__label">{{ f.title }}</span>

@@ -5,6 +5,7 @@ import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { ComponentEntity, PageComponent as PageComponentModel } from '../../../models/models';
 import { FieldInputComponent } from '../../fields/field-input/field-input';
+import { componentValue } from '../../../shared/component-value';
 import { I18nService } from '../../../core/i18n/i18n.service';
 
 /**
@@ -46,9 +47,7 @@ export class AddComponentComponent implements OnInit {
     onSelect(component: ComponentEntity): void {
         this.current.set(component);
         this.open.set(true);
-        const row = this.model();
-        row.data = {};
-        row.title = component.title;
-        row.type = component.type;
+        // the row stays the same object: it sits in page.rows
+        Object.assign(this.model(), componentValue(component));
     }
 }

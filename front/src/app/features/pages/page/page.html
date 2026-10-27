@@ -94,8 +94,54 @@
                             <mat-hint>{{ t('page.urlHint') }}</mat-hint>
                         </mat-form-field>
                     </div>
+
+                    <!-- without page types there is nothing to choose; a key the settings do
+                         not have still shows the select, so it can be cleared -->
+                    @if (pageTypes().length || unknownPageType()) {
+                    <div class="field">
+                        <span class="field__label"
+                              id="page-type-label">{{ t('page.type') }}</span>
+                        <mat-form-field appearance="outline"
+                                        subscriptSizing="dynamic">
+                            <mat-select aria-labelledby="page-type-label"
+                                        name="type"
+                                        [placeholder]="t('page.noType')"
+                                        [ngModel]="model().type"
+                                        (ngModelChange)="selectPageType($event)">
+                                <mat-option [value]="null">{{ t('page.noType') }}</mat-option>
+                                @for (pageType of pageTypes(); track pageType.type) {
+                                <mat-option [value]="pageType.type">{{ pageType.title }}</mat-option>
+                                }
+                                @if (unknownPageType(); as unknown) {
+                                <mat-option [value]="unknown">{{ t('page.unknownType', { type: unknown }) }}</mat-option>
+                                }
+                            </mat-select>
+                        </mat-form-field>
+                        <span class="field__hint">{{ t('page.typeHint') }}</span>
+                    </div>
+                    }
                 </div>
             </section>
+
+            @if (typeFields().length) {
+            <section class="card">
+                <header class="card__header">
+                    <div class="card__heading">
+                        <h2 class="card__title">{{ t('page.typeFields', { type: pageType()!.title }) }}</h2>
+                        <p class="card__desc">{{ t('page.typeFieldsDesc') }}</p>
+                    </div>
+                </header>
+                <div class="card__body">
+                    <!-- a type change renders new fields: track the field, not its id,
+                         which another type may use for a field of a different kind -->
+                    @for (field of typeFields(); track field) {
+                    <app-field [field]="field"
+                               [model]="model().typeData!"
+                               namePrefix="typeData_"></app-field>
+                    }
+                </div>
+            </section>
+            }
 
             <section class="card">
                 <header class="card__header">

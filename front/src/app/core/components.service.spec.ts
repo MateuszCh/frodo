@@ -1,7 +1,10 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
+import { ActivatedRouteSnapshot, RouterStateSnapshot } from '@angular/router';
+import { Observable } from 'rxjs';
 import { ComponentsService } from './components.service';
+import { componentsResolver } from './resolvers';
 import type { ComponentEntity } from '../models/models';
 
 const makeComponent = (overrides: Partial<ComponentEntity> = {}): ComponentEntity => ({
@@ -68,6 +71,71 @@ describe('ComponentsService', () => {
         expect(req.request.responseType).toBe('text');
         req.flush('/export/components.json');
         expect(result).toBe('/export/components.json');
+    });
+
+    it('setList() keeps the components for "component" fields', () => {
+        service.setList([makeComponent()]);
+        expect(service.list()).toEqual([makeComponent()]);
+
+        service.setList(null as unknown as ComponentEntity[]);
+        expect(service.list()).toEqual([]);
+    });
+
+    it('loadList() loads the list once and again only after a component changes', () => {
+        service.loadList();
+        service.loadList();
+        http.expectOne({ method: 'GET', url: '/api/component' }).flush([makeComponent()]);
+        expect(service.loaded()).toBe(true);
+        expect(service.list()).toEqual([makeComponent()]);
+
+        service.loadList();
+        http.expectNone('/api/component');
+
+        service.edit(makeComponent({ title: 'Renamed' })).subscribe();
+        http.expectOne({ method: 'PUT', url: '/api/component/edit' }).flush(makeComponent());
+        expect(service.loaded()).toBe(false);
+
+        service.loadList();
+        http.expectOne({ method: 'GET', url: '/api/component' }).flush([makeComponent({ title: 'Renamed' })]);
+        expect(service.list()[0].title).toBe('Renamed');
+    });
+
+    it('create(), remove() and importData() mark the list as changed', () => {
+        service.setList([makeComponent()]);
+        service.create(makeComponent()).subscribe();
+        http.expectOne({ method: 'POST', url: '/api/component' }).flush(makeComponent());
+        expect(service.loaded()).toBe(false);
+
+        service.setList([makeComponent()]);
+        service.remove('c1').subscribe();
+        http.expectOne({ method: 'DELETE', url: '/api/component/c1' }).flush('ok');
+        expect(service.loaded()).toBe(false);
+
+        service.setList([makeComponent()]);
+        service.importData({ posts: [] }).subscribe();
+        http.expectOne({ method: 'POST', url: '/api/importComponents' }).flush([]);
+        expect(service.loaded()).toBe(false);
+    });
+
+    it('loadList() tries again after a failed load', () => {
+        service.loadList();
+        http.expectOne('/api/component').flush('error', { status: 500, statusText: 'Server Error' });
+        expect(service.loaded()).toBe(false);
+
+        service.loadList();
+        http.expectOne('/api/component').flush([makeComponent()]);
+        expect(service.loaded()).toBe(true);
+    });
+
+    it('componentsResolver resolves the components and keeps them in list()', () => {
+        let result: ComponentEntity[] | undefined;
+        TestBed.runInInjectionContext(() =>
+            (componentsResolver({} as ActivatedRouteSnapshot, {} as RouterStateSnapshot) as Observable<ComponentEntity[]>)
+                .subscribe((r) => (result = r)),
+        );
+        http.expectOne({ method: 'GET', url: '/api/component' }).flush([makeComponent()]);
+        expect(result).toHaveLength(1);
+        expect(service.list()).toEqual([makeComponent()]);
     });
 
     it('importData() sends POST /api/importComponents with the body', () => {

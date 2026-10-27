@@ -5,7 +5,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
 import { Field } from '../../../models/models';
-import { FIELD_LIST } from '../../../models/fields';
+import { FIELD_LIST, blankField, formatKey } from '../../../models/fields';
 import { I18nService } from '../../../core/i18n/i18n.service';
 
 let uidCounter = 0;
@@ -40,7 +40,7 @@ export class AddFieldComponent {
     formatId(): void {
         const f = this.field();
         if (f.id) {
-            f.id = f.id.replace(/\s+/g, '_').toLowerCase();
+            f.id = formatKey(f.id);
         }
     }
 
@@ -49,21 +49,10 @@ export class AddFieldComponent {
         if (!f.repeaterFields) {
             f.repeaterFields = [];
         }
-        f.repeaterFields.push(this.blankField());
+        f.repeaterFields.push(blankField());
     }
 
     removeRepeaterField(index: number): void {
         this.field().repeaterFields?.splice(index, 1);
-    }
-
-    private blankField(): Field {
-        return {
-            type: 'text',
-            title: '',
-            id: '',
-            selectOptions: undefined,
-            multiselectOptions: undefined,
-            repeaterFields: [],
-        };
     }
 }

@@ -1,0 +1,97 @@
+@let pt = pageType();
+<!-- pages keep the key of their type: a used type cannot go or get a new key -->
+@let used = usedBy().length > 0;
+<article class="schema-field">
+    <header class="schema-field__head">
+        <span class="schema-field__name"
+              [class.is-placeholder]="!pt.title">{{ pt.title || t('settings.untitledPageType') }}</span>
+        @if (pt.type) {
+        <span class="badge badge--neutral">{{ pt.type }}</span>
+        }
+        <button mat-icon-button
+                type="button"
+                class="btn--sm"
+                [disabled]="used"
+                [attr.aria-label]="pt.title ? t('settings.deletePageType', { name: pt.title }) : t('settings.deleteUntitledPageType')"
+                (click)="remove.emit()">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-trash" />
+            </svg>
+        </button>
+    </header>
+
+    <div class="schema-field__body">
+        <div class="form-grid form-grid--2">
+            <div class="field">
+                <label class="field__label"
+                       [for]="uid + '_title'">{{ t('common.title') }}<span class="field__req"
+                          aria-hidden="true">*</span></label>
+                <mat-form-field appearance="outline"
+                                subscriptSizing="dynamic">
+                    <input matInput
+                           type="text"
+                           [id]="uid + '_title'"
+                           [name]="uid + '_title'"
+                           required
+                           [(ngModel)]="pt.title" />
+                    <mat-error>
+                        <svg class="icon"
+                             aria-hidden="true">
+                            <use href="icons.svg#i-alert" />
+                        </svg>
+                        {{ t('common.required') }}
+                    </mat-error>
+                </mat-form-field>
+            </div>
+
+            <div class="field">
+                <label class="field__label"
+                       [for]="uid + '_type'">{{ t('settings.key') }}<span class="field__req"
+                          aria-hidden="true">*</span></label>
+                <mat-form-field appearance="outline"
+                                subscriptSizing="dynamic">
+                    <input matInput
+                           type="text"
+                           class="mono"
+                           [id]="uid + '_type'"
+                           [name]="uid + '_type'"
+                           required
+                           [readonly]="used"
+                           [(ngModel)]="pt.type"
+                           (ngModelChange)="formatType()" />
+                    <mat-error>
+                        <svg class="icon"
+                             aria-hidden="true">
+                            <use href="icons.svg#i-alert" />
+                        </svg>
+                        {{ t('common.required') }}
+                    </mat-error>
+                </mat-form-field>
+                <span class="field__hint">{{ used ? t('settings.usedBy', { pages: usedBy().join(', ') }) : t('schema.typeHint') }}</span>
+            </div>
+        </div>
+
+        <div class="schema-field__children">
+            <span class="field__label">{{ t('common.fields') }}</span>
+            @if (!pt.fields.length) {
+            <p class="field__hint">{{ t('settings.noFields') }}</p>
+            }
+            @for (field of pt.fields; track field; let i = $index) {
+            <app-add-field [field]="field"
+                           (remove)="removeField(i)"></app-add-field>
+            }
+            <button mat-stroked-button
+                    type="button"
+                    class="btn--sm"
+                    (click)="addField()">
+                <svg matButtonIcon
+                     class="icon"
+                     aria-hidden="true">
+                    <use href="icons.svg#i-plus" />
+                </svg>
+                {{ t('schema.addField') }}
+            </button>
+        </div>
+    </div>
+</article>

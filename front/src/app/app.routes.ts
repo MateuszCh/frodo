@@ -6,12 +6,14 @@ import {
     existResolver,
     filesResolver,
     pageResolver,
+    pageSettingsResolver,
     pagesResolver,
     postResolver,
     postTypeByIdResolver,
     postTypeResolver,
     postTypeWithPostsResolver,
     postTypesResolver,
+    settingsResolver,
     userResolver,
 } from './core/resolvers';
 
@@ -39,14 +41,14 @@ export const routes: Routes = [
         path: 'pages/add',
         canActivate: [authGuard],
         data: { family: 'pages' },
-        resolve: { components: componentsResolver },
+        resolve: { components: componentsResolver, settings: pageSettingsResolver },
         loadComponent: () => import('./features/pages/page/page').then((m) => m.PageComponent),
     },
     {
         path: 'pages/edit/:id',
         canActivate: [authGuard],
         data: { family: 'pages' },
-        resolve: { components: componentsResolver, page: pageResolver },
+        resolve: { components: componentsResolver, settings: pageSettingsResolver, page: pageResolver },
         loadComponent: () => import('./features/pages/page/page').then((m) => m.PageComponent),
     },
 
@@ -131,6 +133,15 @@ export const routes: Routes = [
         data: { family: 'files' },
         resolve: { allFiles: filesResolver },
         loadComponent: () => import('./features/files/files/files').then((m) => m.FilesComponent),
+    },
+
+    // Settings (page types and their fields)
+    {
+        path: 'settings',
+        canActivate: [authGuard],
+        data: { family: 'settings' },
+        resolve: { settings: settingsResolver },
+        loadComponent: () => import('./features/settings/settings/settings').then((m) => m.SettingsComponent),
     },
 
     // Auth / misc

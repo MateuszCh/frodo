@@ -63,6 +63,15 @@
             </svg>
             <span class="nav__label">{{ t('nav.components') }}</span>
         </a>
+        <a class="nav__item"
+           routerLink="/settings"
+           [attr.aria-current]="current.family === 'settings' ? 'page' : null">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-settings" />
+            </svg>
+            <span class="nav__label">{{ t('nav.settings') }}</span>
+        </a>
     </nav>
 
     <div class="sidebar__theme">

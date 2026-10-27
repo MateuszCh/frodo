@@ -12,12 +12,14 @@ import { FilesService } from '../../../core/files.service';
 import { parseOptions } from '../../../shared/parse-options';
 import { FilePickerDialogComponent } from '../../files/file-picker-dialog/file-picker-dialog';
 import { RepeaterComponent } from '../repeater/repeater';
+import { ComponentFieldComponent } from '../component-field/component-field';
 import { provideAppDateAdapter } from '../../../core/i18n/date-adapter';
 import { I18nService } from '../../../core/i18n/i18n.service';
 
 /**
  * Port of field.component.js — renders the right input for a field type,
- * bound to `model[field.id]`. Used by the post editor and the repeater rows.
+ * bound to `model[field.id]`. Used by the post editor, the repeater rows and the
+ * fields of a nested component.
  */
 @Component({
     selector: 'app-field',
@@ -36,6 +38,8 @@ import { I18nService } from '../../../core/i18n/i18n.service';
         // when TestBed recompiles the component
         /* v8 ignore next */
         forwardRef(() => RepeaterComponent),
+        /* v8 ignore next */
+        forwardRef(() => ComponentFieldComponent),
     ],
     templateUrl: './field-input.html',
 })

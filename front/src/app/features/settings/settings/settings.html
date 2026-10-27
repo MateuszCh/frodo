@@ -1,0 +1,107 @@
+@let pageTypeCount = model().pageTypes.length;
+<form class="editor"
+      #form="ngForm"
+      (ngSubmit)="save(form)">
+    <div class="editor-bar">
+        <div class="editor-bar__heading">
+            <span class="editor-bar__eyebrow">{{ t('settings.eyebrow') }}</span>
+            <h1 class="editor-bar__title">{{ t('settings.title') }}</h1>
+        </div>
+        <div class="editor-bar__actions">
+            <button mat-flat-button
+                    type="submit"
+                    [attr.aria-busy]="saving()">
+                @if (saving()) {
+                <span matButtonIcon
+                      class="spinner"
+                      aria-hidden="true"></span>
+                }
+                {{ saving() ? t('common.saving') : t('common.save') }}
+            </button>
+        </div>
+    </div>
+
+    <div class="page page--form">
+        <div class="form-stack">
+            <section class="card">
+                <header class="card__header">
+                    <div class="card__heading">
+                        <h2 class="card__title">{{ t('settings.pageTypes') }}</h2>
+                        <p class="card__desc">{{ t('settings.pageTypesDesc') }}</p>
+                    </div>
+                    @if (pageTypeCount) {
+                    <span class="badge badge--neutral">{{ pageTypeCount }}<span class="visually-hidden"> {{ t('settings.pageTypesCount', { count: pageTypeCount }) }}</span></span>
+                    }
+                </header>
+                <div class="card__body">
+                    @if (!pageTypeCount) {
+                    <div class="empty empty--compact">
+                        <span class="empty__icon">
+                            <svg class="icon icon--lg"
+                                 aria-hidden="true">
+                                <use href="icons.svg#i-layout" />
+                            </svg>
+                        </span>
+                        <p class="empty__title">{{ t('settings.noPageTypes') }}</p>
+                        <p class="empty__text">{{ t('settings.noPageTypesText') }}</p>
+                    </div>
+                    } @else {
+                    <div class="schema-list">
+                        @for (pageType of model().pageTypes; track pageType; let i = $index) {
+                        <app-page-type [pageType]="pageType"
+                                       [usedBy]="usedBy(pageType)"
+                                       (remove)="removePageType(i)"></app-page-type>
+                        }
+                    </div>
+                    }
+
+                    <button mat-stroked-button
+                            type="button"
+                            class="card__action"
+                            (click)="addPageType()">
+                        <svg matButtonIcon
+                             class="icon"
+                             aria-hidden="true">
+                            <use href="icons.svg#i-plus" />
+                        </svg>
+                        {{ t('settings.addPageType') }}
+                    </button>
+                </div>
+                <footer class="card__footer">
+                    <button mat-button
+                            type="button"
+                            (click)="importInput.click()">
+                        <svg matButtonIcon
+                             class="icon"
+                             aria-hidden="true">
+                            <use href="icons.svg#i-upload" />
+                        </svg>
+                        {{ t('common.import') }}
+                    </button>
+                    <input #importInput
+                           type="file"
+                           accept=".json"
+                           hidden
+                           (change)="onImportFile($event)" />
+                    <button mat-button
+                            type="button"
+                            [attr.aria-busy]="exportStatus()"
+                            (click)="export()">
+                        @if (exportStatus()) {
+                        <span matButtonIcon
+                              class="spinner"
+                              aria-hidden="true"></span>
+                        } @else {
+                        <svg matButtonIcon
+                             class="icon"
+                             aria-hidden="true">
+                            <use href="icons.svg#i-download" />
+                        </svg>
+                        }
+                        {{ exportStatus() ? t('common.exporting') : t('common.export') }}
+                    </button>
+                </footer>
+            </section>
+        </div>
+    </div>
+</form>

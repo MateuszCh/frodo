@@ -6,7 +6,8 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
-import { ComponentEntity, Field, PostType } from '../../../models/models';
+import { ComponentEntity, PostType } from '../../../models/models';
+import { blankField, formatKey } from '../../../models/fields';
 import { PostTypesService } from '../../../core/post-types.service';
 import { ComponentsService } from '../../../core/components.service';
 import { ToolsService } from '../../../core/tools.service';
@@ -58,7 +59,7 @@ export class PostTypeComponent implements OnInit {
     }
 
     addField(): void {
-        this.model().fields.push(this.blankField());
+        this.model().fields.push(blankField());
         this.model.set({ ...this.model() });
     }
 
@@ -70,7 +71,7 @@ export class PostTypeComponent implements OnInit {
     formatType(): void {
         const m = this.model();
         if (m.type) {
-            m.type = m.type.replace(/\s+/g, '_').toLowerCase();
+            m.type = formatKey(m.type);
         }
     }
 
@@ -169,16 +170,5 @@ export class PostTypeComponent implements OnInit {
                   fields: [],
                   posts: [],
               } as unknown as Schema);
-    }
-
-    private blankField(): Field {
-        return {
-            type: 'text',
-            title: '',
-            id: '',
-            selectOptions: undefined,
-            multiselectOptions: undefined,
-            repeaterFields: [],
-        };
     }
 }

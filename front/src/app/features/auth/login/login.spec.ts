@@ -55,6 +55,12 @@ describe('LoginComponent', () => {
         expect(component).toBeTruthy();
     });
 
+    it('focuses the username field when the form renders', () => {
+        fixture.componentRef.setInput('exist', true);
+        fixture.detectChanges();
+        expect(document.activeElement?.id).toBe('login-username');
+    });
+
     it('has errorMessage undefined initially', () => {
         expect((component as any).errorMessage()).toBeUndefined();
     });

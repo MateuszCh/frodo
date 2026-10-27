@@ -36,6 +36,11 @@ const SERVER_MESSAGES: ServerMessage[] = [
     { pattern: /^Duplicate urls$/, pl: 'Adresy importowanych stron powtarzają się' },
     { pattern: /^One of imported pages has already used url$/, pl: 'Adres jednej z importowanych stron jest już zajęty' },
     { pattern: /^There is no valid page to import$/, pl: 'Brak poprawnych stron do zaimportowania' },
+    { pattern: /^There is no "(.*)" page type$/, pl: 'Nie ma typu strony „$1”' },
+
+    // settings
+    { pattern: /^Page type "(.*)" is used by pages: (.+)$/, pl: 'Typ strony „$1” jest używany przez strony: $2' },
+    { pattern: /^Page types should be a list$/, pl: 'Typy stron muszą być listą' },
 
     // posts
     { pattern: /^There is no (.+) post type\.$/, pl: 'Nie ma typu wpisu „$1”.' },
@@ -65,6 +70,9 @@ const SERVER_MESSAGES: ServerMessage[] = [
     { pattern: /^Each field should have a different id$/, pl: 'Każde pole musi mieć inne id' },
     { pattern: /^Title of page is required$/, pl: 'Tytuł strony jest wymagany' },
     { pattern: /^Url of page is required$/, pl: 'Adres strony jest wymagany' },
+    { pattern: /^Title of page type is required$/, pl: 'Tytuł typu strony jest wymagany' },
+    { pattern: /^Key of page type is required$/, pl: 'Klucz typu strony jest wymagany' },
+    { pattern: /^Each page type should have a different key$/, pl: 'Każdy typ strony musi mieć inny klucz' },
     { pattern: /^Username is required$/, pl: 'Nazwa użytkownika jest wymagana' },
     { pattern: /^Passwor?d? is required$/, pl: 'Hasło jest wymagane' },
     { pattern: /^title of field is required$/, pl: 'Tytuł pola jest wymagany' },

@@ -3,6 +3,7 @@ const multer = require('multer'),
     path = require('path'),
     config = require('./../../config'),
     Counter = require('../models/counter'),
+    { writeExport } = require('../exports'),
     fs = require('fs');
 
 const storage = multer.diskStorage({
@@ -266,10 +267,7 @@ module.exports = {
                     null,
                     4,
                 );
-                fs.writeFile(`${__dirname}/../../files.json`, formattedFiles, (err) => {
-                    if (err) next();
-                    res.send('/export/files.json');
-                });
+                writeExport('files', formattedFiles, (err, url) => (err ? next(err) : res.send(url)));
             })
             .catch(next);
     },

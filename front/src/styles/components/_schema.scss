@@ -1,5 +1,6 @@
-// Field definition card: post type and component editors (design/components.css, 18).
-// app-add-field is recursive: repeater sub-fields are indented with a line on the left.
+// Field definition card: post type and component editors (design/components.css, 18),
+// also a page type in the settings. app-add-field is recursive: repeater sub-fields
+// (and the fields of a page type) are indented with a line on the left.
 
 .schema-list {
     display: grid;
@@ -25,7 +26,9 @@
     padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
     border-bottom: 1px solid var(--color-border);
 
-    > .badge {
+    > .badge,
+    // a page type with no key yet has no badge
+    > .schema-field__name:nth-last-child(2) {
         margin-right: auto;
     }
 }

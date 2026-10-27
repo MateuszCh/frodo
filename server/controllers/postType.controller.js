@@ -2,7 +2,7 @@ const PostType = require('../models/postType'),
     Component = require('../models/component'),
     mongoose = require('mongoose'),
     Counter = require('../models/counter'),
-    fs = require('fs'),
+    { writeExport } = require('../exports'),
     format = require('../models/tools/format');
 
 function postTypeReturn(req, res, postType) {
@@ -178,10 +178,7 @@ module.exports = {
 
                 const filename = isComponent ? 'components' : 'postTypes';
 
-                fs.writeFile(`${__dirname}/../../${filename}.json`, formattedPostTypes, (err) => {
-                    if (err) next();
-                    res.send(`/export/${filename}.json`);
-                });
+                writeExport(filename, formattedPostTypes, (err, url) => (err ? next(err) : res.send(url)));
             })
             .catch(next);
     },
