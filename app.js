@@ -10,6 +10,7 @@ const express = require('express'),
     UserController = require('./server/controllers/user.controller'),
     MongoStore = require('connect-mongo')(session),
     Counter = require('./server/models/counter'),
+    { exportsRouter } = require('./server/exports'),
     routes = require('./server/routes');
 
 mongoose.connect(config.mongoUrl).then(
@@ -90,7 +91,8 @@ routes(app);
 
 app.use('/uploads', express.static(`${__dirname}/${config.uploadsPath}`));
 
-app.use('/export', express.static(__dirname));
+// only the export folder, never the project root (config.json), and only to logged-in users
+app.use('/export', exportsRouter());
 
 app.use('/', express.static(`${__dirname}/front/public`));
 

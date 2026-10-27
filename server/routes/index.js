@@ -16,6 +16,8 @@ module.exports = (app) => {
     app.put(['*'], isAuthenticated);
     app.post(['*'], isAuthenticated);
     app.delete(['*'], isAuthenticated);
+    // an export writes a file on the server and hands out the whole collection
+    app.get('/api/export*', isAuthenticated);
 
     app.use(notifyOnContentChange);
 

@@ -8,3 +8,4 @@ config.dev.json
 .git/
 uploads/
 tmp/
+exports/

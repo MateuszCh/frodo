@@ -25,6 +25,7 @@ Frodo is a full-stack CMS for managing custom content types, posts, pages, and f
 ```bash
 npm start          # Run Express server on port 3000
 npm run watch      # Nodemon dev server (watches server/ and app.js)
+npm test           # Backend unit tests (node:test, server/**/*.test.js, no database)
 ```
 
 ### Frontend (`front/` directory)
@@ -56,7 +57,10 @@ cd front && ng test --include='**/path/to/spec.ts'
 | Controllers | `server/controllers/` | Business logic — one file per resource |
 | Routes | `server/routes/` | Thin route files that delegate to controllers |
 
-API routes are prefixed `/api/*`. Static uploads served from `/uploads`, exports from `/export`.
+API routes are prefixed `/api/*`. Static uploads served from `/uploads`. Exports are written
+to `exports/` (gitignored) by `server/exports.js`, which also serves that folder alone at
+`/export`, to logged-in users only; `/api/export*` needs a login too. Write any new export
+through `writeExport`: the project root holds `config.json` and must never be served.
 
 **PostType** is central — it defines the field schema for Post documents. When editing or creating a Post, the frontend fetches its PostType to know which dynamic fields to render.
 

@@ -1,6 +1,6 @@
 const Page = require('../models/page'),
     Counter = require('../models/counter'),
-    fs = require('fs'),
+    { writeExport } = require('../exports'),
     mongoose = require('mongoose');
 
 module.exports = {
@@ -100,10 +100,7 @@ module.exports = {
                     4,
                 );
 
-                fs.writeFile(`${__dirname}/../../pages.json`, formattedPages, (err) => {
-                    if (err) next();
-                    res.send('/export/pages.json');
-                });
+                writeExport('pages', formattedPages, (err, url) => (err ? next(err) : res.send(url)));
             })
             .catch(next);
     },
