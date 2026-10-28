@@ -1,6 +1,7 @@
 const mongoose = require('mongoose'),
     Schema = mongoose.Schema,
-    timestamps = require('./tools/timestamps');
+    timestamps = require('./tools/timestamps'),
+    exportable = require('./tools/exportable');
 
 const PostSchema = new Schema(
     {
@@ -31,6 +32,7 @@ PostSchema.virtual('url').get(function () {
 });
 
 PostSchema.plugin(timestamps);
+PostSchema.plugin(exportable);
 
 const Post = mongoose.model('post', PostSchema);
 

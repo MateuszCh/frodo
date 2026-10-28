@@ -1,6 +1,7 @@
 const mongoose = require('mongoose'),
     Schema = mongoose.Schema,
-    timestamps = require('./tools/timestamps');
+    timestamps = require('./tools/timestamps'),
+    exportable = require('./tools/exportable');
 
 const FileSchema = new Schema({
     title: {
@@ -40,6 +41,7 @@ const FileSchema = new Schema({
 });
 
 FileSchema.plugin(timestamps);
+FileSchema.plugin(exportable);
 
 const File = mongoose.model('file', FileSchema);
 

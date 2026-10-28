@@ -9,19 +9,12 @@ module.exports = {
         Page.findOne({ pageUrl: pageProps.pageUrl })
             .then((existingPage) => {
                 if (existingPage === null) {
-                    Counter.findOne({})
-                        .then((counter) => {
-                            pageProps.id = counter.counter;
+                    Counter.reserve()
+                        .then((id) => {
+                            pageProps.id = id;
                             pageProps.created = Date.now();
                             Page.create(pageProps)
-                                .then((page) => {
-                                    res.send(page);
-                                    Counter.update(counter, {
-                                        $inc: { counter: 1 },
-                                    })
-                                        .then(() => console.log('Counter incremented'))
-                                        .catch(next);
-                                })
+                                .then((page) => res.send(page))
                                 .catch(next);
                         })
                         .catch(next);
@@ -86,79 +79,36 @@ module.exports = {
         Page.find({})
             .then((pages) => {
                 const formattedPages = JSON.stringify(
-                    pages.map((page) => {
-                        return {
-                            title: page.title,
-                            pageUrl: page.pageUrl,
-                            seoTitle: page.seoTitle,
-                            seoDescription: page.seoDescription,
-                            rows: page.rows,
-                            created: page.created,
-                        };
-                    }),
+                    pages.map((page) => page.toExport()),
                     null,
                     4,
                 );
 
-                writeExport('pages', formattedPages, (err, url) => (err ? next(err) : res.send(url)));
+                writeExport('pages', formattedPages, (err, url) =>
+                    err ? next(err) : res.send(url),
+                );
             })
             .catch(next);
     },
     importPages(req, res, next) {
-        const pagesUrls = [];
-
-        const correctPages = req.body.posts.filter((page) => {
-            if (!page.title || !page.pageUrl) {
-                return false;
-            }
-            pagesUrls.push(page.pageUrl);
-            return {
-                title: page.title,
-                pageUrl: page.pageUrl,
-                rows: page.rows || [],
-            };
-        });
+        const correctPages = req.body.posts.filter((page) => page.title && page.pageUrl);
+        const pagesUrls = correctPages.map((page) => page.pageUrl);
 
         if (new Set(pagesUrls).size !== pagesUrls.length) {
-            res.status(422).send({ error: 'Duplicate urls' });
+            return res.status(422).send({ error: 'Duplicate urls' });
         }
 
         if (correctPages.length) {
-            Promise.all([Counter.findOne({}), Page.find({})])
-                .then((response) => {
-                    const counter = response[0];
-                    const currentPagesUrls = response[1].map((page) => {
-                        return page.pageUrl;
-                    });
-                    const allPagesUrls = currentPagesUrls.concat(pagesUrls);
-                    if (new Set(allPagesUrls).size !== allPagesUrls.length) {
-                        res.status(422).send({
+            Page.find({ pageUrl: { $in: pagesUrls } })
+                .then((existingPages) => {
+                    if (existingPages.length) {
+                        return res.status(422).send({
                             error: 'One of imported pages has already used url',
                         });
-                    } else {
-                        const pagesModels = [];
-                        correctPages.forEach((page, i) => {
-                            const model = page;
-                            if (!model.created) model.created = Date.now();
-                            model.id = counter.counter + i;
-                            pagesModels.push(model);
-                        });
-
-                        Page.create(pagesModels)
-                            .then((pages) => {
-                                Counter.update(counter, {
-                                    $inc: { counter: pagesModels.length },
-                                })
-                                    .then(() => {
-                                        console.log('Counter incremented');
-                                        Page.find({})
-                                            .then((pages) => res.send(pages))
-                                            .catch(next);
-                                    })
-                                    .catch(next);
-                            })
-                            .catch(next);
                     }
+                    return Page.saveImport(correctPages)
+                        .then(() => Page.find({}))
+                        .then((pages) => res.send(pages));
                 })
                 .catch(next);
         } else {

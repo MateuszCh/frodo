@@ -131,8 +131,8 @@ module.exports = {
                         .map((user, i) => !user && i)
                         .filter((i) => i || i === 0);
                     if (usersToCreate.length) {
-                        Counter.findOne({})
-                            .then((counter) => {
+                        Counter.reserve(usersToCreate.length)
+                            .then((firstId) => {
                                 console.log(usersToCreate);
                                 usersToCreate.forEach((user, i) => {
                                     bcrypt.genSalt(12, (err, salt) => {
@@ -140,7 +140,7 @@ module.exports = {
                                             User.create({
                                                 username: users[user].username,
                                                 password: hash,
-                                                id: counter.counter + i,
+                                                id: firstId + i,
                                             })
                                                 .then((userCreated) => {
                                                     console.log(
@@ -156,11 +156,6 @@ module.exports = {
                                         });
                                     });
                                 });
-                                Counter.update(counter, {
-                                    $inc: { counter: usersToCreate.length },
-                                })
-                                    .then((counter) => console.log('Counter incremented'))
-                                    .catch((err) => console.log(err));
                             })
                             .catch((err) => console.log(err));
                     } else {
