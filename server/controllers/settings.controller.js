@@ -1,5 +1,6 @@
 const Settings = require('../models/settings'),
     Page = require('../models/page'),
+    { writeExport } = require('../exports'),
     { normalizePageTypes, pagesByType, withPageTypeLock } = require('../page-types');
 
 function typedPages() {
@@ -16,6 +17,16 @@ module.exports = {
     get(req, res, next) {
         Promise.all([Settings.findSettings(), typedPages()])
             .then(([settings, pages]) => res.send(withUsage(settings, pages)))
+            .catch(next);
+    },
+    exportSettings(req, res, next) {
+        Settings.findSettings()
+            .then((settings) => {
+                const formattedSettings = JSON.stringify(settings.toExport(), null, 4);
+                writeExport('settings', formattedSettings, (err, url) =>
+                    err ? next(err) : res.send(url),
+                );
+            })
             .catch(next);
     },
     edit(req, res, next) {

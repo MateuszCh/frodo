@@ -9,8 +9,6 @@ import { ToolsService } from '../../../core/tools.service';
 import { PageTypeComponent } from '../page-type/page-type';
 import { I18nService } from '../../../core/i18n/i18n.service';
 
-const EXPORT_FILE = 'settings.json';
-
 /** Site-wide configuration: the page types and the fields of each type. */
 @Component({
     selector: 'app-settings',
@@ -74,21 +72,19 @@ export class SettingsComponent implements OnInit {
 
     // ---- import / export ------------------------------------------------------
 
-    /** Downloads the saved page types, to import them into another Frodo. */
+    /**
+     * Downloads the saved page types, to import them into another Frodo. The server writes the
+     * file as it writes the other exports: every stored value, without the database ids.
+     */
     export(): void {
         this.exportStatus.set(true);
-        this.settingsService.get().subscribe({
-            next: (settings) => {
+        this.settingsService.exportData().subscribe({
+            next: (path) => {
                 this.exportStatus.set(false);
-                const pageTypes = settings.pageTypes.map(({ title, type, fields }) => ({ title, type, fields }));
-                const url = URL.createObjectURL(
-                    new Blob([JSON.stringify({ pageTypes }, null, 4)], { type: 'application/json' }),
-                );
                 const a = document.createElement('a');
-                a.setAttribute('href', url);
-                a.setAttribute('download', EXPORT_FILE);
+                a.setAttribute('href', path);
+                a.setAttribute('download', '');
                 a.click();
-                URL.revokeObjectURL(url);
             },
             error: () => {
                 this.exportStatus.set(false);
@@ -151,8 +147,9 @@ export class SettingsComponent implements OnInit {
                 (item): item is PageType =>
                     !!item && typeof item.title === 'string' && !!item.title && typeof item.type === 'string' && !!item.type,
             )
+            // every value of the page type, one of a newer schema too: only the key is formatted
             .map((item) => ({
-                title: item.title,
+                ...item,
                 type: formatKey(item.type),
                 fields: Array.isArray(item.fields) ? item.fields : [],
             }));

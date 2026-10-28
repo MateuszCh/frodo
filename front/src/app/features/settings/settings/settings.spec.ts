@@ -19,13 +19,14 @@ async function setup(
     settings?: Settings,
     edit = vi.fn((data: Settings) => of(data)),
     get = vi.fn(() => of(makeSettings())),
+    exportData = vi.fn(() => of('/export/settings.json')),
 ) {
     const tools = { alert: vi.fn(), scrollToError: vi.fn() };
     TestBed.configureTestingModule({
         imports: [SettingsComponent],
         providers: [
             provideNoopAnimations(),
-            { provide: SettingsService, useValue: { edit, get } },
+            { provide: SettingsService, useValue: { edit, get, exportData } },
             { provide: ToolsService, useValue: tools },
         ],
     });
@@ -61,7 +62,7 @@ async function setup(
         fixture.detectChanges();
         await fixture.whenStable();
     };
-    return { fixture, root, edit, get, tools, button, type, submit, importFile };
+    return { fixture, root, edit, get, exportData, tools, button, type, submit, importFile };
 }
 
 describe('SettingsComponent', () => {
@@ -231,25 +232,42 @@ describe('SettingsComponent — import and export', () => {
         expect(tools.alert).toHaveBeenCalledWith('Wrong file format!');
     });
 
-    it('downloads the saved page types without the usage', async () => {
-        const blobs: Blob[] = [];
-        const createObjectURL = vi.fn((blob: Blob) => {
-            blobs.push(blob);
-            return 'blob:settings';
-        });
-        Object.assign(URL, { createObjectURL, revokeObjectURL: vi.fn() });
-        const click = vi.spyOn(HTMLAnchorElement.prototype, 'click').mockImplementation(() => {});
-        const { button, get } = await setup(
+    it('keeps every value of an imported page type, not only the title, key and fields', async () => {
+        const { edit, importFile, submit } = await setup(makeSettings());
+        const region = { title: 'Region', type: 'region', fields: [], icon: 'map' };
+
+        await importFile(JSON.stringify({ pageTypes: [region] }));
+        await submit();
+
+        expect(edit.mock.calls[0][0].pageTypes[1]).toEqual(region);
+    });
+
+    it('downloads the export the server writes', async () => {
+        const hrefs: (string | null)[] = [];
+        const click = vi
+            .spyOn(HTMLAnchorElement.prototype, 'click')
+            .mockImplementation(function (this: HTMLAnchorElement) {
+                hrefs.push(this.getAttribute('href'));
+            });
+        const { button, exportData } = await setup(makeSettings());
+
+        button('Export').click();
+
+        expect(exportData).toHaveBeenCalled();
+        expect(hrefs).toEqual(['/export/settings.json']);
+        click.mockRestore();
+    });
+
+    it('says when the export fails', async () => {
+        const { button, tools } = await setup(
             makeSettings(),
             undefined,
-            vi.fn(() => of({ ...makeSettings(), usage: { map: ['Mapa'] } })),
+            undefined,
+            vi.fn(() => throwError(() => new Error('offline'))),
         );
 
         button('Export').click();
 
-        expect(get).toHaveBeenCalled();
-        expect(click).toHaveBeenCalled();
-        expect(JSON.parse(await blobs[0].text())).toEqual({ pageTypes: makeSettings().pageTypes });
-        click.mockRestore();
+        expect(tools.alert).toHaveBeenCalledWith('There was an error exporting');
     });
 });

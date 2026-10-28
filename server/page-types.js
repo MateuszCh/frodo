@@ -30,12 +30,16 @@ function pageTypeProps(page, pageTypes) {
     return { type: page.type, typeData };
 }
 
-/** Page types from a settings request, with their keys formatted as the editor does. */
+/**
+ * Page types from a settings request, with their keys formatted as the editor does. Every
+ * other value is kept – the schema drops what it does not know – so an imported page type
+ * loses nothing a newer schema field holds.
+ */
 function normalizePageTypes(pageTypes) {
     return pageTypes.map((pageType) => {
-        const { title, type, fields } = pageType || {};
+        const { type, fields } = pageType || {};
         return {
-            title,
+            ...pageType,
             type: typeof type === 'string' ? format.formatId(type) : type,
             fields: fields || [],
         };

@@ -61,4 +61,13 @@ describe('SettingsService', () => {
         req.flush(settings);
         expect(result).toEqual(settings);
     });
+
+    it('exportData() sends GET /api/exportSettings and returns the download path', () => {
+        let result: string | undefined;
+        service.exportData().subscribe((r) => (result = r));
+        const req = http.expectOne({ method: 'GET', url: '/api/exportSettings' });
+        expect(req.request.responseType).toBe('text');
+        req.flush('/export/settings.json');
+        expect(result).toBe('/export/settings.json');
+    });
 });

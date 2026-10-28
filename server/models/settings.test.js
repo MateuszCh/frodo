@@ -48,6 +48,20 @@ describe('Settings model', () => {
         ]);
         assert.match(message, /Each field should have a different id/);
     });
+
+    it('exports every stored value of the page types, without the database ids', () => {
+        const field = { title: 'Zoom', type: 'select', id: 'zoom', selectOptions: '1;2', repeaterFields: [] };
+        const settings = Settings.hydrate({
+            _id: 'settings',
+            __v: 3,
+            pageTypes: [{ title: 'Mapa', type: 'map', fields: [{ _id: '5b41b3f0c2a1f40014a1b2c3', ...field }] }],
+        });
+
+        // no `options`: computed from selectOptions, not stored
+        assert.deepEqual(settings.toExport(), {
+            pageTypes: [{ title: 'Mapa', type: 'map', fields: [field] }],
+        });
+    });
 });
 
 describe('Page model', () => {

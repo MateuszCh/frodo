@@ -15,4 +15,9 @@ export class SettingsService {
     edit(data: Settings): Observable<Settings> {
         return this.http.put<Settings>('/api/settings', data);
     }
+
+    /** Writes the export of the page types on the server; resolves to its download path. */
+    exportData(): Observable<string> {
+        return this.http.get('/api/exportSettings', { responseType: 'text' });
+    }
 }

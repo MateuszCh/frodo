@@ -2,7 +2,8 @@ const mongoose = require('mongoose'),
     Schema = mongoose.Schema,
     FieldSchema = require('./field'),
     fieldValidation = require('./validation/fieldValidation'),
-    format = require('./tools/format');
+    format = require('./tools/format'),
+    exportable = require('./tools/exportable');
 
 // Site-wide configuration of the CMS, kept in one document.
 const SETTINGS_ID = 'settings';
@@ -57,6 +58,9 @@ SettingsSchema.pre('save', function (next) {
     this.pageTypes.forEach((pageType) => format.formatFieldsIds(pageType.fields));
     next();
 });
+
+// for its export only: the editor imports page types into its form, and the save checks them
+SettingsSchema.plugin(exportable);
 
 /** The settings document; an unsaved one with no page types before the first save. */
 SettingsSchema.statics.findSettings = function () {

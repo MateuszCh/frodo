@@ -36,7 +36,13 @@ describe('normalizePageTypes', () => {
     it('formats keys as the editor does and defaults the fields', () => {
         assert.deepEqual(normalizePageTypes([{ title: 'Mapa', type: 'Big Map' }, null]), [
             { title: 'Mapa', type: 'big_map', fields: [] },
-            { title: undefined, type: undefined, fields: [] },
+            { type: undefined, fields: [] },
+        ]);
+    });
+
+    it('keeps every other value of a page type, for the schema to keep or drop', () => {
+        assert.deepEqual(normalizePageTypes([{ title: 'Mapa', type: 'map', icon: 'pin' }]), [
+            { title: 'Mapa', type: 'map', icon: 'pin', fields: [] },
         ]);
     });
 });
