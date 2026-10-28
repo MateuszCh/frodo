@@ -56,8 +56,8 @@ module.exports = {
         const filesProps = req.body.filesData || [];
         const fileModels = [];
 
-        Counter.findOne({})
-            .then((counter) => {
+        Counter.reserve(files.length)
+            .then((firstId) => {
                 files.forEach((file, i) => {
                     const model = {
                         filename: file.filename,
@@ -65,7 +65,7 @@ module.exports = {
                         created: Date.now(),
                         type: file.mimetype,
                         size: file.size,
-                        id: counter.counter + i,
+                        id: firstId + i,
                     };
 
                     const fileProps = filesProps[file.filename];
@@ -100,14 +100,7 @@ module.exports = {
                 });
 
                 File.create(fileModels)
-                    .then((files) => {
-                        res.send(files);
-                        Counter.update(counter, {
-                            $inc: { counter: files.length },
-                        })
-                            .then(() => console.log('Counter incremented'))
-                            .catch(next);
-                    })
+                    .then((files) => res.send(files))
                     .catch(next);
             })
             .catch(next);
@@ -192,47 +185,9 @@ module.exports = {
         });
 
         if (correctFiles.length) {
-            Counter.findOne({})
-                .then((counter) => {
-                    const filesModels = [];
-                    const properties = [
-                        'title',
-                        'description',
-                        'author',
-                        'place',
-                        'type',
-                        'size',
-                        'catalogues',
-                        'created',
-                    ];
-                    correctFiles.forEach((file, i) => {
-                        const model = {
-                            filename: file.filename,
-                            src: file.src,
-                        };
-                        properties.forEach((prop) => {
-                            if (file[prop]) model[prop] = file[prop];
-                        });
-                        model.id = counter.counter + i;
-                        if (!file.created) model.created = Date.now();
-                        filesModels.push(model);
-                    });
-
-                    File.create(filesModels)
-                        .then((files) => {
-                            Counter.update(counter, {
-                                $inc: { counter: filesModels.length },
-                            })
-                                .then(() => {
-                                    console.log('Counter incremented');
-                                    File.find({})
-                                        .then((files) => res.send(files))
-                                        .catch(next);
-                                })
-                                .catch(next);
-                        })
-                        .catch(next);
-                })
+            File.saveImport(correctFiles)
+                .then(() => File.find({}))
+                .then((files) => res.send(files))
                 .catch(next);
         } else {
             res.status(422).send({ error: 'There is no valid file to import' });
@@ -242,32 +197,13 @@ module.exports = {
         File.find({})
             .then((files) => {
                 const formattedFiles = JSON.stringify(
-                    files.map((file) => {
-                        const properties = [
-                            'title',
-                            'description',
-                            'author',
-                            'place',
-                            'type',
-                            'size',
-                            'catalogues',
-                            'created',
-                        ];
-                        const newFile = {
-                            filename: file.filename,
-                            src: file.src,
-                        };
-
-                        properties.forEach((prop) => {
-                            if (file[prop]) newFile[prop] = file[prop];
-                        });
-
-                        return newFile;
-                    }),
+                    files.map((file) => file.toExport()),
                     null,
                     4,
                 );
-                writeExport('files', formattedFiles, (err, url) => (err ? next(err) : res.send(url)));
+                writeExport('files', formattedFiles, (err, url) =>
+                    err ? next(err) : res.send(url),
+                );
             })
             .catch(next);
     },

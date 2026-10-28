@@ -1,6 +1,7 @@
 const mongoose = require('mongoose'),
     Schema = mongoose.Schema,
-    timestamps = require('./tools/timestamps');
+    timestamps = require('./tools/timestamps'),
+    exportable = require('./tools/exportable');
 
 const PageSchema = new Schema(
     {
@@ -38,6 +39,7 @@ PageSchema.virtual('url').get(function () {
 });
 
 PageSchema.plugin(timestamps);
+PageSchema.plugin(exportable);
 
 const Page = mongoose.model('page', PageSchema);
 

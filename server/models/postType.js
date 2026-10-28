@@ -4,6 +4,7 @@ const mongoose = require('mongoose'),
     Post = require('./post'),
     format = require('./tools/format'),
     timestamps = require('./tools/timestamps'),
+    exportable = require('./tools/exportable'),
     extend = require('mongoose-extend-schema');
 
 const PostTypeSchema = extend(
@@ -53,6 +54,8 @@ PostTypeSchema.post('save', function (postType, next) {
 });
 
 PostTypeSchema.plugin(timestamps);
+// `posts` holds the _ids of this database: an import of the posts links them anew
+PostTypeSchema.plugin(exportable, { omit: ['posts'] });
 
 const PostType = mongoose.model('post_type', PostTypeSchema);
 
