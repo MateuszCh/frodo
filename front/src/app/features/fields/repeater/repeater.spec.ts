@@ -7,6 +7,11 @@ import { FilesService } from '../../../core/files.service';
 import { Field } from '../../../models/models';
 import { RepeaterComponent } from './repeater';
 
+// These tests assert the English texts; the Polish default is covered in i18n.service.spec.ts
+// and in the Polish rendering tests.
+beforeEach(() => localStorage.setItem('frodo.lang', 'en'));
+afterEach(() => localStorage.removeItem('frodo.lang'));
+
 @Component({
     // app-field's ngModel controls resolve their ControlContainer from the
     // ancestor NgForm, mirroring how the post editor hosts the repeater
@@ -45,7 +50,7 @@ describe('RepeaterComponent', () => {
     });
 
     function rowInputs(): HTMLInputElement[] {
-        return Array.from(fixture.nativeElement.querySelectorAll('.repeater-row input'));
+        return Array.from(fixture.nativeElement.querySelectorAll('.repeater__row input'));
     }
 
     function buttonByText(text: string): HTMLButtonElement {
@@ -72,6 +77,17 @@ describe('RepeaterComponent', () => {
 
         expect(Array.isArray(host.model['items'])).toBe(true);
         expect(rowInputs().length).toBe(0);
+        expect(fixture.nativeElement.textContent).toContain('No rows yet.');
+    });
+
+    it('shows the field title and the number of rows', () => {
+        host.model = { items: [{ name: 'a' }, { name: 'b' }] };
+        fixture.detectChanges();
+
+        expect(fixture.nativeElement.querySelector('.repeater__head .field__label').textContent.trim()).toBe(
+            'Items',
+        );
+        expect(fixture.nativeElement.querySelector('.repeater__head .badge').textContent.trim()).toBe('2 rows');
     });
 
     it('drops row keys that are not part of the repeater schema (checkModel)', () => {
@@ -94,7 +110,7 @@ describe('RepeaterComponent', () => {
     it('addRow appends an empty row to the parent array', () => {
         fixture.detectChanges();
 
-        buttonByText('Add new row').click();
+        buttonByText('Add row').click();
         fixture.detectChanges();
 
         expect(host.model['items']).toEqual([{ name: 'first' }, {}]);

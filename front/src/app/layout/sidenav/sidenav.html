@@ -1,35 +1,151 @@
-<mat-nav-list class="sidenav-list">
-    <h1 class="center font-3 fs-6"><a routerLink="/">Frodo</a></h1>
-
-    @for (item of navigation; track item.family) {
-    <a mat-list-item
-       [routerLink]="item.link">
-        <span class="transition left"
-              [class.active]="route().family === item.family">{{
-            item.title
-            }}</span>
+@let current = route();
+<div class="sidebar">
+    <a class="brand"
+       routerLink="/">
+        <svg class="brand__mark"
+             aria-hidden="true">
+            <use href="icons.svg#logo-mark" />
+        </svg>
+        <span class="brand__word">Frodo</span>
     </a>
-    }
 
-    @for (type of postTypes(); track type._id) {
-    <a mat-list-item
-       [routerLink]="['/posts', type.type]">
-        <span class="transition left"
-              [class.active]="route().family === 'posts' && route().type === type.type">{{ type.pluralTitle }}</span>
-    </a>
-    }
+    <nav class="nav"
+         [attr.aria-label]="t('nav.main')">
+        <p class="nav__group">{{ t('nav.content') }}</p>
+        <a class="nav__item"
+           routerLink="/pages"
+           [attr.aria-current]="current.family === 'pages' ? 'page' : null">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-layout" />
+            </svg>
+            <span class="nav__label">{{ t('nav.pages') }}</span>
+        </a>
+        @for (type of postTypes(); track type._id) {
+        <a class="nav__item"
+           [routerLink]="['/posts', type.type]"
+           [attr.aria-current]="current.family === 'posts' && current.type === type.type ? 'page' : null">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-doc" />
+            </svg>
+            <span class="nav__label">{{ type.pluralTitle }}</span>
+        </a>
+        }
 
-    @if (userService.isLogged()) {
-    <a mat-list-item
-       routerLink="/account"
-       class="sidenav-user">
-        <span>{{ userService.user().username }}</span>
-    </a>
-    }
+        <p class="nav__group">{{ t('nav.media') }}</p>
+        <a class="nav__item"
+           routerLink="/files"
+           [attr.aria-current]="current.family === 'files' ? 'page' : null">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-image" />
+            </svg>
+            <span class="nav__label">{{ t('nav.files') }}</span>
+        </a>
 
-    <a mat-list-item
-       (click)="logout()"
-       [class.busy]="logoutStatus()">
-        <span>Logout</span>
-    </a>
-</mat-nav-list>
+        <p class="nav__group">{{ t('nav.structure') }}</p>
+        <a class="nav__item"
+           routerLink="/post-types"
+           [attr.aria-current]="current.family === 'postTypes' ? 'page' : null">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-braces" />
+            </svg>
+            <span class="nav__label">{{ t('nav.postTypes') }}</span>
+        </a>
+        <a class="nav__item"
+           routerLink="/components"
+           [attr.aria-current]="current.family === 'components' ? 'page' : null">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-blocks" />
+            </svg>
+            <span class="nav__label">{{ t('nav.components') }}</span>
+        </a>
+        <a class="nav__item"
+           routerLink="/settings"
+           [attr.aria-current]="current.family === 'settings' ? 'page' : null">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-settings" />
+            </svg>
+            <span class="nav__label">{{ t('nav.settings') }}</span>
+        </a>
+    </nav>
+
+    <div class="sidebar__theme">
+        <span class="sidebar__theme-label"
+              id="theme-label">{{ t('nav.theme') }}</span>
+        <div class="theme-switch"
+             role="radiogroup"
+             aria-labelledby="theme-label">
+            <label class="theme-switch__option"
+                   [title]="t('nav.themeLight')">
+                <input type="radio"
+                       name="theme"
+                       value="light"
+                       [attr.aria-label]="t('nav.themeLightLabel')"
+                       [checked]="theme.theme() === 'light'"
+                       (change)="theme.set('light')" />
+                <span class="theme-switch__label">
+                    <svg class="icon"
+                         aria-hidden="true">
+                        <use href="icons.svg#i-sun" />
+                    </svg>
+                </span>
+            </label>
+            <label class="theme-switch__option"
+                   [title]="t('nav.themeDark')">
+                <input type="radio"
+                       name="theme"
+                       value="dark"
+                       [attr.aria-label]="t('nav.themeDarkLabel')"
+                       [checked]="theme.theme() === 'dark'"
+                       (change)="theme.set('dark')" />
+                <span class="theme-switch__label">
+                    <svg class="icon"
+                         aria-hidden="true">
+                        <use href="icons.svg#i-moon" />
+                    </svg>
+                </span>
+            </label>
+        </div>
+    </div>
+
+    <div class="sidebar__theme">
+        <span class="sidebar__theme-label"
+              aria-hidden="true">{{ t('nav.language') }}</span>
+        <app-language-switch></app-language-switch>
+    </div>
+
+    <div class="sidebar__footer">
+        @if (userService.isLogged()) {
+        <a class="user"
+           routerLink="/account"
+           [attr.aria-current]="current.url.startsWith('/account') ? 'page' : null">
+            <span class="avatar"
+                  aria-hidden="true">{{ userService.user().username?.charAt(0) }}</span>
+            <span class="user__text">
+                <span class="user__name">{{ userService.user().username }}</span>
+                <span class="user__meta">{{ t('nav.accountSettings') }}</span>
+            </span>
+        </a>
+        }
+        <button mat-icon-button
+                type="button"
+                [attr.aria-label]="t('nav.logOut')"
+                [attr.aria-busy]="logoutStatus()"
+                (click)="logout()">
+            @if (logoutStatus()) {
+            <span class="spinner"
+                  aria-hidden="true"></span>
+            } @else {
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-logout" />
+            </svg>
+            }
+        </button>
+    </div>
+</div>

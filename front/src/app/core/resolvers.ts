@@ -1,19 +1,24 @@
 import { inject } from '@angular/core';
 import { ActivatedRouteSnapshot, ResolveFn } from '@angular/router';
+import { catchError, of, tap } from 'rxjs';
 import { PagesService } from './pages.service';
 import { PostsService } from './posts.service';
 import { PostTypesService } from './post-types.service';
 import { ComponentsService } from './components.service';
 import { FilesService } from './files.service';
 import { UserService } from './user.service';
-import { ComponentEntity, FileItem, Page, Post, PostType, User } from '../models/models';
+import { SettingsService } from './settings.service';
+import { ComponentEntity, FileItem, Page, Post, PostType, Settings, User } from '../models/models';
 
 // Port of constants/promises.states.constant.js (statePromises).
 
 export const pagesResolver: ResolveFn<Page[]> = () => inject(PagesService).getAll();
 
-export const componentsResolver: ResolveFn<ComponentEntity[]> = () =>
-    inject(ComponentsService).getAll();
+// the page editor loads all components anyway: keep them for "component" fields too
+export const componentsResolver: ResolveFn<ComponentEntity[]> = () => {
+    const componentsService = inject(ComponentsService);
+    return componentsService.getAll().pipe(tap((components) => componentsService.setList(components)));
+};
 
 export const postTypesResolver: ResolveFn<PostType[]> = () => inject(PostTypesService).getAll();
 
@@ -40,3 +45,13 @@ export const filesResolver: ResolveFn<FileItem[]> = () => inject(FilesService).g
 export const existResolver: ResolveFn<boolean> = () => inject(UserService).exist();
 
 export const userResolver: ResolveFn<User> = () => inject(UserService).fetchUser();
+
+// The settings view must not open without them: a save would replace the page types.
+export const settingsResolver: ResolveFn<Settings> = () => inject(SettingsService).get();
+
+// The page editor works without page types: if they cannot be loaded it opens without them,
+// and the server keeps the page's type and values (it checks them on save).
+export const pageSettingsResolver: ResolveFn<Settings> = () =>
+    inject(SettingsService)
+        .get()
+        .pipe(catchError(() => of({ pageTypes: [] })));

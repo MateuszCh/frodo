@@ -1,31 +1,55 @@
-<section class="listing-section">
-    @if (!isDesktop() && filtersOpen()) {
-    <div class="filters-backdrop"
-         (click)="filtersOpen.set(false)"></div>
-    }
+@let heading = title();
+@let key = familyKey();
+@let f = filters();
+<div class="page">
+    <header class="page-header page-header--sticky">
+        <div class="page-header__top">
+            <div class="page-heading">
+                <h1 class="page-title">{{ heading }}</h1>
+                <span class="badge">{{ matchCount() }}<span class="visually-hidden"> {{ t('listing.items', { count: matchCount() }) }}</span></span>
+            </div>
+            <button mat-flat-button
+                    type="button"
+                    (click)="add()">
+                <svg matButtonIcon
+                     class="icon"
+                     aria-hidden="true">
+                    <use href="icons.svg#i-plus" />
+                </svg>
+                {{ isPosts() ? newOfType($any(model())?.title) : t(`listing.new.${key}`) }}
+            </button>
+        </div>
 
-    <div class="listing-header">
-        <h2 class="font-2 fs-6 center">
-            <span class="font-2">{{ title() }}</span>
-            <span class="font-2 fs-1">({{ matchCount() }})</span>
-        </h2>
-
-        <div class="listing-actions">
-            <button mat-raised-button
-                    color="primary"
-                    (click)="add()">Add</button>
-
+        <div class="page-header__secondary">
             @if (isPosts()) {
-            <button mat-raised-button
-                    color="primary"
-                    (click)="editPostType()">Edit</button>
+            <button mat-button
+                    type="button"
+                    (click)="editPostType()">
+                <svg matButtonIcon
+                     class="icon"
+                     aria-hidden="true">
+                    <use href="icons.svg#i-pencil" />
+                </svg>
+                {{ t('listing.editType') }}
+            </button>
             }
 
-            <button mat-raised-button
-                    color="primary"
-                    [class.busy]="importStatus()"
+            <button mat-button
+                    type="button"
+                    [attr.aria-busy]="importStatus()"
                     (click)="importInput.click()">
-                Import
+                @if (importStatus()) {
+                <span matButtonIcon
+                      class="spinner"
+                      aria-hidden="true"></span>
+                } @else {
+                <svg matButtonIcon
+                     class="icon"
+                     aria-hidden="true">
+                    <use href="icons.svg#i-upload" />
+                </svg>
+                }
+                {{ importStatus() ? t('common.importing') : t('common.import') }}
             </button>
             <input #importInput
                    type="file"
@@ -34,106 +58,226 @@
                    (change)="onImportFile($event)" />
 
             @if (baseModels().length) {
-            <button mat-raised-button
-                    color="primary"
-                    [class.busy]="exportStatus()"
+            <button mat-button
+                    type="button"
+                    [attr.aria-busy]="exportStatus()"
                     (click)="export()">
-                Export
-            </button>
-
-            <button mat-raised-button
-                    color="primary"
-                    [matMenuTriggerFor]="sortMenu"
-                    aria-label="Sort by">
-                <mat-icon svgIcon="sort"></mat-icon>
-            </button>
-            <mat-menu #sortMenu="matMenu">
-                @for (sort of sortTypes(); track sort.varName) {
-                <button mat-menu-item
-                        [class.active]="sortCurrent() === sort.varName"
-                        (click)="sortBy(sort.varName)">
-                    {{ sort.name }}
-                </button>
+                @if (exportStatus()) {
+                <span matButtonIcon
+                      class="spinner"
+                      aria-hidden="true"></span>
+                } @else {
+                <svg matButtonIcon
+                     class="icon"
+                     aria-hidden="true">
+                    <use href="icons.svg#i-download" />
+                </svg>
                 }
-            </mat-menu>
-            }
-
-            @if (isPosts()) {
-            <button mat-raised-button
-                    color="primary"
-                    class="filters-toggle"
-                    (click)="filtersOpen.set(!filtersOpen())">
-                Filters
+                {{ exportStatus() ? t('common.exporting') : t('common.export') }}
             </button>
             }
         </div>
-    </div>
+    </header>
 
-    <div class="listing-body">
-        <div class="listing-list"
-             appInfiniteScroll
-             (reached)="incrementLimit()"
-             [enabled]="visible().length < filtered().length">
-            @if (!baseModels().length) {
-            <p class="center">There are no {{ title() }} yet</p>
-            } @else if (matchCount() === 0) {
-            <p class="center">There are no {{ title() }} matching your selection</p>
-            }
+    <div class="listing"
+         [class.listing--single]="!isPosts()">
+        <section class="card list-card listing-list"
+                 [attr.aria-label]="t('listing.list')"
+                 appInfiniteScroll
+                 (reached)="incrementLimit()"
+                 [enabled]="visible().length < filtered().length">
+            @if (f || baseModels().length || isPosts()) {
+            <div class="list-toolbar">
+                @if (f) {
+                <label class="control control--search">
+                    <span class="visually-hidden">{{ t('common.search') }}</span>
+                    <svg class="icon control__icon"
+                         aria-hidden="true">
+                        <use href="icons.svg#i-search" />
+                    </svg>
+                    <input class="input"
+                           type="search"
+                           [placeholder]="t(`listing.search.${key}`, { title: heading })"
+                           [value]="f.textFilter.value ?? ''"
+                           (input)="f.textFilter.value = $any($event.target).value; onFilterChange()" />
+                </label>
+                }
 
-            <mat-list>
-                @for (model of visible(); track model._id) {
-                <mat-list-item class="listing-item">
-                    @if (lastRemoved() !== model) {
-                    <div class="listing-item__row">
-                        <a class="listing-item__link"
-                           [routerLink]="editLink(model)">{{
-                            model.title
-                            }}</a>
-                        <button mat-raised-button
-                                color="warn"
-                                [class.busy]="
-                                        removeStatus()?.busy === model._id &&
-                                        !removeStatus()?.status
-                                    "
-                                (click)="removeDialog(model)">
-                            Delete
-                        </button>
-                    </div>
-                    } @else {
-                    <div class="listing-item__row center">
-                        @if (removeStatus()?.result) {
-                        <p [class.col-ok]="removeStatus()?.status === 200">
-                            {{ removeStatus()?.result }}
-                        </p>
-                        }
-                    </div>
+                @if (baseModels().length) {
+                <button mat-stroked-button
+                        type="button"
+                        class="sort-toggle"
+                        [matMenuTriggerFor]="sortMenu">
+                    <svg matButtonIcon
+                         class="icon"
+                         aria-hidden="true">
+                        <use href="icons.svg#i-sort" />
+                    </svg>
+                    @for (sort of sortTypes(); track sort.varName) {
+                    @if (sortCurrent() === sort.varName) {
+                    <span class="sort-toggle__label">{{ sortName(sort) }}</span>
                     }
-                </mat-list-item>
-                }
-            </mat-list>
-
-
-        </div>
-
-        <aside class="listing-drawer"
-               [class.listing-drawer--open]="filtersOpen()">
-            @if (baseModels().length) {
-            <app-listing-filters [filters]="filters()"
-                                 [type]="family()"
-                                 (changed)="onFilterChange()"></app-listing-filters>
-
-            @if (isPosts()) {
-            <div class="center">
-                <button mat-raised-button
-                        color="primary"
-                        (click)="resetFilters()">
-                    Reset Filters
+                    }
                 </button>
+                <mat-menu #sortMenu="matMenu"
+                          [aria-label]="t('listing.sortBy')">
+                    @for (sort of sortTypes(); track sort.varName; let i = $index) {
+                    @if (i === 3) {
+                    <p class="menu__label">{{ t('common.fields') }}</p>
+                    }
+                    <button mat-menu-item
+                            type="button"
+                            role="menuitemradio"
+                            [attr.aria-checked]="sortCurrent() === sort.varName"
+                            (click)="sortBy(sort.varName)">
+                        <span class="menu__text">{{ sortName(sort) }}</span>
+                        <svg class="icon menu__check"
+                             aria-hidden="true">
+                            <use href="icons.svg#i-check" />
+                        </svg>
+                    </button>
+                    }
+                </mat-menu>
+                }
+
+                @if (isPosts()) {
+                <button mat-stroked-button
+                        type="button"
+                        class="filters-toggle"
+                        [attr.aria-expanded]="filtersOpen()"
+                        (click)="filtersOpen.set(!filtersOpen())">
+                    <svg matButtonIcon
+                         class="icon"
+                         aria-hidden="true">
+                        <use href="icons.svg#i-sliders" />
+                    </svg>
+                    {{ t('listing.filters') }}
+                </button>
+                }
             </div>
             }
+
+            @if (!baseModels().length) {
+            <div class="empty">
+                <span class="empty__icon">
+                    <svg class="icon icon--lg"
+                         aria-hidden="true">
+                        @switch (family()) {
+                        @case ('pages') {
+                        <use href="icons.svg#i-layout" />
+                        }
+                        @case ('postTypes') {
+                        <use href="icons.svg#i-braces" />
+                        }
+                        @case ('components') {
+                        <use href="icons.svg#i-blocks" />
+                        }
+                        @default {
+                        <use href="icons.svg#i-doc" />
+                        }
+                        }
+                    </svg>
+                </span>
+                <p class="empty__title">{{ t(`listing.empty.${key}`, { title: heading }) }}</p>
+                <p class="empty__text">{{ t('listing.emptyText') }}</p>
+            </div>
+            } @else if (matchCount() === 0) {
+            <div class="empty">
+                <span class="empty__icon">
+                    <svg class="icon icon--lg"
+                         aria-hidden="true">
+                        <use href="icons.svg#i-search" />
+                    </svg>
+                </span>
+                <p class="empty__title">{{ t('listing.noMatch', { title: heading }) }}</p>
+                <p class="empty__text">
+                    {{ isPosts() ? t('listing.noMatchTextFilters') : t('listing.noMatchText') }}
+                </p>
+            </div>
             } @else {
-            <p class="center">There are no {{ title() }} to filter</p>
+            <ul class="list">
+                @for (model of visible(); track model._id) {
+                @if (lastRemoved() !== model) {
+                @let busy = removeStatus()?.busy === model._id && !removeStatus()?.status;
+                <li class="list__row"
+                    [class.is-busy]="busy">
+                    <a class="list__link"
+                       [routerLink]="editLink(model)">{{ model.title }}</a>
+                    <button mat-icon-button
+                            type="button"
+                            [attr.aria-label]="t('listing.deleteItem', { title: model.title })"
+                            [attr.aria-busy]="busy"
+                            (click)="removeDialog(model)">
+                        @if (busy) {
+                        <span class="spinner"
+                              aria-hidden="true"></span>
+                        } @else {
+                        <svg class="icon"
+                             aria-hidden="true">
+                            <use href="icons.svg#i-trash" />
+                        </svg>
+                        }
+                    </button>
+                </li>
+                } @else {
+                <li class="list__row list__row--removed"
+                    role="status">
+                    @if (removeStatus()?.result) {
+                    <svg class="icon"
+                         aria-hidden="true">
+                        <use href="icons.svg#i-check-circle" />
+                    </svg>
+                    <p>{{ server(removeStatus()?.result) }}</p>
+                    }
+                </li>
+                }
+                }
+            </ul>
+            }
+        </section>
+
+        @if (isPosts()) {
+        <aside class="filters"
+               [class.is-open]="filtersOpen()"
+               [attr.aria-label]="t('listing.filters')">
+            <div class="sheet__grabber"
+                 aria-hidden="true"></div>
+            <div class="filters__head">
+                <h2 class="filters__title">{{ t('listing.filters') }}</h2>
+                @if (baseModels().length) {
+                <button mat-button
+                        type="button"
+                        class="btn--sm"
+                        (click)="resetFilters()">{{ t('listing.reset') }}</button>
+                }
+                <button mat-icon-button
+                        type="button"
+                        class="btn--sm filters__close"
+                        [attr.aria-label]="t('listing.closeFilters')"
+                        (click)="filtersOpen.set(false)">
+                    <svg class="icon"
+                         aria-hidden="true">
+                        <use href="icons.svg#i-x" />
+                    </svg>
+                </button>
+            </div>
+            @if (baseModels().length) {
+            <app-listing-filters [filters]="f"
+                                 [type]="family()"
+                                 (changed)="onFilterChange()"></app-listing-filters>
+            } @else {
+            <div class="empty empty--compact">
+                <p class="empty__title">{{ t('listing.nothingToFilter') }}</p>
+                <p class="empty__text">{{ t('listing.nothingToFilterText') }}</p>
+            </div>
             }
         </aside>
+        }
     </div>
-</section>
+</div>
+
+@if (isPosts() && !isDesktop()) {
+<div class="backdrop filters-backdrop"
+     [class.is-open]="filtersOpen()"
+     (click)="filtersOpen.set(false)"></div>
+}

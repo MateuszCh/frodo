@@ -1,39 +1,51 @@
-<div class="add-component">
-    <div class="add-component__head">
-        @if (current()) {
-        <button mat-icon-button
-                color="primary"
-                type="button"
-                (click)="open.set(!open())"
-                aria-label="toggle">
-            <mat-icon svgIcon="arrow-down"
-                      [class.rotate]="open()"></mat-icon>
-        </button>
-        }
-        <mat-form-field class="full-width">
-            <mat-label>Type</mat-label>
-            <mat-select [ngModel]="current()"
-                        [ngModelOptions]="{ standalone: true }"
-                        [compareWith]="compare"
-                        (ngModelChange)="onSelect($event)">
-                @for (item of components(); track item.id) {
-                <mat-option [value]="item">{{ item.title }}</mat-option>
-                }
-            </mat-select>
-        </mat-form-field>
-        <button mat-raised-button
-                color="warn"
-                type="button"
-                (click)="remove.emit()">Delete</button>
-    </div>
+@let component = current();
+<div class="block-card__head">
+    <span class="block-card__index"
+          aria-hidden="true"></span>
+    @if (component) {
+    <button mat-icon-button
+            type="button"
+            class="btn--sm block-card__toggle"
+            [attr.aria-expanded]="open()"
+            [attr.aria-label]="t(open() ? 'block.hideFields' : 'block.showFields', { name: component.title })"
+            (click)="open.set(!open())">
+        <svg class="icon"
+             aria-hidden="true">
+            <use href="icons.svg#i-chevron-down" />
+        </svg>
+    </button>
+    }
+    <mat-form-field appearance="outline"
+                    subscriptSizing="dynamic">
+        <mat-select [aria-label]="t('block.type')"
+                    [placeholder]="t('block.choose')"
+                    [ngModel]="component"
+                    [ngModelOptions]="{ standalone: true }"
+                    [compareWith]="compare"
+                    (ngModelChange)="onSelect($event)">
+            @for (item of components(); track item.id) {
+            <mat-option [value]="item">{{ item.title }}</mat-option>
+            }
+        </mat-select>
+    </mat-form-field>
+    <button mat-icon-button
+            type="button"
+            class="btn--sm"
+            [attr.aria-label]="component ? t('block.remove', { name: component.title }) : t('block.removeNew')"
+            (click)="remove.emit()">
+        <svg class="icon"
+             aria-hidden="true">
+            <use href="icons.svg#i-trash" />
+        </svg>
+    </button>
+</div>
 
-    @if (open() && current()) {
-    <div class="add-component__fields">
-        @for (field of current()!.fields; track field.id) {
-        <app-field [field]="field"
-                   [model]="model().data!"
-                   [namePrefix]="'comp_' + order() + '_'"></app-field>
-        }
-    </div>
+@if (open() && component) {
+<div class="block-card__body">
+    @for (field of component.fields; track field.id) {
+    <app-field [field]="field"
+               [model]="model().data!"
+               [namePrefix]="'comp_' + order() + '_'"></app-field>
     }
 </div>
+}

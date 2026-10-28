@@ -53,7 +53,7 @@ cd front && ng test --include='**/path/to/spec.ts'
 | Layer | Path | Role |
 |-------|------|------|
 | Entry | `app.js` | Express setup, sessions, Passport, route mounting |
-| Models | `server/models/` | Mongoose schemas: User, Post, PostType, Page, Component, File, Counter |
+| Models | `server/models/` | Mongoose schemas: User, Post, PostType, Page, Component, File, Counter, Settings |
 | Controllers | `server/controllers/` | Business logic — one file per resource |
 | Routes | `server/routes/` | Thin route files that delegate to controllers |
 
@@ -64,13 +64,24 @@ through `writeExport`: the project root holds `config.json` and must never be se
 
 **PostType** is central — it defines the field schema for Post documents. When editing or creating a Post, the frontend fetches its PostType to know which dynamic fields to render.
 
+**Page types** live in the single Settings document (`_id: "settings"`), each with its own fields.
+A page stores the key in `type` and the values of that type's fields in `typeData`; its
+components stay in `rows[i].data`. `server/page-types.js` holds the rules: the server checks
+the key and keeps only the type's fields in `typeData` on create, edit and import, and a key
+that pages use cannot be removed or renamed. Page saves and settings saves run through
+`withPageTypeLock`, which serialises them only within one process — the CMS runs as one.
+
+A **component** field type nests a component: its value has the shape of a page row,
+`{ type, title, data }` (`shared/component-value.ts`). Nested control names are joined with
+`.` (`list.0.item.heading`), which field ids cannot clash with.
+
 ### Frontend (`front/src/app/`)
 
 | Directory | Purpose |
 |-----------|---------|
 | `core/` | Singleton services (HTTP wrappers), auth guard, credentials interceptor, route resolvers |
-| `features/` | Feature modules: `auth`, `posts`, `post-types`, `pages`, `components`, `files`, `listing`, `error` |
-| `shared/` | Directives (`infinite-scroll`, `img-loaded`), pipes (`bytes`), field models |
+| `features/` | Feature modules: `auth`, `posts`, `post-types`, `pages`, `fields`, `files`, `listing`, `settings`, `error` |
+| `shared/` | Directives (`infinite-scroll`, `img-loaded`), pipes (`bytes`), small helpers |
 | `layout/` | Header + Sidenav shell (Material Design) |
 
 All Angular components are **standalone** (no NgModules). Routing is configured in `app.routes.ts` with lazy-loaded feature routes and data resolvers.

@@ -1,120 +1,172 @@
 @let f = field();
 @let data = model();
 @let ctrl = namePrefix() + f.id;
+@let id = 'field-' + ctrl;
 
-<div class="field">
-    @switch (f.type) {
-        @case ('text') {
-            <mat-form-field class="full-width">
-                <mat-label>{{ f.title }}</mat-label>
-                <input matInput type="text" [name]="ctrl" [(ngModel)]="data[f.id]" />
+@switch (f.type) {
+    @case ('text') {
+        <div class="field">
+            <label class="field__label" [for]="id">{{ f.title }}</label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <input matInput type="text" [id]="id" [name]="ctrl" [(ngModel)]="data[f.id]" />
             </mat-form-field>
-        }
-        @case ('textarea') {
-            <mat-form-field class="full-width">
-                <mat-label>{{ f.title }}</mat-label>
-                <textarea matInput rows="3" [name]="ctrl" [(ngModel)]="data[f.id]"></textarea>
+        </div>
+    }
+    @case ('textarea') {
+        <div class="field">
+            <label class="field__label" [for]="id">{{ f.title }}</label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <textarea matInput rows="3" [id]="id" [name]="ctrl" [(ngModel)]="data[f.id]"></textarea>
             </mat-form-field>
-        }
-        @case ('number') {
-            <mat-form-field class="full-width">
-                <mat-label>{{ f.title }}</mat-label>
-                <input matInput type="number" [name]="ctrl" [(ngModel)]="data[f.id]" />
+        </div>
+    }
+    @case ('number') {
+        <div class="field">
+            <label class="field__label" [for]="id">{{ f.title }}</label>
+            <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                <input matInput type="number" [id]="id" [name]="ctrl" [(ngModel)]="data[f.id]" />
             </mat-form-field>
-        }
-        @case ('select') {
+        </div>
+    }
+    @case ('select') {
+        <div class="field">
+            <span class="field__label" [id]="id + '-label'">{{ f.title }}</span>
             <div class="field-row">
-                <mat-form-field class="full-width">
-                    <mat-label>{{ f.title }}</mat-label>
-                    <mat-select [name]="ctrl" [(ngModel)]="data[f.id]">
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-select
+                        [id]="id"
+                        [aria-labelledby]="id + '-label'"
+                        [name]="ctrl"
+                        [(ngModel)]="data[f.id]"
+                    >
                         @for (item of options; track item) {
                             <mat-option [value]="item">{{ item }}</mat-option>
                         }
                     </mat-select>
                 </mat-form-field>
-                <button mat-raised-button color="warn" type="button" (click)="clear()">
-                    Clear
+                <button mat-button type="button" (click)="clear()">
+                    <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-x" /></svg>
+                    {{ t('common.clear') }}
                 </button>
             </div>
-        }
-        @case ('multiselect') {
+        </div>
+    }
+    @case ('multiselect') {
+        <div class="field">
+            <span class="field__label" [id]="id + '-label'">{{ f.title }}</span>
             <div class="field-row">
-                <mat-form-field class="full-width">
-                    <mat-label>{{ f.title }}</mat-label>
-                    <mat-select multiple [name]="ctrl" [(ngModel)]="data[f.id]">
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-select
+                        multiple
+                        [id]="id"
+                        [aria-labelledby]="id + '-label'"
+                        [name]="ctrl"
+                        [(ngModel)]="data[f.id]"
+                    >
                         @for (item of multiOptions; track item) {
                             <mat-option [value]="item">{{ item }}</mat-option>
                         }
                     </mat-select>
                 </mat-form-field>
-                <button mat-raised-button color="warn" type="button" (click)="clear()">
-                    Clear
+                <button mat-button type="button" (click)="clear()">
+                    <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-x" /></svg>
+                    {{ t('common.clear') }}
                 </button>
             </div>
-        }
-        @case ('catalogue') {
+        </div>
+    }
+    @case ('catalogue') {
+        <div class="field">
+            <span class="field__label" [id]="id + '-label'">{{ f.title }}</span>
             <div class="field-row">
-                <mat-form-field class="full-width">
-                    <mat-label>{{ f.title }}</mat-label>
-                    <mat-select [name]="ctrl" [(ngModel)]="data[f.id]">
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <mat-select
+                        [id]="id"
+                        [aria-labelledby]="id + '-label'"
+                        [name]="ctrl"
+                        [(ngModel)]="data[f.id]"
+                    >
                         @for (catalogue of catalogues(); track catalogue) {
                             <mat-option [value]="catalogue">{{ catalogue }}</mat-option>
                         }
                     </mat-select>
                 </mat-form-field>
-                <button mat-raised-button color="warn" type="button" (click)="clear()">
-                    Clear
+                <button mat-button type="button" (click)="clear()">
+                    <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-x" /></svg>
+                    {{ t('common.clear') }}
                 </button>
             </div>
-        }
-        @case ('checkbox') {
-            <mat-checkbox [name]="ctrl" [(ngModel)]="data[f.id]">
-                {{ f.title }} : {{ data[f.id] }}
-            </mat-checkbox>
-        }
-        @case ('date') {
+        </div>
+    }
+    @case ('checkbox') {
+        <mat-checkbox [name]="ctrl" [(ngModel)]="data[f.id]">{{ f.title }}</mat-checkbox>
+    }
+    @case ('date') {
+        <div class="field">
+            <label class="field__label" [for]="id">{{ f.title }}</label>
             <div class="field-row">
-                <mat-form-field>
-                    <mat-label>{{ f.title }}</mat-label>
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
                     <input
                         matInput
+                        [id]="id"
                         [matDatepicker]="picker"
                         [name]="ctrl"
                         [(ngModel)]="data[f.id]"
                     />
-                    <mat-datepicker-toggle matIconSuffix [for]="picker"></mat-datepicker-toggle>
+                    <mat-datepicker-toggle matIconSuffix [for]="picker">
+                        <svg matDatepickerToggleIcon class="icon" aria-hidden="true">
+                            <use href="icons.svg#i-calendar" />
+                        </svg>
+                    </mat-datepicker-toggle>
                     <mat-datepicker #picker></mat-datepicker>
                 </mat-form-field>
-                <button mat-raised-button color="warn" type="button" (click)="clear()">
-                    Clear
+                <button mat-button type="button" (click)="clear()">
+                    <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-x" /></svg>
+                    {{ t('common.clear') }}
                 </button>
             </div>
-        }
-        @case ('repeater') {
-            <div class="field-repeater">
-                <span class="repeater-title">{{ f.title }}</span>
-                <app-repeater [parentModel]="data" [field]="f" [namePrefix]="ctrl"></app-repeater>
-            </div>
-        }
-        @case ('file') {
-            <div class="field-file">
-                <p class="field-file__title">{{ f.title }}</p>
-                <div class="field-file__controls">
-                    <button mat-raised-button color="primary" type="button" (click)="openFiles()">
-                        Select file
-                    </button>
-                    @if (fileSrc()) {
-                        <button mat-raised-button color="warn" type="button" (click)="clear()">
-                            Clear
-                        </button>
-                    }
-                </div>
+        </div>
+    }
+    @case ('repeater') {
+        <app-repeater class="repeater" [parentModel]="data" [field]="f" [namePrefix]="ctrl"></app-repeater>
+    }
+    @case ('component') {
+        <app-component-field class="component-field" [parentModel]="data" [field]="f" [namePrefix]="ctrl"></app-component-field>
+    }
+    @case ('file') {
+        <div class="field">
+            <span class="field__label">{{ f.title }}</span>
+            <div class="file-field">
                 @if (fileSrc(); as src) {
-                    <div class="field-file__preview">
-                        <img [src]="src" alt="selected file" />
+                    <div class="file-field__preview field-file__preview">
+                        @if (src.toLowerCase().endsWith('.pdf')) {
+                            <span class="file-field__file" role="img" [attr.aria-label]="t('field.selectedFile', { name: src })">
+                                <svg class="icon icon--lg" aria-hidden="true"><use href="icons.svg#i-file" /></svg>
+                                PDF
+                            </span>
+                        } @else {
+                            <img [src]="src" [alt]="t('field.selectedFile', { name: f.title })" />
+                        }
+                    </div>
+                    <div class="file-field__actions">
+                        <button mat-stroked-button type="button" class="btn--sm" (click)="openFiles()">
+                            {{ t('field.selectFile') }}
+                        </button>
+                        <button mat-button type="button" class="btn--sm" (click)="clear()">
+                            <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-x" /></svg>
+                            {{ t('common.clear') }}
+                        </button>
+                    </div>
+                } @else {
+                    <div class="file-field__empty">
+                        <svg class="icon" aria-hidden="true"><use href="icons.svg#i-image" /></svg>
+                        <span class="file-field__empty-text">{{ t('field.noFile') }}</span>
+                        <button mat-stroked-button type="button" class="btn--sm" (click)="openFiles()">
+                            {{ t('field.selectFile') }}
+                        </button>
                     </div>
                 }
             </div>
-        }
+        </div>
     }
-</div>
+}

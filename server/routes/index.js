@@ -4,6 +4,7 @@ const postTypeRoutes = require('./postType.routes'),
     pageRoutes = require('./page.routes'),
     fileRoutes = require('./file.routes'),
     userRoutes = require('./user.routes'),
+    settingsRoutes = require('./settings.routes'),
     { bumpContentVersion } = require('../content-version');
 
 // Writes to what the public site reads (pages, posts, files – imports included). Post types
@@ -27,6 +28,7 @@ module.exports = (app) => {
     pageRoutes(app);
     fileRoutes(app);
     userRoutes(app);
+    settingsRoutes(app);
 };
 
 // Only successful writes – a rejected save (422) changed nothing on the site.

@@ -1,0 +1,16 @@
+// "Component" field: a nested component. The chosen component's fields sit under the
+// select, indented with a line on the left like .schema-field__children, so the nesting
+// reads the same at any depth and inside repeater rows of either background.
+
+.component-field {
+    display: grid;
+    gap: var(--space-3);
+}
+
+.component-field__body {
+    display: grid;
+    gap: var(--space-4);
+    min-width: 0;
+    padding-left: var(--space-4);
+    border-left: 2px solid var(--color-border);
+}

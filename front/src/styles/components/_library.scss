@@ -1,0 +1,317 @@
+// File library and the file picker dialog (design/components.css, 29 and 31).
+// The same app-files renders both: .library inside the page, .picker inside the dialog.
+
+// tabs: the panels of the page grow with their content and scroll with #scroll;
+// clip (not hidden) keeps the slide animation inside without creating a scroll
+// container, so the details panel can stick
+// MDC: mat-tab-group internals
+.files:not(.files--popup) {
+    .mat-mdc-tab-body-wrapper {
+        overflow: clip;
+    }
+
+    // MDC: the tabs stick under the sticky header
+    .mat-mdc-tab-header.mat-mdc-tab-header {
+        position: sticky;
+        top: calc(var(--page-header-top) + var(--page-header-h));
+        z-index: var(--z-sticky);
+        background: var(--sticky-bg);
+    }
+
+    // search and catalogues stick under the tabs; the padding moves out of the panel
+    // into the bar, so thumbnails scrolling underneath stay hidden
+    .tab-panel.files-select {
+        padding-top: var(--space-2);
+    }
+
+    .library__toolbar {
+        position: sticky;
+        top: calc(var(--page-header-top) + var(--page-header-h) + var(--sticky-tabs-h));
+        z-index: var(--z-sticky);
+        margin-bottom: var(--space-1);
+        padding-block: var(--space-3);
+        background: var(--sticky-bg);
+    }
+
+    .mat-mdc-tab-body-active,
+    .mat-mdc-tab-body-content {
+        overflow: visible;
+    }
+}
+
+.tab-panel {
+    padding-top: var(--space-5);
+}
+
+// search on its own row, sort + catalogues below it
+.library__toolbar {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+
+    > .control--search {
+        grid-column: 1 / -1;
+    }
+
+    // mat-menu host stays out of the layout
+    > mat-menu {
+        display: contents;
+    }
+}
+
+// one row: search | sort | catalogues
+@media (min-width: 600px) {
+    .library__toolbar {
+        display: flex;
+        align-items: center;
+
+        > .control--search {
+            flex: 1 1 auto;
+            min-width: 0;
+        }
+
+        > .mat-mdc-form-field {
+            flex: 0 1 240px;
+            min-width: 0;
+        }
+    }
+}
+
+.library {
+    display: grid;
+    gap: var(--space-6);
+    align-items: start;
+}
+
+.library__details {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    padding: var(--space-5);
+}
+
+@media (min-width: 960px) {
+    .library__details {
+        background: var(--color-surface-sunken);
+        border-color: transparent;
+    }
+}
+
+// Thumbnails and the details panel share one set of columns (the thumbnail grid is a
+// subgrid of .library): the panel takes the last three columns away from the grid,
+// so fewer thumbnails fit in a row but each keeps its size.
+@media (min-width: 1280px) {
+    .library {
+        grid-template-columns: repeat(auto-fill, minmax(var(--layout-thumb-min), 1fr));
+        column-gap: var(--space-3);
+
+        > .files-grid-pane {
+            grid-column: 1 / -1;
+            display: grid;
+            grid-template-columns: subgrid;
+            align-content: start;
+
+            > * {
+                grid-column: 1 / -1;
+            }
+
+            > .thumbs {
+                grid-template-columns: subgrid;
+            }
+        }
+    }
+
+    .library--selected {
+        > .files-grid-pane {
+            grid-column: 1 / -4;
+        }
+
+        // under the sticky header and tabs
+        .library__details {
+            grid-column: -4 / -1;
+            // the column gap is a thumbnail gap; the panel keeps the design's distance
+            margin-left: var(--space-3);
+            position: sticky;
+            top: calc(var(--page-header-top) + var(--page-header-h) + var(--sticky-tabs-h) + var(--space-6));
+            max-height: calc(
+                100dvh - var(--page-header-top) - var(--page-header-h) - var(--sticky-tabs-h) - var(--space-12)
+            );
+            overflow-y: auto;
+        }
+    }
+}
+
+// ---- picker dialog ----------------------------------------------------------------
+// FilePickerDialogComponent opens with 90vw × 85vh from field-input.ts; below 600 px
+// the panel takes the whole screen (R4: the size is set in TS, hence !important).
+
+.file-picker-panel {
+    // MDC: the surface carries no padding of its own here
+    .mat-mdc-dialog-surface.mat-mdc-dialog-surface {
+        overflow: hidden;
+    }
+}
+
+@media (max-width: 599px) {
+    .cdk-overlay-pane.file-picker-panel {
+        width: 100vw !important;
+        max-width: 100vw !important;
+        height: 100dvh !important;
+        max-height: 100dvh !important;
+
+        .mat-mdc-dialog-surface {
+            border-radius: 0;
+        }
+    }
+}
+
+app-file-picker-dialog,
+.files--popup {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
+}
+
+.files--popup {
+    // MDC: tab group fills the dialog, the panel below the tabs scrolls
+    > .mat-mdc-tab-group {
+        flex: 1;
+        min-height: 0;
+    }
+
+    .mat-mdc-tab-header {
+        padding-inline: var(--space-4);
+    }
+
+    .mat-mdc-tab-body-wrapper {
+        flex: 1;
+        min-height: 0;
+    }
+
+    .mat-mdc-tab-body-content {
+        overflow: hidden;
+    }
+
+    .tab-panel {
+        padding-top: 0;
+    }
+
+    .files-upload {
+        height: 100%;
+        overflow-y: auto;
+        padding: var(--space-5) var(--space-4) var(--space-6);
+    }
+
+    .library__toolbar {
+        margin-bottom: 0;
+    }
+}
+
+app-files {
+    display: block;
+}
+
+// MDC: the dialog's component host (app-file-picker-dialog) is display: contents, so
+// app-files is the flex item of the dialog surface. It has to fill the surface, or the
+// heights below resolve against its content: the picker would neither scroll nor, with
+// its size containment, show anything.
+.file-picker-panel app-files {
+    flex: 1;
+    min-height: 0;
+}
+
+.picker {
+    // containing block of .files-loader
+    position: relative;
+    height: 100%;
+    overflow-y: auto;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    align-content: start;
+}
+
+// spinner in the middle of the picker while the files load; the toolbar above stays usable
+.files-loader {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    color: var(--color-accent);
+    pointer-events: none;
+}
+
+.picker__main {
+    padding: var(--space-5) var(--space-4);
+    display: grid;
+    gap: var(--space-4);
+    align-content: start;
+    min-width: 0;
+}
+
+.picker__details {
+    padding: var(--space-5) var(--space-4) var(--space-6);
+    border-top: 1px solid var(--color-border);
+}
+
+@media (min-width: 600px) {
+    .picker__main,
+    .picker__details,
+    .files--popup .files-upload {
+        padding-inline: var(--space-6);
+    }
+}
+
+// As on the page, thumbnails and the details panel share the picker's columns (the
+// thumbnail grid is a subgrid of .picker), so the panel takes the last three columns
+// without resizing the thumbnails. The whole picker scrolls and the panel sticks: a
+// scrollbar on the thumbnail pane itself would narrow its last column.
+@media (min-width: 960px) {
+    .picker {
+        container-type: size;
+        grid-template-columns: repeat(auto-fill, minmax(var(--layout-thumb-min), 1fr));
+        column-gap: var(--space-3);
+        padding-inline: var(--space-6);
+    }
+
+    .picker__main {
+        grid-column: 1 / -1;
+        grid-template-columns: subgrid;
+        column-gap: var(--space-3);
+        padding-inline: 0;
+
+        > * {
+            grid-column: 1 / -1;
+        }
+
+        > .thumbs {
+            grid-template-columns: subgrid;
+        }
+    }
+
+    .picker__details {
+        position: sticky;
+        top: 0;
+        align-self: start;
+        // the visible height of the picker
+        height: 100cqh;
+        overflow-y: auto;
+        border-top: 0;
+        border-left: 1px solid var(--color-border);
+    }
+
+    .picker--selected {
+        > .picker__main {
+            grid-column: 1 / -4;
+        }
+
+        // the column gap is a thumbnail gap; the panel keeps the design's distance
+        // and reaches the right edge of the dialog
+        > .picker__details {
+            grid-column: -4 / -1;
+            margin-left: var(--space-3);
+            margin-right: calc(var(--space-6) * -1);
+        }
+    }
+}

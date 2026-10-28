@@ -6,11 +6,13 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
-import { ComponentEntity, Field, PostType } from '../../../models/models';
+import { ComponentEntity, PostType } from '../../../models/models';
+import { blankField, formatKey } from '../../../models/fields';
 import { PostTypesService } from '../../../core/post-types.service';
 import { ComponentsService } from '../../../core/components.service';
 import { ToolsService } from '../../../core/tools.service';
 import { AddFieldComponent } from '../add-field/add-field';
+import { I18nService } from '../../../core/i18n/i18n.service';
 
 type Schema = PostType & ComponentEntity;
 
@@ -18,9 +20,10 @@ type Schema = PostType & ComponentEntity;
     selector: 'app-post-type',
     imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, AddFieldComponent],
     templateUrl: './post-type.html',
-    styleUrl: './post-type.scss',
 })
 export class PostTypeComponent implements OnInit {
+    protected readonly t = inject(I18nService).t;
+
     // resolved (edit) + route data
     readonly postType = input<PostType | ComponentEntity>();
     readonly family = input<string>('');
@@ -36,7 +39,6 @@ export class PostTypeComponent implements OnInit {
 
     protected readonly isComponent = computed(() => this.family() === 'components');
     protected readonly edit = computed(() => !!this.postType());
-    protected readonly typeLabel = computed(() => (this.isComponent() ? 'component' : 'post type'));
 
     constructor() {
         effect(() => {
@@ -57,7 +59,7 @@ export class PostTypeComponent implements OnInit {
     }
 
     addField(): void {
-        this.model().fields.push(this.blankField());
+        this.model().fields.push(blankField());
         this.model.set({ ...this.model() });
     }
 
@@ -69,7 +71,7 @@ export class PostTypeComponent implements OnInit {
     formatType(): void {
         const m = this.model();
         if (m.type) {
-            m.type = m.type.replace(/\s+/g, '_').toLowerCase();
+            m.type = formatKey(m.type);
         }
     }
 
@@ -90,21 +92,21 @@ export class PostTypeComponent implements OnInit {
                     this.actionStatus.set('');
                     this.model.set(response as Schema);
                     this.currentType.set((response as Schema).type);
-                    this.tools.alert(`${(response as Schema).type} updated successfully`);
+                    this.tools.alert(this.t('schema.updated', { type: (response as Schema).type }));
                 } else {
                     this.navigateAfterCreate(response as Schema);
                 }
             },
             error: (err) => {
                 this.actionStatus.set('');
-                this.tools.alert(err?.error?.error ?? err?.error ?? 'Error saving');
+                this.tools.alert(err?.error?.error ?? err?.error ?? this.t('common.errorSaving'));
             },
         });
     }
 
     removeDialog(): void {
         const m = this.model();
-        this.tools.confirm(`Are you sure you want to delete ${m.type}?`).subscribe((ok) => {
+        this.tools.confirm(this.t('common.confirmDelete', { name: m.type })).subscribe((ok) => {
             if (ok) {
                 this.remove();
             }
@@ -123,7 +125,9 @@ export class PostTypeComponent implements OnInit {
                 error: () => {
                     this.actionStatus.set('');
                     this.tools.alert(
-                        `There was an error removing ${this.model().type} ${this.typeLabel()}`,
+                        this.t(this.isComponent() ? 'schema.removeErrorComponent' : 'schema.removeErrorPostType', {
+                            type: this.model().type,
+                        }),
                     );
                 },
             });
@@ -166,16 +170,5 @@ export class PostTypeComponent implements OnInit {
                   fields: [],
                   posts: [],
               } as unknown as Schema);
-    }
-
-    private blankField(): Field {
-        return {
-            type: 'text',
-            title: '',
-            id: '',
-            selectOptions: undefined,
-            multiselectOptions: undefined,
-            repeaterFields: [],
-        };
     }
 }

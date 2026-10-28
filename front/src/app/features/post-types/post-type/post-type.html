@@ -1,80 +1,186 @@
-<section class="editor">
-    <form #form="ngForm"
-          (ngSubmit)="save(form)">
-        <div class="editor-header">
-            <h2 class="font-2 fs-6 center">
-                {{
-                edit() ? 'Edit ' + currentType() + ' ' + typeLabel() : 'Add new ' + typeLabel()
-                }}
-            </h2>
-            <div class="editor-actions">
-                <button mat-raised-button
-                        color="primary"
-                        type="submit"
-                        [class.busy]="actionStatus() === 'save'">
-                    Save
-                </button>
-                @if (edit()) {
-                <button mat-raised-button
-                        color="warn"
-                        type="button"
-                        [class.busy]="actionStatus() === 'remove'"
-                        (click)="removeDialog()">
-                    Delete
-                </button>
-                }
-            </div>
+@let saving = actionStatus() === 'save';
+@let removing = actionStatus() === 'remove';
+@let fieldCount = model().fields.length;
+<form class="editor"
+      #form="ngForm"
+      (ngSubmit)="save(form)">
+    <div class="editor-bar">
+        <div class="editor-bar__heading">
+            <span class="editor-bar__eyebrow">{{
+                t(
+                isComponent()
+                ? (edit() ? 'schema.editComponent' : 'schema.newComponent')
+                : (edit() ? 'schema.editPostType' : 'schema.newPostType')
+                )
+                }}</span>
+            <h1 class="editor-bar__title"
+                [class.is-placeholder]="!model().title">{{ model().title || t('common.untitled') }}</h1>
         </div>
-
-        <div class="editor-body">
-            <div class="editor-content">
-                <mat-form-field class="full-width">
-                    <mat-label>Title</mat-label>
-                    <input matInput
-                           name="title"
-                           required
-                           [(ngModel)]="model().title" />
-                    <mat-error>This is required</mat-error>
-                </mat-form-field>
-
-                @if (!isComponent()) {
-                <mat-form-field class="full-width">
-                    <mat-label>Plural Title</mat-label>
-                    <input matInput
-                           name="pluralTitle"
-                           required
-                           [(ngModel)]="model().pluralTitle" />
-                    <mat-error>This is required</mat-error>
-                </mat-form-field>
+        <div class="editor-bar__actions">
+            @if (edit()) {
+            <button mat-button
+                    type="button"
+                    [attr.aria-busy]="removing"
+                    (click)="removeDialog()">
+                @if (removing) {
+                <span matButtonIcon
+                      class="spinner"
+                      aria-hidden="true"></span>
+                } @else {
+                <svg matButtonIcon
+                     class="icon"
+                     aria-hidden="true">
+                    <use href="icons.svg#i-trash" />
+                </svg>
                 }
-
-                <mat-form-field class="full-width">
-                    <mat-label>Type</mat-label>
-                    <input matInput
-                           name="type"
-                           required
-                           [(ngModel)]="model().type"
-                           (ngModelChange)="formatType()" />
-                    <mat-error>This is required</mat-error>
-                </mat-form-field>
-
-                <h2 class="font-2 fs-4 center">Fields</h2>
-                @if (!model().fields.length) {
-                <p class="center">There are no fields yet</p>
+                {{ removing ? t('common.deleting') : t('common.delete') }}
+            </button>
+            }
+            <button mat-flat-button
+                    type="submit"
+                    [attr.aria-busy]="saving">
+                @if (saving) {
+                <span matButtonIcon
+                      class="spinner"
+                      aria-hidden="true"></span>
                 }
-
-                @for (field of model().fields; track field; let i = $index) {
-                <app-add-field [field]="field"
-                               (remove)="removeField(i)"></app-add-field>
-                }
-
-                <button mat-raised-button
-                        color="primary"
-                        type="button"
-                        (click)="addField()">
-                    Add new field
-                </button>
-            </div>
+                {{ saving ? t('common.saving') : t('common.save') }}
+            </button>
         </div>
-    </form>
-</section>
+    </div>
+
+    <div class="page page--form">
+        <div class="form-stack">
+            <section class="card">
+                <header class="card__header">
+                    <div class="card__heading">
+                        <h2 class="card__title">{{ t('common.basicInfo') }}</h2>
+                        <p class="card__desc">
+                            {{ t(isComponent() ? 'schema.descComponent' : 'schema.descPostType') }}
+                        </p>
+                    </div>
+                </header>
+                <div class="card__body">
+                    <div class="form-grid form-grid--2">
+                        <div class="field">
+                            <label class="field__label"
+                                   for="schema-title">{{ t('common.title') }}<span class="field__req"
+                                      aria-hidden="true">*</span></label>
+                            <mat-form-field appearance="outline"
+                                            subscriptSizing="dynamic">
+                                <input matInput
+                                       id="schema-title"
+                                       name="title"
+                                       required
+                                       [(ngModel)]="model().title" />
+                                <mat-error>
+                                    <svg class="icon"
+                                         aria-hidden="true">
+                                        <use href="icons.svg#i-alert" />
+                                    </svg>
+                                    {{ t('common.required') }}
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+
+                        @if (!isComponent()) {
+                        <div class="field">
+                            <label class="field__label"
+                                   for="schema-plural-title">{{ t('schema.pluralTitle') }}<span class="field__req"
+                                      aria-hidden="true">*</span></label>
+                            <mat-form-field appearance="outline"
+                                            subscriptSizing="dynamic">
+                                <input matInput
+                                       id="schema-plural-title"
+                                       name="pluralTitle"
+                                       required
+                                       [(ngModel)]="model().pluralTitle" />
+                                <mat-error>
+                                    <svg class="icon"
+                                         aria-hidden="true">
+                                        <use href="icons.svg#i-alert" />
+                                    </svg>
+                                    {{ t('common.required') }}
+                                </mat-error>
+                            </mat-form-field>
+                        </div>
+                        }
+                    </div>
+
+                    <div class="field">
+                        <label class="field__label"
+                               for="schema-type">{{ t('common.type') }}<span class="field__req"
+                                  aria-hidden="true">*</span></label>
+                        <mat-form-field appearance="outline"
+                                        subscriptSizing="dynamic">
+                            <input matInput
+                                   class="mono"
+                                   id="schema-type"
+                                   name="type"
+                                   required
+                                   [(ngModel)]="model().type"
+                                   (ngModelChange)="formatType()" />
+                            <mat-error>
+                                <svg class="icon"
+                                     aria-hidden="true">
+                                    <use href="icons.svg#i-alert" />
+                                </svg>
+                                {{ t('common.required') }}
+                            </mat-error>
+                        </mat-form-field>
+                        <span class="field__hint">{{ t('schema.typeHint') }}</span>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <header class="card__header">
+                    <div class="card__heading">
+                        <h2 class="card__title">{{ t('common.fields') }}</h2>
+                        <p class="card__desc">
+                            {{ t(isComponent() ? 'schema.fieldsDescComponent' : 'schema.fieldsDescPostType') }}
+                        </p>
+                    </div>
+                    @if (fieldCount) {
+                    <span class="badge badge--neutral">{{ fieldCount }}<span class="visually-hidden"> {{ t('schema.fieldsCount', { count: fieldCount }) }}</span></span>
+                    }
+                </header>
+                <div class="card__body">
+                    @if (!fieldCount) {
+                    <div class="empty empty--compact">
+                        <span class="empty__icon">
+                            <svg class="icon icon--lg"
+                                 aria-hidden="true">
+                                <use href="icons.svg#i-braces" />
+                            </svg>
+                        </span>
+                        <p class="empty__title">{{ t('common.noFields') }}</p>
+                        <p class="empty__text">
+                            {{ t(isComponent() ? 'schema.noFieldsComponent' : 'schema.noFieldsPostType') }}
+                        </p>
+                    </div>
+                    } @else {
+                    <div class="schema-list">
+                        @for (field of model().fields; track field; let i = $index) {
+                        <app-add-field [field]="field"
+                                       (remove)="removeField(i)"></app-add-field>
+                        }
+                    </div>
+                    }
+
+                    <button mat-stroked-button
+                            type="button"
+                            class="card__action"
+                            (click)="addField()">
+                        <svg matButtonIcon
+                             class="icon"
+                             aria-hidden="true">
+                            <use href="icons.svg#i-plus" />
+                        </svg>
+                        {{ t('schema.addField') }}
+                    </button>
+                </div>
+            </section>
+        </div>
+    </div>
+</form>

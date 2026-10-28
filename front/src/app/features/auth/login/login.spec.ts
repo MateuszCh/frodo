@@ -8,6 +8,11 @@ import { of, throwError } from 'rxjs';
 import { UserService } from '../../../core/user.service';
 import { LoginComponent } from './login';
 
+// These tests assert the English texts; the Polish default is covered in i18n.service.spec.ts
+// and in the Polish rendering tests.
+beforeEach(() => localStorage.setItem('frodo.lang', 'en'));
+afterEach(() => localStorage.removeItem('frodo.lang'));
+
 function fakeForm(valid: boolean): NgForm {
     return {
         valid,
@@ -48,6 +53,12 @@ describe('LoginComponent', () => {
         fixture.componentRef.setInput('exist', true);
         fixture.detectChanges();
         expect(component).toBeTruthy();
+    });
+
+    it('focuses the username field when the form renders', () => {
+        fixture.componentRef.setInput('exist', true);
+        fixture.detectChanges();
+        expect(document.activeElement?.id).toBe('login-username');
     });
 
     it('has errorMessage undefined initially', () => {

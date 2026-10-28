@@ -1,0 +1,64 @@
+// Field definition card: post type and component editors (design/components.css, 18),
+// also a page type in the settings. app-add-field is recursive: repeater sub-fields
+// (and the fields of a page type) are indented with a line on the left.
+
+.schema-list {
+    display: grid;
+    gap: var(--space-3);
+}
+
+.schema-field {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+    background: var(--color-surface);
+    min-width: 0;
+
+    // a card with an invalid control of its own (not of its sub-fields)
+    &:has(> .schema-field__body > .form-grid .mat-form-field-invalid, > .schema-field__body > .field .mat-form-field-invalid) {
+        border-color: var(--color-error-border);
+    }
+}
+
+.schema-field__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+    border-bottom: 1px solid var(--color-border);
+
+    > .badge,
+    // a page type with no key yet has no badge
+    > .schema-field__name:nth-last-child(2) {
+        margin-right: auto;
+    }
+}
+
+.schema-field__name {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: var(--weight-semibold);
+
+    &.is-placeholder {
+        color: var(--color-text-subtle);
+        font-weight: var(--weight-medium);
+    }
+}
+
+.schema-field__body {
+    padding: var(--space-4);
+    display: grid;
+    gap: var(--space-4);
+}
+
+.schema-field__children {
+    display: grid;
+    gap: var(--space-3);
+    padding-left: var(--space-4);
+    border-left: 2px solid var(--color-border);
+
+    > .mat-mdc-button-base {
+        justify-self: start;
+    }
+}

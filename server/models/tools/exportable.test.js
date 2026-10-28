@@ -41,6 +41,8 @@ const stored = {
         pageUrl: '/o-nas',
         seoTitle: 'O nas – GeoSilesia',
         seoDescription: 'Kim jesteśmy',
+        type: 'region',
+        typeData: { area: 12 },
         rows: [{ type: 'text', title: 'Wstęp', data: { text: 'Cześć' } }],
         id: 12,
         created: 1793211857980,
@@ -121,7 +123,7 @@ describe('exportable', () => {
     });
 
     it('exports a value stored outside the schema too', () => {
-        assert.deepEqual(Page.hydrate({ ...stored.page, typeData: { a: 1 } }).toExport().typeData, {
+        assert.deepEqual(Page.hydrate({ ...stored.page, legacy: { a: 1 } }).toExport().legacy, {
             a: 1,
         });
     });

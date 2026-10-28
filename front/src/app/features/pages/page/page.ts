@@ -3,14 +3,16 @@ import { Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
+import { MatSelectModule } from '@angular/material/select';
 
-import { ComponentEntity, Page } from '../../../models/models';
+import { ComponentEntity, Page, Settings } from '../../../models/models';
 import { PagesService } from '../../../core/pages.service';
 import { ToolsService } from '../../../core/tools.service';
 import { AddComponentComponent } from '../add-component/add-component';
+import { FieldInputComponent } from '../../fields/field-input/field-input';
+import { I18nService } from '../../../core/i18n/i18n.service';
 
 @Component({
     selector: 'app-page',
@@ -18,27 +20,40 @@ import { AddComponentComponent } from '../add-component/add-component';
         FormsModule,
         DragDropModule,
         MatButtonModule,
-        MatIconModule,
         MatFormFieldModule,
         MatInputModule,
+        MatSelectModule,
         AddComponentComponent,
+        FieldInputComponent,
     ],
     templateUrl: './page.html',
-    styleUrl: './page.scss',
 })
 export class PageComponent implements OnInit {
+    protected readonly t = inject(I18nService).t;
     readonly components = input<ComponentEntity[]>([]);
+    readonly settings = input<Settings>();
     readonly page = input<Page>();
 
     private router = inject(Router);
     private pagesService = inject(PagesService);
     private tools = inject(ToolsService);
 
-    protected readonly model = signal<Page>({ title: '', pageUrl: '', rows: [] });
+    protected readonly model = signal<Page>(this.blankModel());
     protected readonly currentTitle = signal('');
     protected readonly actionStatus = signal<'' | 'save' | 'remove'>('');
     protected readonly edit = computed(() => !!this.page());
     protected readonly rows = computed(() => this.model().rows);
+
+    protected readonly pageTypes = computed(() => this.settings()?.pageTypes ?? []);
+    protected readonly pageType = computed(() => this.pageTypes().find((type) => type.type === this.model().type));
+    protected readonly typeFields = computed(() => this.pageType()?.fields ?? []);
+    /** A key the settings do not have (e.g. from an import): an option of its own, so the select is not blank. */
+    protected readonly unknownPageType = computed(() => {
+        const key = this.model().type;
+        return key && !this.pageType() ? key : null;
+    });
+    /** Values of the types chosen before in this editor, by type key (null: no type). */
+    private readonly typeDataByType = new Map<string | null, Record<string, unknown>>();
 
     ngOnInit(): void {
         const existing = this.page();
@@ -46,11 +61,32 @@ export class PageComponent implements OnInit {
             if (!existing.rows) {
                 existing.rows = [];
             }
+            if (!existing.typeData) {
+                existing.typeData = {};
+            }
             this.model.set(existing);
             this.currentTitle.set(existing.title);
         } else {
-            this.model.set({ title: '', pageUrl: '', rows: [] });
+            this.model.set(this.blankModel());
         }
+    }
+
+    /**
+     * Back to a type chosen before in this editor: its values as they were. Otherwise the
+     * new type gets the values of the fields both types share with the same kind; a value
+     * of another kind (a text in a checkbox, a repeater) would be read as the wrong thing.
+     */
+    selectPageType(type: string | null): void {
+        const { type: previous, typeData = {} } = this.model();
+        this.typeDataByType.set(previous ?? null, typeData);
+        const previousFields = this.typeFields();
+        const nextFields = this.pageTypes().find((pageType) => pageType.type === type)?.fields ?? [];
+        const carried = nextFields
+            .filter((field) => previousFields.some((f) => f.id === field.id && f.type === field.type))
+            .filter((field) => Object.prototype.hasOwnProperty.call(typeData, field.id))
+            .map((field) => [field.id, typeData[field.id]]);
+        const next = this.typeDataByType.get(type) ?? Object.fromEntries(carried);
+        this.model.set({ ...this.model(), type, typeData: next });
     }
 
     addComponent(): void {
@@ -75,6 +111,8 @@ export class PageComponent implements OnInit {
             return;
         }
         this.actionStatus.set('save');
+        // typeData holds only the current type's values (selectPageType); the server drops
+        // anything else, e.g. values of fields removed from the type in the settings
         const editing = this.edit();
         const request = editing
             ? this.pagesService.edit(this.model())
@@ -85,7 +123,7 @@ export class PageComponent implements OnInit {
                 if (editing) {
                     this.actionStatus.set('');
                     this.currentTitle.set(this.model().title);
-                    this.tools.alert(`${this.model().title} page updated successfully`);
+                    this.tools.alert(this.t('page.updated', { title: this.model().title }));
                 } else if (response.url) {
                     this.router.navigateByUrl(response.url);
                 } else {
@@ -94,14 +132,14 @@ export class PageComponent implements OnInit {
             },
             error: (err) => {
                 this.actionStatus.set('');
-                this.tools.alert(err?.error?.error ?? err?.error ?? 'Error saving');
+                this.tools.alert(err?.error?.error ?? err?.error ?? this.t('common.errorSaving'));
             },
         });
     }
 
     removeDialog(): void {
         this.tools
-            .confirm(`Are you sure you want to delete ${this.model().title}?`)
+            .confirm(this.t('common.confirmDelete', { name: this.model().title }))
             .subscribe((ok) => {
                 if (ok) {
                     this.remove();
@@ -115,8 +153,12 @@ export class PageComponent implements OnInit {
             next: () => this.router.navigate(['/pages']),
             error: () => {
                 this.actionStatus.set('');
-                this.tools.alert(`There was an error removing ${this.model().title} page`);
+                this.tools.alert(this.t('page.removeError', { title: this.model().title }));
             },
         });
+    }
+
+    private blankModel(): Page {
+        return { title: '', pageUrl: '', type: null, typeData: {}, rows: [] };
     }
 }

@@ -1,0 +1,268 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Frodo edytor typu</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<meta name="mock-states" content="edycja=Edycja typu „wydarzenie” | blad=Błąd walidacji | blad-serwera=Błąd serwera (alert) | zapis=Zapis w toku | usuwanie=Potwierdzenie usunięcia | nowy=Nowy typ wpisu | komponent=Edycja komponentu „Gallery”">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="../tokens.css">
+<link rel="stylesheet" href="../components.css">
+</head>
+<body>
+<script src="../icons.js"></script>
+
+<div class="app">
+  <aside class="sidebar" aria-label="Main">
+    <a class="brand" href="#"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></a>
+    <nav class="nav">
+      <p class="nav__group">Content</p>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-layout"/></svg><span class="nav__label">Pages</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Markers</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Wydarzenia</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Icons</span></a>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-doc"/></svg><span class="nav__label">Navigation</span></a>
+      <p class="nav__group">Media</p>
+      <a class="nav__item" href="#"><svg class="icon" aria-hidden="true"><use href="#i-image"/></svg><span class="nav__label">Files</span></a>
+      <p class="nav__group">Structure</p>
+      <a class="nav__item" href="#" data-on="edycja blad blad-serwera zapis usuwanie nowy:is-active"><svg class="icon" aria-hidden="true"><use href="#i-braces"/></svg><span class="nav__label">Post types</span></a>
+      <a class="nav__item" href="#" data-on="komponent:is-active"><svg class="icon" aria-hidden="true"><use href="#i-blocks"/></svg><span class="nav__label">Components</span></a>
+    </nav>
+    <div class="sidebar__theme"><span class="sidebar__theme-label" id="theme-label">Theme</span>
+      <div class="theme-switch" role="radiogroup" aria-labelledby="theme-label">
+        <label class="theme-switch__option" title="Light"><input type="radio" name="theme" value="light" checked aria-label="Light theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-sun"/></svg></span></label>
+        <label class="theme-switch__option" title="Dark"><input type="radio" name="theme" value="dark" aria-label="Dark theme"><span class="theme-switch__label"><svg class="icon" aria-hidden="true"><use href="#i-moon"/></svg></span></label>
+      </div>
+    </div>
+    <div class="sidebar__footer">
+      <a class="user" href="#"><span class="avatar" aria-hidden="true">b</span><span style="min-width:0"><span class="user__name">bilbo</span><span class="user__meta">Account settings</span></span></a>
+      <button class="btn btn--ghost btn--icon" type="button" aria-label="Log out"><svg class="icon" aria-hidden="true"><use href="#i-logout"/></svg></button>
+    </div>
+  </aside>
+
+  <div class="main" id="scroll">
+    <header class="topbar">
+      <button class="btn btn--ghost btn--icon js-nav" type="button" aria-label="Open menu"><svg class="icon" aria-hidden="true"><use href="#i-menu"/></svg></button>
+      <a class="brand" href="#"><svg class="brand__mark" aria-hidden="true"><use href="#logo-mark"/></svg><span class="brand__word">Frodo</span></a>
+    </header>
+
+    <form class="canvas" novalidate>
+      <div class="editor-bar">
+        <div class="editor-bar__heading">
+          <span class="editor-bar__eyebrow" data-only="edycja blad blad-serwera zapis usuwanie">Edit post type</span>
+          <span class="editor-bar__eyebrow" data-only="nowy">New post type</span>
+          <span class="editor-bar__eyebrow" data-only="komponent">Edit component</span>
+          <h1 class="editor-bar__title" data-only="edycja blad blad-serwera zapis usuwanie">Wydarzenie</h1>
+          <h1 class="editor-bar__title is-placeholder" data-only="nowy">Untitled</h1>
+          <h1 class="editor-bar__title" data-only="komponent">Gallery</h1>
+        </div>
+        <div class="editor-bar__actions">
+          <button class="btn btn--ghost" type="button" data-except="nowy"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg>Delete</button>
+          <button class="btn btn--primary" type="submit" data-except="zapis">Save</button>
+          <button class="btn btn--primary is-busy" type="submit" aria-busy="true" data-only="zapis"><span class="spinner" aria-hidden="true"></span>Saving…</button>
+        </div>
+      </div>
+
+      <div class="page page--form">
+        <div class="form-stack">
+          <!-- ============ dane podstawowe ============ -->
+          <section class="card">
+            <header class="card__header"><div class="card__heading"><h2 class="card__title">Basic information</h2>
+              <p class="card__desc" data-except="komponent">Names shown in the menu and the type used in addresses and the API.</p>
+              <p class="card__desc" data-only="komponent">Name shown in the page editor and the type stored with each page section.</p></div></header>
+            <div class="card__body">
+              <div class="form-grid form-grid--2">
+                <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span>
+                  <input class="input" required value="Wydarzenie" data-except="nowy komponent"><input class="input" required data-only="nowy"><input class="input" required value="Gallery" data-only="komponent"></label>
+                <label class="field" data-except="komponent"><span class="field__label">Plural Title<span class="field__req" aria-hidden="true">*</span></span>
+                  <input class="input" required value="Wydarzenia" data-except="nowy"><input class="input" required data-only="nowy"></label>
+              </div>
+              <label class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span>
+                <input class="input mono" required value="wydarzenie" data-except="nowy komponent"><input class="input mono" required data-only="nowy"><input class="input mono" required value="gallery" data-only="komponent">
+                <span class="field__hint">Lowercase letters and underscores, formatted as you type.</span></label>
+            </div>
+          </section>
+
+          <!-- ============ pola ============ -->
+          <section class="card">
+            <header class="card__header"><div class="card__heading"><h2 class="card__title">Fields</h2><p class="card__desc">What editors fill in for each <span data-except="komponent">post of this type</span><span data-only="komponent">section of this component</span>.</p></div>
+              <span class="badge badge--neutral" data-only="edycja blad-serwera zapis usuwanie">4</span><span class="badge badge--neutral" data-only="blad">5</span><span class="badge badge--neutral" data-only="komponent">3</span></header>
+            <div class="card__body">
+              <div class="empty empty--compact" data-only="nowy">
+                <span class="empty__icon"><svg class="icon icon--lg" aria-hidden="true"><use href="#i-braces"/></svg></span>
+                <p class="empty__title">No fields yet</p>
+                <p class="empty__text">Posts of this type will have only a title until you add fields.</p>
+              </div>
+
+              <!-- pola typu „wydarzenie” -->
+              <div class="schema-list" data-except="nowy komponent">
+                <article class="schema-field">
+                  <header class="schema-field__head"><span class="schema-field__name">Date and place</span><span class="badge badge--neutral">text</span><button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Delete field Date and place"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></header>
+                  <div class="schema-field__body">
+                    <div class="form-grid form-grid--2">
+                      <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Date and place" required></label>
+                      <label class="field"><span class="field__label">Id<span class="field__req" aria-hidden="true">*</span></span><input class="input mono" value="date_and_place" required></label>
+                    </div>
+                    <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select"><button class="input" type="button"><span class="select__value">Text</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+                  </div>
+                </article>
+
+                <article class="schema-field" data-on="blad-serwera:is-invalid">
+                  <header class="schema-field__head"><span class="schema-field__name">Date of publication</span><span class="badge badge--neutral">date</span><button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Delete field Date of publication"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></header>
+                  <div class="schema-field__body">
+                    <div class="form-grid form-grid--2">
+                      <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Date of publication" required></label>
+                      <label class="field"><span class="field__label">Id<span class="field__req" aria-hidden="true">*</span></span><input class="input mono" value="date_of_publication" required></label>
+                    </div>
+                    <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select"><button class="input" type="button"><span class="select__value">Date</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+                  </div>
+                </article>
+
+                <article class="schema-field">
+                  <header class="schema-field__head"><span class="schema-field__name">Paragraphs</span><span class="badge badge--neutral">repeater</span><button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Delete field Paragraphs"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></header>
+                  <div class="schema-field__body">
+                    <div class="form-grid form-grid--2">
+                      <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Paragraphs" required></label>
+                      <label class="field"><span class="field__label">Id<span class="field__req" aria-hidden="true">*</span></span><input class="input mono" value="paragraphs" required></label>
+                    </div>
+                    <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select"><button class="input" type="button"><span class="select__value">Repeater</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+                    <div class="schema-field__children">
+                      <span class="field__label">Fields in each row</span>
+                      <article class="schema-field">
+                        <header class="schema-field__head"><span class="schema-field__name">Paragraph</span><span class="badge badge--neutral">textarea</span><button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Delete field Paragraph"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></header>
+                        <div class="schema-field__body">
+                          <div class="form-grid form-grid--2">
+                            <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Paragraph" required></label>
+                            <label class="field"><span class="field__label">Id<span class="field__req" aria-hidden="true">*</span></span><input class="input mono" value="item" required></label>
+                          </div>
+                          <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select"><button class="input" type="button"><span class="select__value">Textarea</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+                        </div>
+                      </article>
+                      <button class="btn btn--secondary btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add field to row</button>
+                    </div>
+                  </div>
+                </article>
+
+                <article class="schema-field" data-on="blad-serwera:is-invalid">
+                  <header class="schema-field__head"><span class="schema-field__name">Links</span><span class="badge badge--neutral">repeater</span><button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Delete field Links"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></header>
+                  <div class="schema-field__body">
+                    <div class="form-grid form-grid--2">
+                      <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Links" required></label>
+                      <label class="field"><span class="field__label">Id<span class="field__req" aria-hidden="true">*</span></span>
+                        <input class="input mono" value="links" required data-except="blad-serwera"><input class="input mono" value="date_of_publication" required data-only="blad-serwera"></label>
+                    </div>
+                    <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select"><button class="input" type="button"><span class="select__value">Repeater</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+                    <div class="schema-field__children">
+                      <span class="field__label">Fields in each row</span>
+                      <article class="schema-field">
+                        <header class="schema-field__head"><span class="schema-field__name">Text</span><span class="badge badge--neutral">text</span><button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Delete field Text"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></header>
+                        <div class="schema-field__body"><div class="form-grid form-grid--2">
+                          <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Text" required></label>
+                          <label class="field"><span class="field__label">Id<span class="field__req" aria-hidden="true">*</span></span><input class="input mono" value="text" required></label>
+                        </div>
+                        <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select"><button class="input" type="button"><span class="select__value">Text</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div></div>
+                      </article>
+                      <article class="schema-field">
+                        <header class="schema-field__head"><span class="schema-field__name">Link</span><span class="badge badge--neutral">text</span><button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Delete field Link"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></header>
+                        <div class="schema-field__body"><div class="form-grid form-grid--2">
+                          <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Link" required></label>
+                          <label class="field"><span class="field__label">Id<span class="field__req" aria-hidden="true">*</span></span><input class="input mono" value="link" required></label>
+                        </div>
+                        <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select"><button class="input" type="button"><span class="select__value">Text</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div></div>
+                      </article>
+                      <button class="btn btn--secondary btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add field to row</button>
+                    </div>
+                  </div>
+                </article>
+
+                <!-- nowe pole z błędami walidacji -->
+                <article class="schema-field is-invalid" data-only="blad">
+                  <header class="schema-field__head"><span class="schema-field__name is-placeholder">Untitled field</span><span class="badge badge--neutral">select</span><button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Delete untitled field"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></header>
+                  <div class="schema-field__body">
+                    <div class="form-grid form-grid--2">
+                      <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input is-invalid" aria-invalid="true" required><span class="field__error"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>This field is required</span></label>
+                      <label class="field"><span class="field__label">Id<span class="field__req" aria-hidden="true">*</span></span><input class="input mono is-invalid" aria-invalid="true" required><span class="field__error"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>This field is required</span></label>
+                    </div>
+                    <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select"><button class="input" type="button"><span class="select__value">Select</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+                    <label class="field"><span class="field__label">Options<span class="field__req" aria-hidden="true">*</span></span><input class="input is-invalid" aria-invalid="true" required><span class="field__error"><svg class="icon" aria-hidden="true"><use href="#i-alert"/></svg>This field is required</span><span class="field__hint">Separate options with semicolons.</span></label>
+                  </div>
+                </article>
+              </div>
+
+              <!-- pola komponentu „Gallery” -->
+              <div class="schema-list" data-only="komponent">
+                <article class="schema-field">
+                  <header class="schema-field__head"><span class="schema-field__name">Title</span><span class="badge badge--neutral">text</span><button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Delete field Title"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></header>
+                  <div class="schema-field__body">
+                    <div class="form-grid form-grid--2">
+                      <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Title" required></label>
+                      <label class="field"><span class="field__label">Id<span class="field__req" aria-hidden="true">*</span></span><input class="input mono" value="title" required></label>
+                    </div>
+                    <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select"><button class="input" type="button"><span class="select__value">Text</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+                  </div>
+                </article>
+                <article class="schema-field">
+                  <header class="schema-field__head"><span class="schema-field__name">Paragraphs</span><span class="badge badge--neutral">repeater</span><button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Delete field Paragraphs"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></header>
+                  <div class="schema-field__body">
+                    <div class="form-grid form-grid--2">
+                      <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Paragraphs" required></label>
+                      <label class="field"><span class="field__label">Id<span class="field__req" aria-hidden="true">*</span></span><input class="input mono" value="paragraphs" required></label>
+                    </div>
+                    <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select"><button class="input" type="button"><span class="select__value">Repeater</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div>
+                    <div class="schema-field__children">
+                      <span class="field__label">Fields in each row</span>
+                      <article class="schema-field">
+                        <header class="schema-field__head"><span class="schema-field__name">Paragraph</span><span class="badge badge--neutral">textarea</span><button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Delete field Paragraph"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></header>
+                        <div class="schema-field__body"><div class="form-grid form-grid--2">
+                          <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Paragraph" required></label>
+                          <label class="field"><span class="field__label">Id<span class="field__req" aria-hidden="true">*</span></span><input class="input mono" value="paragraph" required></label>
+                        </div>
+                        <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select"><button class="input" type="button"><span class="select__value">Textarea</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span></div></div>
+                      </article>
+                      <button class="btn btn--secondary btn--sm" type="button"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add field to row</button>
+                    </div>
+                  </div>
+                </article>
+                <article class="schema-field">
+                  <header class="schema-field__head"><span class="schema-field__name">Catalogue</span><span class="badge badge--neutral">catalogue</span><button class="btn btn--ghost btn--icon btn--sm" type="button" aria-label="Delete field Catalogue"><svg class="icon" aria-hidden="true"><use href="#i-trash"/></svg></button></header>
+                  <div class="schema-field__body">
+                    <div class="form-grid form-grid--2">
+                      <label class="field"><span class="field__label">Title<span class="field__req" aria-hidden="true">*</span></span><input class="input" value="Catalogue" required></label>
+                      <label class="field"><span class="field__label">Id<span class="field__req" aria-hidden="true">*</span></span><input class="input mono" value="catalogue" required></label>
+                    </div>
+                    <div class="field"><span class="field__label">Type<span class="field__req" aria-hidden="true">*</span></span><span class="control control--select"><button class="input" type="button"><span class="select__value">Catalogue</span></button><svg class="icon control__icon" aria-hidden="true"><use href="#i-chevron-down"/></svg></span><span class="field__hint">Editors choose one of the file catalogues from the Files library.</span></div>
+                  </div>
+                </article>
+              </div>
+
+              <button class="btn btn--secondary" type="button" style="justify-self:start"><svg class="icon" aria-hidden="true"><use href="#i-plus"/></svg>Add field</button>
+            </div>
+          </section>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+<div class="backdrop js-backdrop js-close"></div>
+
+<!-- ============ dialogi ============ -->
+<div class="dialog-layer" data-only="blad-serwera">
+  <div class="dialog" role="dialog" aria-modal="true" aria-describedby="srv-body">
+    <p class="dialog__body" id="srv-body" style="color:var(--color-text)">Duplicate field ids</p>
+    <div class="dialog__actions"><button class="btn btn--primary" type="button">OK</button></div>
+  </div>
+</div>
+<div class="dialog-layer" data-only="usuwanie">
+  <div class="dialog" role="alertdialog" aria-modal="true" aria-labelledby="del-title" aria-describedby="del-body">
+    <h2 class="dialog__title" id="del-title">Confirm deletion</h2>
+    <p class="dialog__body" id="del-body">Are you sure you want to delete wydarzenie?</p>
+    <div class="dialog__actions"><button class="btn btn--secondary" type="button">Cancel</button><button class="btn btn--danger" type="button">Delete</button></div>
+  </div>
+</div>
+
+<script src="mock.js"></script>
+</body>
+</html>

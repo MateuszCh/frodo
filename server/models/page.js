@@ -20,6 +20,14 @@ const PageSchema = new Schema(
         seoDescription: {
             type: String,
         },
+        // key of a page type from the settings
+        type: {
+            type: String,
+        },
+        // values of the fields of the page type
+        typeData: {
+            type: Object,
+        },
         rows: {
             type: [{}],
         },

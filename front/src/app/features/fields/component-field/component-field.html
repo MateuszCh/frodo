@@ -1,0 +1,44 @@
+@let f = field();
+@let ctrl = namePrefix();
+@let id = 'field-' + ctrl;
+@let component = current();
+
+<div class="field">
+    <span class="field__label" [id]="id + '-label'">{{ f.title }}</span>
+    <div class="field-row">
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <mat-select
+                [id]="id"
+                [aria-labelledby]="id + '-label'"
+                [placeholder]="t('block.choose')"
+                [ngModel]="value()?.type ?? null"
+                [ngModelOptions]="{ standalone: true }"
+                (ngModelChange)="select($event)"
+            >
+                @for (item of components(); track item.type) {
+                    <mat-option [value]="item.type">{{ item.title }}</mat-option>
+                }
+                @if (unknownType(); as unknown) {
+                    <mat-option [value]="unknown">{{ t('componentField.unknown', { type: unknown }) }}</mat-option>
+                }
+            </mat-select>
+        </mat-form-field>
+        <button mat-button type="button" (click)="clear()">
+            <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-x" /></svg>
+            {{ t('common.clear') }}
+        </button>
+    </div>
+</div>
+
+@if (component) {
+    <div class="component-field__body">
+        <!-- track the field object: another component may use the same id for a
+             field of a different kind. The "." separator cannot clash with a sibling's id
+             the way "_" can (ids are formatted with underscores). -->
+        @for (child of component.fields; track child) {
+            <app-field [field]="child" [model]="value()!.data!" [namePrefix]="ctrl + '.'"></app-field>
+        } @empty {
+            <p class="field__hint">{{ t('componentField.noFields') }}</p>
+        }
+    </div>
+}

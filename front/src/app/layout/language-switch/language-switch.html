@@ -1,0 +1,29 @@
+<!-- language names stay in their own language, whatever the interface language -->
+<div class="theme-switch"
+     role="radiogroup"
+     [attr.aria-label]="i18n.t('nav.language')">
+    <label class="theme-switch__option"
+           title="Polski">
+        <input type="radio"
+               name="language"
+               value="pl"
+               lang="pl"
+               aria-label="Polski"
+               [checked]="i18n.lang() === 'pl'"
+               (change)="i18n.set('pl')" />
+        <span class="theme-switch__label theme-switch__label--text"
+              aria-hidden="true">PL</span>
+    </label>
+    <label class="theme-switch__option"
+           title="English">
+        <input type="radio"
+               name="language"
+               value="en"
+               lang="en"
+               aria-label="English"
+               [checked]="i18n.lang() === 'en'"
+               (change)="i18n.set('en')" />
+        <span class="theme-switch__label theme-switch__label--text"
+              aria-hidden="true">EN</span>
+    </label>
+</div>

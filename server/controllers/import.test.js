@@ -6,6 +6,7 @@ const PostTypeController = require('./postType.controller');
 const Page = require('../models/page');
 const Post = require('../models/post');
 const PostType = require('../models/postType');
+const Settings = require('../models/settings');
 
 // the models are mocked: no test here reaches a database
 
@@ -128,13 +129,46 @@ describe('import of pages', () => {
         assert.equal(find.mock.callCount(), 0);
     });
 
+    const pageTypes = [{ type: 'region', fields: [{ id: 'area' }] }];
+
     it('refuses a url already in use, and saves nothing', async (t) => {
         t.mock.method(Page, 'find', async () => [{ pageUrl: '/o-nas' }]);
+        t.mock.method(Settings, 'findSettings', async () => ({ pageTypes }));
         const saveImport = t.mock.method(Page, 'saveImport', async () => []);
 
         const response = await run(PageController.importPages, { posts: [page] });
 
         assert.equal(response.status, 422);
         assert.equal(saveImport.mock.callCount(), 0);
+    });
+
+    it('refuses a page type the settings do not have, and saves nothing', async (t) => {
+        t.mock.method(Page, 'find', async () => []);
+        t.mock.method(Settings, 'findSettings', async () => ({ pageTypes }));
+        const saveImport = t.mock.method(Page, 'saveImport', async () => []);
+
+        const response = await run(PageController.importPages, {
+            posts: [{ ...page, type: 'city' }],
+        });
+
+        assert.deepEqual(response, {
+            status: 422,
+            body: { error: 'There is no "city" page type' },
+        });
+        assert.equal(saveImport.mock.callCount(), 0);
+    });
+
+    it('imports only the values of the fields of the page type', async (t) => {
+        t.mock.method(Page, 'find', async () => []);
+        t.mock.method(Settings, 'findSettings', async () => ({ pageTypes }));
+        const saveImport = t.mock.method(Page, 'saveImport', async () => []);
+
+        const response = await run(PageController.importPages, {
+            posts: [{ ...page, type: 'region', typeData: { area: 12, removed: 'x' } }],
+        });
+
+        assert.equal(response.status, 200);
+        const [imported] = saveImport.mock.calls[0].arguments[0];
+        assert.deepEqual([imported.type, imported.typeData], ['region', { area: 12 }]);
     });
 });

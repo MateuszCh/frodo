@@ -1,94 +1,244 @@
-<section class="editor">
-    <form #form="ngForm"
-          (ngSubmit)="save(form)">
-        <div class="editor-header">
-            <h2 class="font-2 fs-6 center">
-                {{ edit() ? 'Edit ' + currentTitle() + ' page' : 'Add new page' }}
-            </h2>
-            <div class="editor-actions">
-                <button mat-raised-button
-                        color="primary"
-                        type="submit"
-                        [class.busy]="actionStatus() === 'save'">
-                    Save
-                </button>
-                @if (edit()) {
-                <button mat-raised-button
-                        color="warn"
-                        type="button"
-                        [class.busy]="actionStatus() === 'remove'"
-                        (click)="removeDialog()">
-                    Delete
-                </button>
-                }
-            </div>
+@let saving = actionStatus() === 'save';
+@let removing = actionStatus() === 'remove';
+<form class="editor"
+      #form="ngForm"
+      (ngSubmit)="save(form)">
+    <div class="editor-bar">
+        <div class="editor-bar__heading">
+            <span class="editor-bar__eyebrow">{{ edit() ? t('page.edit') : t('page.new') }}</span>
+            <h1 class="editor-bar__title"
+                [class.is-placeholder]="!model().title">{{ model().title || t('common.untitled') }}</h1>
         </div>
-
-        <div class="editor-body">
-            <div class="editor-content">
-                <mat-form-field class="full-width">
-                    <mat-label>Title</mat-label>
-                    <input matInput
-                           name="title"
-                           required
-                           [(ngModel)]="model().title" />
-                    <mat-error>This is required</mat-error>
-                </mat-form-field>
-
-                <mat-form-field class="full-width">
-                    <mat-label>Url</mat-label>
-                    <input matInput
-                           name="pageUrl"
-                           required
-                           [(ngModel)]="model().pageUrl" />
-                    <mat-error>This is required</mat-error>
-                </mat-form-field>
-
-                <mat-form-field class="full-width">
-                    <mat-label>SEO Title</mat-label>
-                    <input matInput
-                           name="seoTitle"
-                           [(ngModel)]="model().seoTitle" />
-                </mat-form-field>
-
-                <mat-form-field class="full-width">
-                    <mat-label>SEO Description</mat-label>
-                    <textarea matInput
-                              rows="2"
-                              name="seoDescription"
-                              [(ngModel)]="model().seoDescription"></textarea>
-                </mat-form-field>
-
-                <h2 class="font-2 fs-4 center">Components</h2>
-                @if (!rows().length) {
-                <p class="center">There are no components yet</p>
+        <div class="editor-bar__actions">
+            @if (edit()) {
+            <button mat-button
+                    type="button"
+                    [attr.aria-busy]="removing"
+                    (click)="removeDialog()">
+                @if (removing) {
+                <span matButtonIcon
+                      class="spinner"
+                      aria-hidden="true"></span>
+                } @else {
+                <svg matButtonIcon
+                     class="icon"
+                     aria-hidden="true">
+                    <use href="icons.svg#i-trash" />
+                </svg>
                 }
+                {{ removing ? t('common.deleting') : t('common.delete') }}
+            </button>
+            }
+            <button mat-flat-button
+                    type="submit"
+                    [attr.aria-busy]="saving">
+                @if (saving) {
+                <span matButtonIcon
+                      class="spinner"
+                      aria-hidden="true"></span>
+                }
+                {{ saving ? t('common.saving') : t('common.save') }}
+            </button>
+        </div>
+    </div>
 
-                <ul class="rows"
-                    cdkDropList
-                    (cdkDropListDropped)="drop($event)">
-                    @for (row of rows(); track row; let i = $index) {
-                    <li class="row"
-                        cdkDrag>
-                        <div class="row__handle"
-                             cdkDragHandle>
-                            <mat-icon svgIcon="hand-black"></mat-icon>
-                        </div>
-                        <app-add-component [components]="components()"
-                                           [model]="row"
-                                           [order]="i"
-                                           (remove)="removeComponent(i)"></app-add-component>
-                    </li>
+    <div class="page page--form">
+        <div class="form-stack">
+            <section class="card">
+                <header class="card__header">
+                    <div class="card__heading">
+                        <h2 class="card__title">{{ t('common.basicInfo') }}</h2>
+                        <p class="card__desc">{{ t('page.basicDesc') }}</p>
+                    </div>
+                </header>
+                <div class="card__body">
+                    <div class="field">
+                        <label class="field__label"
+                               for="page-title">{{ t('common.title') }}<span class="field__req"
+                                  aria-hidden="true">*</span></label>
+                        <mat-form-field appearance="outline"
+                                        subscriptSizing="dynamic">
+                            <input matInput
+                                   id="page-title"
+                                   name="title"
+                                   required
+                                   [(ngModel)]="model().title" />
+                            <mat-error>
+                                <svg class="icon"
+                                     aria-hidden="true">
+                                    <use href="icons.svg#i-alert" />
+                                </svg>
+                                {{ t('common.required') }}
+                            </mat-error>
+                        </mat-form-field>
+                    </div>
+
+                    <div class="field">
+                        <label class="field__label"
+                               for="page-url">{{ t('page.url') }}<span class="field__req"
+                                  aria-hidden="true">*</span></label>
+                        <mat-form-field appearance="outline"
+                                        subscriptSizing="dynamic">
+                            <input matInput
+                                   id="page-url"
+                                   name="pageUrl"
+                                   required
+                                   [(ngModel)]="model().pageUrl" />
+                            <mat-error>
+                                <svg class="icon"
+                                     aria-hidden="true">
+                                    <use href="icons.svg#i-alert" />
+                                </svg>
+                                {{ t('common.required') }}
+                            </mat-error>
+                            <mat-hint>{{ t('page.urlHint') }}</mat-hint>
+                        </mat-form-field>
+                    </div>
+
+                    <!-- without page types there is nothing to choose; a key the settings do
+                         not have still shows the select, so it can be cleared -->
+                    @if (pageTypes().length || unknownPageType()) {
+                    <div class="field">
+                        <span class="field__label"
+                              id="page-type-label">{{ t('page.type') }}</span>
+                        <mat-form-field appearance="outline"
+                                        subscriptSizing="dynamic">
+                            <mat-select aria-labelledby="page-type-label"
+                                        name="type"
+                                        [placeholder]="t('page.noType')"
+                                        [ngModel]="model().type"
+                                        (ngModelChange)="selectPageType($event)">
+                                <mat-option [value]="null">{{ t('page.noType') }}</mat-option>
+                                @for (pageType of pageTypes(); track pageType.type) {
+                                <mat-option [value]="pageType.type">{{ pageType.title }}</mat-option>
+                                }
+                                @if (unknownPageType(); as unknown) {
+                                <mat-option [value]="unknown">{{ t('page.unknownType', { type: unknown }) }}</mat-option>
+                                }
+                            </mat-select>
+                        </mat-form-field>
+                        <span class="field__hint">{{ t('page.typeHint') }}</span>
+                    </div>
                     }
-                </ul>
+                </div>
+            </section>
 
-                <button mat-raised-button
-                        color="primary"
-                        type="button"
-                        (click)="addComponent()">
-                    Add new component
-                </button>
-            </div>
+            @if (typeFields().length) {
+            <section class="card">
+                <header class="card__header">
+                    <div class="card__heading">
+                        <h2 class="card__title">{{ t('page.typeFields', { type: pageType()!.title }) }}</h2>
+                        <p class="card__desc">{{ t('page.typeFieldsDesc') }}</p>
+                    </div>
+                </header>
+                <div class="card__body">
+                    <!-- a type change renders new fields: track the field, not its id,
+                         which another type may use for a field of a different kind -->
+                    @for (field of typeFields(); track field) {
+                    <app-field [field]="field"
+                               [model]="model().typeData!"
+                               namePrefix="typeData_"></app-field>
+                    }
+                </div>
+            </section>
+            }
+
+            <section class="card">
+                <header class="card__header">
+                    <div class="card__heading">
+                        <h2 class="card__title">{{ t('page.seo') }}</h2>
+                        <p class="card__desc">{{ t('page.seoDesc') }}</p>
+                    </div>
+                </header>
+                <div class="card__body">
+                    <div class="field">
+                        <label class="field__label"
+                               for="page-seo-title">{{ t('page.seoTitle') }}</label>
+                        <mat-form-field appearance="outline"
+                                        subscriptSizing="dynamic">
+                            <input matInput
+                                   id="page-seo-title"
+                                   name="seoTitle"
+                                   [(ngModel)]="model().seoTitle" />
+                        </mat-form-field>
+                    </div>
+
+                    <div class="field">
+                        <label class="field__label"
+                               for="page-seo-description">{{ t('page.seoDescription') }}</label>
+                        <mat-form-field appearance="outline"
+                                        subscriptSizing="dynamic">
+                            <textarea matInput
+                                      rows="3"
+                                      id="page-seo-description"
+                                      name="seoDescription"
+                                      [(ngModel)]="model().seoDescription"></textarea>
+                        </mat-form-field>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card">
+                <header class="card__header">
+                    <div class="card__heading">
+                        <h2 class="card__title">{{ t('page.components') }}</h2>
+                        <p class="card__desc">{{ t('page.componentsDesc') }}</p>
+                    </div>
+                    @if (rows().length) {
+                    <span class="badge badge--neutral">{{ rows().length }}<span class="visually-hidden"> {{ t('page.componentsCount', { count: rows().length }) }}</span></span>
+                    }
+                </header>
+                <div class="card__body">
+                    @if (!rows().length) {
+                    <div class="empty empty--compact">
+                        <span class="empty__icon">
+                            <svg class="icon icon--lg"
+                                 aria-hidden="true">
+                                <use href="icons.svg#i-blocks" />
+                            </svg>
+                        </span>
+                        <p class="empty__title">{{ t('page.noComponents') }}</p>
+                        <p class="empty__text">{{ t('page.noComponentsText') }}</p>
+                    </div>
+                    }
+
+                    <ol class="blocks"
+                        [hidden]="!rows().length"
+                        cdkDropList
+                        (cdkDropListDropped)="drop($event)">
+                        @for (row of rows(); track row; let i = $index) {
+                        <li class="block-card"
+                            cdkDrag>
+                            <div class="block-card__handle"
+                                 cdkDragHandle
+                                 [title]="t('page.dragToReorder')">
+                                <svg class="icon"
+                                     aria-hidden="true">
+                                    <use href="icons.svg#i-grip" />
+                                </svg>
+                            </div>
+                            <app-add-component class="block-card__main"
+                                               [components]="components()"
+                                               [model]="row"
+                                               [order]="i"
+                                               (remove)="removeComponent(i)"></app-add-component>
+                        </li>
+                        }
+                    </ol>
+
+                    <button mat-stroked-button
+                            type="button"
+                            class="card__action"
+                            (click)="addComponent()">
+                        <svg matButtonIcon
+                             class="icon"
+                             aria-hidden="true">
+                            <use href="icons.svg#i-plus" />
+                        </svg>
+                        {{ t('page.addComponent') }}
+                    </button>
+                </div>
+            </section>
         </div>
-    </form>
-</section>
+    </div>
+</form>

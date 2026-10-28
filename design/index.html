@@ -1,0 +1,294 @@
+<title>Redesign Frodo</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400&family=Plus+Jakarta+Sans:wght@600&family=Inter:wght@600&family=IBM+Plex+Sans:wght@600&display=swap">
+<style>
+/* Układ: monochromatyczna „ściana galerii”. Strona jest neutralna, a kolor wnoszą wyłącznie
+   miniatury trzech kierunków. Trzy równe kolumny, pod nimi porównanie i rekomendacja. */
+:root {
+  --paper: #f6f7f8;
+  --surface: #ffffff;
+  --ink: #15171b;
+  --ink-muted: #555b65;
+  --line: #e1e3e7;
+  --on-ink: #ffffff;
+  --font-display: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body: "Instrument Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #111316; --surface: #191b1f; --ink: #eceef1; --ink-muted: #a3a9b3; --line: #2c2f35; --on-ink: #111316;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #111316; --surface: #191b1f; --ink: #eceef1; --ink-muted: #a3a9b3; --line: #2c2f35; --on-ink: #111316;
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--paper); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+h1, h2, h3, p, dl, dd { margin: 0; }
+a { color: inherit; }
+a:focus-visible { outline: 2px solid var(--ink); outline-offset: 3px; border-radius: 4px; }
+
+.wrap {
+  max-width: 1120px; margin: 0 auto; padding-block: 48px 72px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 56px;
+}
+
+.intro { display: grid; gap: 16px; max-width: 68ch; }
+.eyebrow { font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-muted); }
+h1 { font-family: var(--font-display); font-size: clamp(34px, 6vw, 52px); line-height: 1.05; letter-spacing: -0.03em; font-weight: 700; text-wrap: balance; }
+.lead { font-size: 18px; color: var(--ink-muted); }
+
+/* --- kierunki --- */
+.directions { display: grid; gap: 20px; }
+.dir {
+  display: grid; gap: 20px; align-content: start; min-width: 0;
+  padding: 14px 14px 22px; background: var(--surface);
+  border: 1px solid var(--line); border-radius: 16px;
+}
+.dir__body { display: grid; gap: 14px; padding: 0 6px; min-width: 0; }
+.dir__letter { font-size: 13px; font-weight: 600; color: var(--ink-muted); }
+.dir__name { font-family: var(--font-display); font-size: 28px; line-height: 1.1; letter-spacing: -0.02em; font-weight: 700; }
+.dir__tagline { color: var(--ink-muted); }
+.dir__type { display: flex; align-items: baseline; gap: 12px; padding-block: 4px; }
+.dir__type b { font-size: 40px; line-height: 1; font-weight: 600; letter-spacing: -0.02em; }
+.dir__type span { font-size: 14px; color: var(--ink-muted); }
+.facts { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 8px 16px; font-size: 14px; padding-top: 14px; border-top: 1px solid var(--line); }
+.facts dt { color: var(--ink-muted); }
+.facts dd { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.dot { width: 12px; height: 12px; border-radius: 50%; flex: none; box-shadow: inset 0 0 0 1px rgb(0 0 0 / .12); }
+.mono { font-family: var(--font-mono); font-size: 13px; }
+.dir__link {
+  justify-self: start; display: inline-flex; align-items: center; gap: 8px;
+  height: 42px; padding: 0 18px; margin-top: 4px; border-radius: 10px;
+  background: var(--ink); color: var(--on-ink); font-weight: 600; font-size: 15px; text-decoration: none;
+}
+.dir__link:hover { opacity: .88; }
+
+/* --- miniatura ekranu: kolory z tokenów danego kierunku --- */
+.thumb {
+  display: grid; grid-template-columns: 30% minmax(0, 1fr);
+  aspect-ratio: 16 / 10; max-width: 100%; overflow: hidden;
+  background: var(--t-bg); border-radius: 10px; border: 1px solid var(--line);
+  text-decoration: none;
+}
+.thumb__nav {
+  background: var(--t-nav); border-right: 1px solid var(--t-nav-line);
+  padding: 12px 8px; display: grid; align-content: start; gap: 7px;
+}
+.thumb__logo { width: 14px; height: 14px; border-radius: var(--t-logo-r); background: var(--t-accent); margin: 0 0 6px 4px; }
+.thumb__item { height: 14px; border-radius: var(--t-item-r); display: flex; align-items: center; padding: 0 5px; }
+.thumb__item::before { content: ""; height: 4px; width: 70%; border-radius: 2px; background: var(--t-nav-text); }
+.thumb__item:nth-child(4)::before { width: 55%; }
+.thumb__item:nth-child(5)::before { width: 62%; }
+.thumb__item--active { background: var(--t-nav-active); box-shadow: var(--t-nav-indicator, none); }
+.thumb__item--active::before { background: var(--t-nav-active-text); }
+.thumb__main {
+  display: grid; align-content: start; gap: 10px; padding: 12px 12px 0;
+  background: var(--t-canvas, transparent); margin: var(--t-canvas-inset, 0); border-radius: var(--t-canvas-r, 0);
+  min-width: 0;
+}
+.thumb__head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.thumb__title { width: 36%; height: 8px; border-radius: 2px; background: var(--t-text); }
+.thumb__btn { width: 26%; height: 14px; border-radius: var(--t-btn-r); background: var(--t-accent); }
+.thumb__body { display: grid; grid-template-columns: minmax(0, 1fr) 30%; gap: 8px; align-items: start; }
+.thumb__card { background: var(--t-card); border: 1px solid var(--t-line); border-radius: var(--t-card-r); box-shadow: var(--t-card-shadow, none); overflow: hidden; }
+.thumb__row { height: 15px; display: flex; align-items: center; padding: 0 6px; border-top: 1px solid var(--t-line); }
+.thumb__row:first-child { border-top: 0; }
+.thumb__row::before { content: ""; height: 4px; width: 58%; border-radius: 2px; background: var(--t-row); }
+.thumb__row:nth-child(2)::before { width: 72%; }
+.thumb__row:nth-child(4)::before { width: 46%; }
+.thumb__filters { height: 64px; border-radius: var(--t-card-r); background: var(--t-filters); border: 1px solid var(--t-filters-line); }
+
+/* --- porównanie --- */
+.block { display: grid; gap: 20px; }
+.block h2 { font-family: var(--font-display); font-size: 26px; letter-spacing: -0.02em; line-height: 1.2; text-wrap: balance; }
+.table-wrap { overflow-x: auto; border: 1px solid var(--line); border-radius: 14px; background: var(--surface); }
+table { width: 100%; min-width: 680px; border-collapse: collapse; font-size: 14px; line-height: 1.5; color: var(--ink); font-family: var(--font-body); }
+th, td { text-align: left; vertical-align: top; padding: 14px 18px; border-top: 1px solid var(--line); }
+thead th { border-top: 0; font-size: 15px; font-weight: 700; }
+tbody th { font-weight: 600; color: var(--ink-muted); width: 16%; }
+td .cell { display: flex; align-items: center; gap: 8px; }
+
+.columns { display: grid; gap: 40px; }
+.list { margin: 0; padding-left: 1.2em; display: grid; gap: 10px; max-width: 64ch; }
+.list li::marker { color: var(--ink-muted); }
+.reco { display: grid; gap: 12px; padding: 24px; border-radius: 16px; background: var(--surface); border: 1px solid var(--line); align-content: start; }
+.reco__label { font-size: 13px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-muted); }
+.reco__title { font-family: var(--font-display); font-size: 24px; font-weight: 700; letter-spacing: -0.02em; }
+.reco p { color: var(--ink-muted); }
+
+.stages { display: grid; gap: 10px; margin-top: -24px; }
+@media (min-width: 768px) { .stages { grid-template-columns: repeat(auto-fit, minmax(168px, 1fr)); } }
+.stage { display: grid; gap: 2px; padding: 14px 16px; border-radius: 12px; border: 1px solid var(--line); background: var(--surface); text-decoration: none; color: var(--ink); min-width: 0; }
+a.stage:hover { border-color: var(--ink-muted); }
+.stage--here { background: transparent; border-style: dashed; }
+.stage__num { font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; color: var(--ink-muted); }
+.stage__name { font-weight: 600; }
+.foot { padding-top: 24px; border-top: 1px solid var(--line); font-size: 14px; color: var(--ink-muted); display: grid; gap: 6px; max-width: 80ch; }
+
+@media (min-width: 768px) {
+  .wrap {
+    padding-block: 72px 96px;
+    padding-left: max(32px, env(safe-area-inset-left, 0px));
+    padding-right: max(32px, env(safe-area-inset-right, 0px));
+    gap: 72px;
+  }
+}
+@media (min-width: 960px) {
+  .directions { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .columns { grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+</style>
+
+<main class="wrap">
+  <header class="intro">
+    <p class="eyebrow">Frodo CMS · redesign · etap 2 z 5</p>
+    <h1>Trzy kierunki wizualne</h1>
+    <p class="lead">Każdy kierunek pokazuje paletę, typografię, kluczowe komponenty i ten sam ekran: listę wpisów „Markers” na desktopie i na telefonie. Funkcje aplikacji są we wszystkich trzech takie same, różni się tylko wygląd.</p>
+  </header>
+
+  <nav class="stages" aria-label="Etapy projektu">
+    <a class="stage" href="01-audyt.md"><span class="stage__num">Etap 1</span><span class="stage__name">Audyt obecnego UI</span></a>
+    <span class="stage stage--here"><span class="stage__num">Etap 2</span><span class="stage__name">Kierunki wizualne · wybrany C „Sage”</span></span>
+    <a class="stage" href="03-komponenty.html"><span class="stage__num">Etap 3</span><span class="stage__name">Design system i komponenty</span></a>
+    <a class="stage" href="widoki/index.html"><span class="stage__num">Etap 4</span><span class="stage__name">Makiety widoków</span></a>
+    <a class="stage" href="05-wdrozenie.md"><span class="stage__num">Etap 5</span><span class="stage__name">Notatki wdrożeniowe</span></a>
+  </nav>
+
+  <section class="directions" aria-label="Kierunki">
+    <article class="dir" style="--t-bg:#faf8f5; --t-nav:#ffffff; --t-nav-line:#e7e2da; --t-nav-text:#cfc8bd; --t-nav-active:#fff1e6; --t-nav-active-text:#c2410c; --t-accent:#c2410c; --t-text:#1f1b16; --t-card:#ffffff; --t-line:#e7e2da; --t-row:#d6d0c6; --t-card-r:6px; --t-card-shadow:0 1px 2px rgb(31 27 22 / .08); --t-btn-r:4px; --t-item-r:4px; --t-logo-r:4px; --t-filters:#ffffff; --t-filters-line:#e7e2da;">
+      <a class="thumb" href="02-kierunek-A.html" aria-hidden="true" tabindex="-1">
+        <div class="thumb__nav"><span class="thumb__logo"></span><span class="thumb__item"></span><span class="thumb__item thumb__item--active"></span><span class="thumb__item"></span><span class="thumb__item"></span><span class="thumb__item"></span></div>
+        <div class="thumb__main">
+          <div class="thumb__head"><span class="thumb__title"></span><span class="thumb__btn"></span></div>
+          <div class="thumb__body">
+            <div class="thumb__card"><div class="thumb__row"></div><div class="thumb__row"></div><div class="thumb__row"></div><div class="thumb__row"></div><div class="thumb__row"></div></div>
+            <div class="thumb__filters"></div>
+          </div>
+        </div>
+      </a>
+      <div class="dir__body">
+        <p class="dir__letter">Kierunek A</p>
+        <h2 class="dir__name">Ember</h2>
+        <p class="dir__tagline">Ewolucja obecnej pomarańczowej marki. Ciepłe neutralne tła, jasna nawigacja i miękkie cienie.</p>
+        <p class="dir__type"><b style="font-family:'Plus Jakarta Sans', var(--font-body)">Aa Żż</b><span>Plus Jakarta Sans</span></p>
+        <dl class="facts">
+          <dt>Akcent</dt><dd><span class="dot" style="background:#c2410c"></span><span class="mono">#C2410C</span></dd>
+          <dt>Nawigacja</dt><dd>jasna, z podświetleniem</dd>
+          <dt>Kształty</dt><dd>promienie 8–12 px, miękkie cienie</dd>
+          <dt>Logo</dt><dd>„F” z obecnej favikony</dd>
+        </dl>
+        <a class="dir__link" href="02-kierunek-A.html">Otwórz kierunek A <span aria-hidden="true">→</span></a>
+      </div>
+    </article>
+
+    <article class="dir" style="--t-bg:#f7f7f8; --t-nav:#18181b; --t-nav-line:#18181b; --t-nav-text:#52525b; --t-nav-active:#2e2e33; --t-nav-active-text:#e4e4e7; --t-nav-indicator:inset 2px 0 0 #818cf8; --t-accent:#4f46e5; --t-text:#18181b; --t-card:#ffffff; --t-line:#e4e4e7; --t-row:#d4d4d8; --t-card-r:4px; --t-btn-r:3px; --t-item-r:3px; --t-logo-r:3px; --t-filters:#ffffff; --t-filters-line:#e4e4e7;">
+      <a class="thumb" href="02-kierunek-B.html" aria-hidden="true" tabindex="-1">
+        <div class="thumb__nav"><span class="thumb__logo"></span><span class="thumb__item"></span><span class="thumb__item thumb__item--active"></span><span class="thumb__item"></span><span class="thumb__item"></span><span class="thumb__item"></span></div>
+        <div class="thumb__main">
+          <div class="thumb__head"><span class="thumb__title"></span><span class="thumb__btn"></span></div>
+          <div class="thumb__body">
+            <div class="thumb__card"><div class="thumb__row"></div><div class="thumb__row"></div><div class="thumb__row"></div><div class="thumb__row"></div><div class="thumb__row"></div></div>
+            <div class="thumb__filters"></div>
+          </div>
+        </div>
+      </a>
+      <div class="dir__body">
+        <p class="dir__letter">Kierunek B</p>
+        <h2 class="dir__name">Graphite</h2>
+        <p class="dir__tagline">Precyzyjne narzędzie. Grafitowy panel nawigacji, jasny obszar roboczy, cienkie linie zamiast cieni.</p>
+        <p class="dir__type"><b style="font-family:'Inter', var(--font-body)">Aa Żż</b><span>Inter</span></p>
+        <dl class="facts">
+          <dt>Akcent</dt><dd><span class="dot" style="background:#4f46e5"></span><span class="mono">#4F46E5</span></dd>
+          <dt>Nawigacja</dt><dd>ciemna, grafitowa</dd>
+          <dt>Kształty</dt><dd>promienie 4–8 px, karty bez cieni</dd>
+          <dt>Logo</dt><dd>„F” złożone z trzech bloków</dd>
+        </dl>
+        <a class="dir__link" href="02-kierunek-B.html">Otwórz kierunek B <span aria-hidden="true">→</span></a>
+      </div>
+    </article>
+
+    <article class="dir" style="--t-bg:#f3f4f1; --t-nav:#f3f4f1; --t-nav-line:#f3f4f1; --t-nav-text:#c9cec6; --t-nav-active:#e1efeb; --t-nav-active-text:#0f766e; --t-accent:#0f766e; --t-text:#18201c; --t-card:#ffffff; --t-line:#e1e4de; --t-row:#d3d8d0; --t-card-r:8px; --t-btn-r:999px; --t-item-r:999px; --t-logo-r:50%; --t-canvas:#ffffff; --t-canvas-inset:6px 6px 0 0; --t-canvas-r:10px 10px 0 0; --t-filters:#eef0ec; --t-filters-line:#eef0ec;">
+      <a class="thumb" href="02-kierunek-C.html" aria-hidden="true" tabindex="-1">
+        <div class="thumb__nav"><span class="thumb__logo"></span><span class="thumb__item"></span><span class="thumb__item thumb__item--active"></span><span class="thumb__item"></span><span class="thumb__item"></span><span class="thumb__item"></span></div>
+        <div class="thumb__main">
+          <div class="thumb__head"><span class="thumb__title"></span><span class="thumb__btn"></span></div>
+          <div class="thumb__body">
+            <div class="thumb__card"><div class="thumb__row"></div><div class="thumb__row"></div><div class="thumb__row"></div><div class="thumb__row"></div><div class="thumb__row"></div></div>
+            <div class="thumb__filters"></div>
+          </div>
+        </div>
+      </a>
+      <div class="dir__body">
+        <p class="dir__letter">Kierunek C · wybrany</p>
+        <h2 class="dir__name">Sage</h2>
+        <p class="dir__tagline">Spokojna, przestronna redakcja. Szałwiowe tło, biały blat roboczy i najwięcej oddechu.</p>
+        <p class="dir__type"><b style="font-family:'IBM Plex Sans', var(--font-body)">Aa Żż</b><span>IBM Plex Sans</span></p>
+        <dl class="facts">
+          <dt>Akcent</dt><dd><span class="dot" style="background:#0f766e"></span><span class="mono">#0F766E</span></dd>
+          <dt>Nawigacja</dt><dd>na tle, praca na białym blacie</dd>
+          <dt>Kształty</dt><dd>promienie 10–20 px, przyciski w kształcie pigułki</dd>
+          <dt>Logo</dt><dd>przekrój warstw skalnych</dd>
+        </dl>
+        <a class="dir__link" href="02-kierunek-C.html">Otwórz kierunek C <span aria-hidden="true">→</span></a>
+      </div>
+    </article>
+  </section>
+
+  <section class="block" aria-labelledby="cmp">
+    <h2 id="cmp">Porównanie</h2>
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr><td></td><th scope="col">A · Ember</th><th scope="col">B · Graphite</th><th scope="col">C · Sage</th></tr>
+        </thead>
+        <tbody>
+          <tr><th scope="row">Charakter</th><td>ewolucja obecnej marki</td><td>precyzyjne narzędzie</td><td>spokojna, przestronna redakcja</td></tr>
+          <tr><th scope="row">Akcent</th><td><span class="cell"><span class="dot" style="background:#c2410c"></span>przypalona pomarańcz</span></td><td><span class="cell"><span class="dot" style="background:#4f46e5"></span>indygo</span></td><td><span class="cell"><span class="dot" style="background:#0f766e"></span>morski</span></td></tr>
+          <tr><th scope="row">Krój</th><td>Plus Jakarta Sans</td><td>Inter</td><td>IBM Plex Sans</td></tr>
+          <tr><th scope="row">Nawigacja</th><td>jasna, aktywna pozycja na tle akcentu</td><td>ciemna, aktywna pozycja z paskiem</td><td>na tle aplikacji, pozycje w kształcie pigułki</td></tr>
+          <tr><th scope="row">Głębia</th><td>miękkie cienie na kartach</td><td>linie 1 px, cienie tylko na menu i dialogach</td><td>tony powierzchni, karty bez cieni</td></tr>
+          <tr><th scope="row">Główne ryzyko</th><td>może wyglądać jak odświeżenie, a nie nowy projekt</td><td>najbardziej typowy wygląd, bez nawiązania do marki</td><td>większe odstępy, na telefonie mieści się mniej wierszy</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <section class="columns">
+    <div class="block">
+      <h2>Wspólne dla wszystkich kierunków</h2>
+      <ul class="list">
+        <li>Na każdym ekranie jest jedna wypełniona akcja główna. Pozostałe akcje to przyciski tekstowe z ikoną.</li>
+        <li>Usuwanie w listach i formularzach jest neutralne. Czerwony jest tylko przycisk w oknie potwierdzenia usunięcia.</li>
+        <li>Wyszukiwarka stoi nad listą, więc na telefonie działa także w listach stron i komponentów.</li>
+        <li>Filtry na telefonie wysuwają się od dołu jako arkusz, sterowany tym samym stanem co obecna szuflada.</li>
+        <li>Każda para tekst/tło ma kontrast co najmniej 4,5:1, obramowania pól co najmniej 3:1, a fokus jest zawsze widoczny.</li>
+        <li>Kolory są zapisane jako tokeny semantyczne, gotowe na późniejszy tryb ciemny.</li>
+      </ul>
+    </div>
+    <aside class="reco">
+      <p class="reco__label">Rekomendacja</p>
+      <p class="reco__title">Kierunek B · Graphite</p>
+      <p>Daje najsilniejszą hierarchię i najlepiej zniesie najgęstsze ekrany aplikacji, czyli siatkę plików i edytor schematu z zagnieżdżonymi polami.</p>
+      <p>Kierunki można łączyć, na przykład układ B z akcentem i logo z C.</p>
+    </aside>
+  </section>
+
+  <footer class="foot">
+    <p>Statyczne makiety, niezależne od kodu aplikacji. Treści przykładowe pochodzą ze struktury danych serwisu GeoSilesia.</p>
+    <p>Fonty ładowane z Google Fonts na potrzeby podglądu. We wdrożeniu będą hostowane lokalnie.</p>
+  </footer>
+</main>

@@ -23,7 +23,9 @@ export type FieldType =
     | 'number'
     | 'file'
     | 'date'
-    | 'catalogue';
+    | 'catalogue'
+    // a nested component; its value has the shape of a page row (PageComponent)
+    | 'component';
 
 /** Base shape shared by PostType and Component (postTypeAbstractSchema). */
 export interface SchemaEntity {
@@ -62,6 +64,10 @@ export interface Page {
     pageUrl: string;
     seoTitle?: string;
     seoDescription?: string;
+    /** key (`type`) of a page type from the settings */
+    type?: string | null;
+    /** values of the fields of the page type */
+    typeData?: Record<string, unknown>;
     // the backend schema is `rows: [{}]` (schemaless); each row holds one
     // component instance directly
     rows: PageComponent[];
@@ -75,6 +81,20 @@ export interface PageComponent {
     title?: string;
     fields?: Field[];
     data?: Record<string, unknown>;
+}
+
+/** A kind of page, defined in the settings; a page stores its `type` key. */
+export interface PageType {
+    title: string;
+    type: string;
+    fields: Field[];
+}
+
+/** Site-wide configuration (one document on the server). */
+export interface Settings {
+    pageTypes: PageType[];
+    /** sent by the server, not saved: titles of the pages of each page type key */
+    usage?: Record<string, string[]>;
 }
 
 export interface FileItem {

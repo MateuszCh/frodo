@@ -1,10 +1,12 @@
 import { Component, OnInit, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { MatListModule } from '@angular/material/list';
 import { MatButtonModule } from '@angular/material/button';
 import { UserService } from '../../core/user.service';
 import { PostTypesService } from '../../core/post-types.service';
 import { injectRouteState } from '../../core/router-state';
+import { ThemeService } from '../../core/theme.service';
+import { LanguageSwitchComponent } from '../language-switch/language-switch';
+import { I18nService } from '../../core/i18n/i18n.service';
 
 interface NavItem {
     title: string;
@@ -15,15 +17,16 @@ interface NavItem {
 /** Port of sidenav.component.js — main navigation menu. */
 @Component({
     selector: 'app-sidenav',
-    imports: [RouterLink, MatListModule, MatButtonModule],
+    imports: [RouterLink, MatButtonModule, LanguageSwitchComponent],
     templateUrl: './sidenav.html',
-    styleUrl: './sidenav.scss',
 })
 export class SidenavComponent implements OnInit {
+    protected readonly t = inject(I18nService).t;
     protected userService = inject(UserService);
     private postTypesService = inject(PostTypesService);
     private router = inject(Router);
     protected route = injectRouteState();
+    protected theme = inject(ThemeService);
 
     protected readonly postTypes = this.postTypesService.menu;
     protected readonly logoutStatus = signal(false);

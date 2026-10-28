@@ -1,11 +1,12 @@
-import { Component, OnInit, input, output, signal } from '@angular/core';
+import { Component, OnInit, inject, input, output, signal } from '@angular/core';
 import { FormsModule, ControlContainer, NgForm } from '@angular/forms';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatSelectModule } from '@angular/material/select';
 import { MatButtonModule } from '@angular/material/button';
-import { MatIconModule } from '@angular/material/icon';
 import { ComponentEntity, PageComponent as PageComponentModel } from '../../../models/models';
 import { FieldInputComponent } from '../../fields/field-input/field-input';
+import { componentValue } from '../../../shared/component-value';
+import { I18nService } from '../../../core/i18n/i18n.service';
 
 /**
  * Port of add-component.component.js — picks a component type for a page row and
@@ -19,13 +20,12 @@ import { FieldInputComponent } from '../../fields/field-input/field-input';
         MatFormFieldModule,
         MatSelectModule,
         MatButtonModule,
-        MatIconModule,
         FieldInputComponent,
     ],
     templateUrl: './add-component.html',
-    styleUrl: './add-component.scss',
 })
 export class AddComponentComponent implements OnInit {
+    protected readonly t = inject(I18nService).t;
     readonly components = input.required<ComponentEntity[]>();
     readonly model = input.required<PageComponentModel>();
     readonly order = input<number>(0);
@@ -47,9 +47,7 @@ export class AddComponentComponent implements OnInit {
     onSelect(component: ComponentEntity): void {
         this.current.set(component);
         this.open.set(true);
-        const row = this.model();
-        row.data = {};
-        row.title = component.title;
-        row.type = component.type;
+        // the row stays the same object: it sits in page.rows
+        Object.assign(this.model(), componentValue(component));
     }
 }

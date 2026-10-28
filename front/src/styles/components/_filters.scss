@@ -1,0 +1,95 @@
+// Filters: bottom sheet below 960 px, panel beside the list from 960 px
+// (design/components.css, 15). The sheet stays under the CDK overlay (z 1000),
+// so a select opened inside it shows above it.
+
+.filters__head {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin-bottom: var(--space-4);
+}
+
+.filters__title {
+    font-size: var(--text-lg);
+    line-height: var(--leading-lg);
+    font-weight: var(--weight-semibold);
+    margin-right: auto;
+}
+
+app-listing-filters {
+    display: block;
+}
+
+.filters__body {
+    display: grid;
+    gap: var(--space-5);
+}
+
+.sheet__grabber {
+    width: 36px;
+    height: 4px;
+    margin: 0 auto var(--space-3);
+    border-radius: 2px;
+    background: var(--color-border-control);
+}
+
+@media (max-width: 959px) {
+    .filters {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        z-index: var(--z-sheet);
+        max-height: 88dvh;
+        overflow-y: auto;
+        background: var(--color-surface-overlay);
+        border-radius: var(--radius-xl) var(--radius-xl) 0 0;
+        box-shadow: var(--shadow-lg);
+        padding: var(--space-2) max(var(--space-5), env(safe-area-inset-right, 0px))
+            calc(var(--space-6) + env(safe-area-inset-bottom, 0px)) max(var(--space-5), env(safe-area-inset-left, 0px));
+        transform: translateY(100%);
+        visibility: hidden;
+        transition:
+            transform var(--duration-slow) var(--ease-emphasized),
+            visibility 0s linear var(--duration-slow);
+
+        &.is-open {
+            transform: none;
+            visibility: visible;
+            transition-delay: 0s;
+        }
+    }
+}
+
+@media (min-width: 960px) {
+    .filters {
+        position: sticky;
+        top: calc(var(--page-header-top) + var(--page-header-h) + var(--space-6));
+        background: var(--color-surface-sunken);
+        border-radius: var(--radius-lg);
+        padding: var(--space-5);
+
+        .sheet__grabber,
+        .filters__close {
+            display: none;
+        }
+    }
+}
+
+.backdrop {
+    position: fixed;
+    inset: 0;
+    z-index: var(--z-sheet-backdrop);
+    background: var(--color-backdrop);
+    opacity: 0;
+    visibility: hidden;
+    transition:
+        opacity var(--duration-normal) var(--ease-standard),
+        visibility 0s linear var(--duration-normal);
+
+    &.is-open {
+        opacity: 1;
+        visibility: visible;
+        transition-delay: 0s;
+    }
+}

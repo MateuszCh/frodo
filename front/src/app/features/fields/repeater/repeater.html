@@ -1,18 +1,39 @@
-@for (row of rows(); track $index; let rowIndex = $index) {
-    <div class="repeater-row">
-        @for (rf of field().repeaterFields ?? []; track rf.id) {
-            <!-- use the outer row index: the inner @for shadows $index, which
-                 would give every row the same control-name prefix and make
-                 NgForm merge the rows' ngModels into one control -->
-            <app-field
-                [field]="rf"
-                [model]="row"
-                [namePrefix]="namePrefix() + '_' + rowIndex + '_'"
-            ></app-field>
+<div class="repeater__head">
+    <span class="field__label">{{ field().title }}</span>
+    @if (rows().length) {
+        <span class="badge badge--neutral">{{ rows().length }}<span class="visually-hidden"> {{ t('repeater.rows', { count: rows().length }) }}</span></span>
+    }
+</div>
+
+@if (!rows().length) {
+    <p class="field__hint">{{ t('repeater.noRows') }}</p>
+} @else {
+    <div class="repeater__rows">
+        @for (row of rows(); track $index; let rowIndex = $index) {
+            <div class="repeater__row">
+                <div class="repeater__row-head">
+                    <span class="repeater__row-index" [attr.data-label]="t('repeater.row')"></span>
+                    <button mat-button type="button" class="btn--sm" (click)="removeRow(rowIndex)">
+                        <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-trash" /></svg>
+                        {{ t('repeater.deleteRow') }}
+                    </button>
+                </div>
+                @for (rf of field().repeaterFields ?? []; track rf.id) {
+                    <!-- use the outer row index: the inner @for shadows $index, which
+                         would give every row the same control-name prefix and make
+                         NgForm merge the rows' ngModels into one control -->
+                    <app-field
+                        [field]="rf"
+                        [model]="row"
+                        [namePrefix]="namePrefix() + '.' + rowIndex + '.'"
+                    ></app-field>
+                }
+            </div>
         }
-        <button mat-raised-button color="warn" type="button" (click)="removeRow(rowIndex)">
-            Delete row
-        </button>
     </div>
 }
-<button mat-raised-button color="primary" type="button" (click)="addRow()">Add new row</button>
+
+<button mat-stroked-button type="button" class="btn--sm" (click)="addRow()">
+    <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-plus" /></svg>
+    {{ t('repeater.addRow') }}
+</button>

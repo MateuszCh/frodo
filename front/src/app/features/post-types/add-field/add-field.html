@@ -1,86 +1,164 @@
 @let f = field();
-<div class="add-field">
-    <button mat-raised-button
-            color="warn"
-            type="button"
-            class="add-field__delete"
-            (click)="remove.emit()">
-        Delete
-    </button>
+<article class="schema-field">
+    <header class="schema-field__head">
+        <span class="schema-field__name"
+              [class.is-placeholder]="!f.title">{{ f.title || t('schema.untitledField') }}</span>
+        <span class="badge badge--neutral">{{ f.type }}</span>
+        <button mat-icon-button
+                type="button"
+                class="btn--sm"
+                [attr.aria-label]="f.title ? t('schema.deleteField', { name: f.title }) : t('schema.deleteUntitledField')"
+                (click)="remove.emit()">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-trash" />
+            </svg>
+        </button>
+    </header>
 
-    <div class="add-field__body">
-        <mat-form-field class="full-width">
-            <mat-label>Title</mat-label>
-            <input matInput
-                   type="text"
-                   [name]="uid + '_title'"
-                   required
-                   [(ngModel)]="f.title" />
-            <mat-error>This is required</mat-error>
-        </mat-form-field>
+    <div class="schema-field__body">
+        <div class="form-grid form-grid--2">
+            <div class="field">
+                <label class="field__label"
+                       [for]="uid + '_title'">{{ t('common.title') }}<span class="field__req"
+                          aria-hidden="true">*</span></label>
+                <mat-form-field appearance="outline"
+                                subscriptSizing="dynamic">
+                    <input matInput
+                           type="text"
+                           [id]="uid + '_title'"
+                           [name]="uid + '_title'"
+                           required
+                           [(ngModel)]="f.title" />
+                    <mat-error>
+                        <svg class="icon"
+                             aria-hidden="true">
+                            <use href="icons.svg#i-alert" />
+                        </svg>
+                        {{ t('common.required') }}
+                    </mat-error>
+                </mat-form-field>
+            </div>
 
-        <mat-form-field class="full-width">
-            <mat-label>Id</mat-label>
-            <input matInput
-                   type="text"
-                   [name]="uid + '_id'"
-                   required
-                   [(ngModel)]="f.id"
-                   (ngModelChange)="formatId()" />
-            <mat-error>This is required</mat-error>
-        </mat-form-field>
+            <div class="field">
+                <label class="field__label"
+                       [for]="uid + '_id'">{{ t('schema.id') }}<span class="field__req"
+                          aria-hidden="true">*</span></label>
+                <mat-form-field appearance="outline"
+                                subscriptSizing="dynamic">
+                    <input matInput
+                           type="text"
+                           class="mono"
+                           [id]="uid + '_id'"
+                           [name]="uid + '_id'"
+                           required
+                           [(ngModel)]="f.id"
+                           (ngModelChange)="formatId()" />
+                    <mat-error>
+                        <svg class="icon"
+                             aria-hidden="true">
+                            <use href="icons.svg#i-alert" />
+                        </svg>
+                        {{ t('common.required') }}
+                    </mat-error>
+                </mat-form-field>
+            </div>
+        </div>
 
-        <mat-form-field class="full-width">
-            <mat-label>Select type</mat-label>
-            <mat-select [name]="uid + '_type'"
-                        required
-                        [(ngModel)]="f.type">
-                @for (option of fieldTypes; track option.type) {
-                <mat-option [value]="option.type">{{ option.name }}</mat-option>
-                }
-            </mat-select>
-            <mat-error>This is required</mat-error>
-        </mat-form-field>
+        <div class="field">
+            <span class="field__label"
+                  [id]="uid + '_type-label'">{{ t('common.type') }}<span class="field__req"
+                      aria-hidden="true">*</span></span>
+            <mat-form-field appearance="outline"
+                            subscriptSizing="dynamic">
+                <mat-select [placeholder]="t('schema.chooseType')"
+                            [aria-labelledby]="uid + '_type-label'"
+                            [name]="uid + '_type'"
+                            required
+                            [(ngModel)]="f.type">
+                    @for (option of fieldTypes; track option.type) {
+                    <mat-option [value]="option.type">{{ fieldType(option.type) }}</mat-option>
+                    }
+                </mat-select>
+                <mat-error>
+                    <svg class="icon"
+                         aria-hidden="true">
+                        <use href="icons.svg#i-alert" />
+                    </svg>
+                    {{ t('common.required') }}
+                </mat-error>
+            </mat-form-field>
+        </div>
 
         @if (f.type === 'select') {
-        <mat-form-field class="full-width">
-            <mat-label>Options (separated by semicolons)</mat-label>
-            <input matInput
-                   type="text"
-                   [name]="uid + '_selectOptions'"
-                   required
-                   [(ngModel)]="f.selectOptions" />
-            <mat-error>This is required</mat-error>
-        </mat-form-field>
+        <div class="field">
+            <label class="field__label"
+                   [for]="uid + '_selectOptions'">{{ t('schema.options') }}<span class="field__req"
+                      aria-hidden="true">*</span></label>
+            <mat-form-field appearance="outline"
+                            subscriptSizing="dynamic">
+                <input matInput
+                       type="text"
+                       [id]="uid + '_selectOptions'"
+                       [name]="uid + '_selectOptions'"
+                       required
+                       [(ngModel)]="f.selectOptions" />
+                <mat-error>
+                    <svg class="icon"
+                         aria-hidden="true">
+                        <use href="icons.svg#i-alert" />
+                    </svg>
+                    {{ t('common.required') }}
+                </mat-error>
+            </mat-form-field>
+            <span class="field__hint">{{ t('schema.optionsHint') }}</span>
+        </div>
         }
 
         @if (f.type === 'multiselect') {
-        <mat-form-field class="full-width">
-            <mat-label>Options (separated by semicolons)</mat-label>
-            <input matInput
-                   type="text"
-                   [name]="uid + '_multiselectOptions'"
-                   required
-                   [(ngModel)]="f.multiselectOptions" />
-            <mat-error>This is required</mat-error>
-        </mat-form-field>
+        <div class="field">
+            <label class="field__label"
+                   [for]="uid + '_multiselectOptions'">{{ t('schema.options') }}<span class="field__req"
+                      aria-hidden="true">*</span></label>
+            <mat-form-field appearance="outline"
+                            subscriptSizing="dynamic">
+                <input matInput
+                       type="text"
+                       [id]="uid + '_multiselectOptions'"
+                       [name]="uid + '_multiselectOptions'"
+                       required
+                       [(ngModel)]="f.multiselectOptions" />
+                <mat-error>
+                    <svg class="icon"
+                         aria-hidden="true">
+                        <use href="icons.svg#i-alert" />
+                    </svg>
+                    {{ t('common.required') }}
+                </mat-error>
+            </mat-form-field>
+            <span class="field__hint">{{ t('schema.optionsHint') }}</span>
+        </div>
         }
 
         @if (f.type === 'repeater') {
-        <div class="add-field__repeater">
+        <div class="schema-field__children">
+            <span class="field__label">{{ t('schema.rowFields') }}</span>
             @for (rf of f.repeaterFields ?? []; track rf; let i = $index) {
             <app-add-field [field]="rf"
                            (remove)="removeRepeaterField(i)"></app-add-field>
             }
-            <div class="right">
-                <button mat-raised-button
-                        color="primary"
-                        type="button"
-                        (click)="addRepeaterField()">
-                    Add new repeater field
-                </button>
-            </div>
+            <button mat-stroked-button
+                    type="button"
+                    class="btn--sm"
+                    (click)="addRepeaterField()">
+                <svg matButtonIcon
+                     class="icon"
+                     aria-hidden="true">
+                    <use href="icons.svg#i-plus" />
+                </svg>
+                {{ t('schema.addRowField') }}
+            </button>
         </div>
         }
     </div>
-</div>
+</article>
