@@ -7,29 +7,20 @@ const Post = require('../models/post'),
 module.exports = {
     create(req, res, next) {
         const postProps = req.body;
-        Promise.all([Counter.findOne({}), PostType.findOne({ type: postProps.type })])
-            .then((response) => {
-                const counter = response[0];
-                postProps.id = counter.counter;
-                postProps.created = Date.now();
-                const postType = response[1];
+        PostType.findOne({ type: postProps.type })
+            .then((postType) => {
                 if (postType !== null) {
-                    const newPost = new Post(postProps);
-                    newPost
-                        .save()
-                        .then((response) => {
+                    Counter.reserve()
+                        .then((id) => {
+                            postProps.id = id;
+                            postProps.created = Date.now();
+                            return new Post(postProps).save();
+                        })
+                        .then((response) =>
                             postType
                                 .update({ $push: { posts: response._id } })
-                                .then(() => {
-                                    res.send(response);
-                                    Counter.update(counter, {
-                                        $inc: { counter: 1 },
-                                    })
-                                        .then(() => console.log('Counter incremented'))
-                                        .catch(next);
-                                })
-                                .catch(next);
-                        })
+                                .then(() => res.send(response)),
+                        )
                         .catch(next);
                 } else {
                     res.status(422).send({
@@ -41,67 +32,28 @@ module.exports = {
     },
     importPosts(req, res, next) {
         const postType = req.body.postType;
-        const correctPosts = req.body.posts.filter((post) => {
-            const props = Object.keys(post);
-            if (props.length === 1 && post.title) {
-                return true;
-            } else if (props.length === 2 && post.title && post.data) {
-                return true;
-            } else if (props.length === 3 && post.title && post.data && post.created) {
-                return true;
-            } else {
-                return false;
-            }
-        });
+        // a title and only fields of a post: an export of pages, files or post types is refused
+        const postFields = Object.keys(Post.schema.paths);
+        const correctPosts = req.body.posts.filter(
+            (post) => post.title && Object.keys(post).every((prop) => postFields.includes(prop)),
+        );
         if (correctPosts.length) {
-            Promise.all([
-                Counter.findOne({}),
-                PostType.findOne({ type: postType }).populate('posts'),
-            ])
-                .then((response) => {
-                    const counter = response[0];
-                    const postTypeModel = response[1];
-
-                    const postModels = [];
-
-                    correctPosts.forEach((post, i) => {
-                        const model = {
-                            title: post.title,
-                            data: post.data,
-                            type: postType,
-                            id: counter.counter + i,
-                        };
-                        model.created = post.created || Date.now();
-                        postModels.push(model);
-                    });
-
-                    Post.create(postModels)
-                        .then((posts) => {
-                            const ids = [];
-                            posts.forEach((post) => {
-                                ids.push(post._id);
-                            });
-
-                            postTypeModel
-                                .update({ $push: { posts: { $each: ids } } })
-                                .then(() => {
-                                    Promise.all([
-                                        Counter.update(counter, {
-                                            $inc: { counter: posts.length },
-                                        }),
-                                        PostType.findOne({
-                                            type: postType,
-                                        }).populate('posts'),
-                                    ])
-                                        .then((response) => {
-                                            console.log('Counter incremented');
-                                            res.send(response[1]);
-                                        })
-                                        .catch(next);
-                                })
-                                .catch(next);
-                        })
-                        .catch(next);
+            PostType.findOne({ type: postType })
+                .then((postTypeModel) => {
+                    if (postTypeModel === null) {
+                        return res.status(422).send({
+                            error: 'There is no ' + postType + ' post type.',
+                        });
+                    }
+                    // into the type imported to, whichever type they were exported from
+                    return Post.saveImport(correctPosts, { type: postType })
+                        .then((posts) =>
+                            postTypeModel.update({
+                                $push: { posts: { $each: posts.map((post) => post._id) } },
+                            }),
+                        )
+                        .then(() => PostType.findOne({ type: postType }).populate('posts'))
+                        .then((postTypeWithPosts) => res.send(postTypeWithPosts));
                 })
                 .catch(next);
         } else {
@@ -115,18 +67,14 @@ module.exports = {
         Post.find({ type: postType })
             .then((posts) => {
                 const formattedPosts = JSON.stringify(
-                    posts.map((post) => {
-                        return {
-                            title: post.title,
-                            data: post.data,
-                            created: post.created,
-                        };
-                    }),
+                    posts.map((post) => post.toExport()),
                     null,
                     4,
                 );
                 // the type comes from the URL: writeExport keeps its file name inside the export folder
-                writeExport(postType, formattedPosts, (err, url) => (err ? next(err) : res.send(url)));
+                writeExport(postType, formattedPosts, (err, url) =>
+                    err ? next(err) : res.send(url),
+                );
             })
             .catch(next);
     },

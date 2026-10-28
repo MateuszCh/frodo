@@ -31,19 +31,12 @@ module.exports = {
         Model.findOne({ type: postTypeProps.type })
             .then((existingType) => {
                 if (existingType === null) {
-                    Counter.findOne({})
-                        .then((counter) => {
-                            postTypeProps.id = counter.counter;
+                    Counter.reserve()
+                        .then((id) => {
+                            postTypeProps.id = id;
                             postTypeProps.created = Date.now();
                             Model.create(postTypeProps)
-                                .then((postType) => {
-                                    res.send(postType);
-                                    Counter.update(counter, {
-                                        $inc: { counter: 1 },
-                                    })
-                                        .then(() => console.log('Counter incremented'))
-                                        .catch(next);
-                                })
+                                .then((postType) => res.send(postType))
                                 .catch(next);
                         })
                         .catch(next);
@@ -149,36 +142,16 @@ module.exports = {
         Model.find({})
             .then((postTypes) => {
                 const formattedPostTypes = JSON.stringify(
-                    postTypes.map((postType) => {
-                        let fields = postType.fields.map((field) => {
-                            const newField = {
-                                type: field.type,
-                                title: field.title,
-                                id: field.id,
-                                repeaterFields: field.repeaterFields,
-                            };
-
-                            if (field.selectOptions) newField.selectOptions = field.selectOptions;
-                            if (field.multiselectOptions)
-                                newField.multiselectOptions = field.multiselectOptions;
-                            return newField;
-                        });
-
-                        return {
-                            title: postType.title,
-                            pluralTitle: postType.pluralTitle,
-                            type: postType.type,
-                            fields: fields,
-                            created: postType.created,
-                        };
-                    }),
+                    postTypes.map((postType) => postType.toExport()),
                     null,
                     4,
                 );
 
                 const filename = isComponent ? 'components' : 'postTypes';
 
-                writeExport(filename, formattedPostTypes, (err, url) => (err ? next(err) : res.send(url)));
+                writeExport(filename, formattedPostTypes, (err, url) =>
+                    err ? next(err) : res.send(url),
+                );
             })
             .catch(next);
     },
@@ -188,91 +161,45 @@ module.exports = {
         const isComponent = path.indexOf('Components') >= 0;
         isComponent ? (Model = Component) : (Model = PostType);
 
-        const postTypesTypes = [];
+        const correctPostTypes = req.body.posts
+            // an export of posts or files has a title and a type too, but no fields
+            .filter(
+                (postType) =>
+                    postType.title &&
+                    (postType.pluralTitle || isComponent) &&
+                    postType.type &&
+                    Array.isArray(postType.fields),
+            )
+            // a field without a type, an id or a title is left out
+            .map((postType) => ({
+                ...postType,
+                fields: postType.fields.filter((field) => field.type && field.id && field.title),
+            }));
+        const postTypesTypes = correctPostTypes.map((postType) => postType.type);
 
-        const correctPostTypes = req.body.posts.filter((postType) => {
-            if (!(postType.title && (postType.pluralTitle || isComponent) && postType.type)) {
-                return false;
-            }
-
-            const fieldsIds = [];
-
-            const correctFields = postType.fields.filter((field) => {
-                if (!(field.type && field.id && field.title)) {
-                    return false;
-                }
-                const newField = {
-                    type: field.type,
-                    title: field.title,
-                    id: field.id,
-                    repeaterFields: field.repeaterFields,
-                };
-                fieldsIds.push(field.id);
-                if (field.selectOptions) newField.selectOptions = field.selectOptions;
-                if (field.multiselectOptions)
-                    newField.multiselectOptions = field.multiselectOptions;
-                return newField;
-            });
-
-            if (new Set(fieldsIds).size !== fieldsIds.length) {
-                res.status(422).send({ error: 'Duplicate field ids' });
-            }
-
-            postTypesTypes.push(postType.type);
-
-            const model = {
-                title: postType.title,
-                type: postType.type,
-                fields: correctFields,
-                created: postType.created || Date.now(),
-            };
-
-            if (!isComponent) model.pluralTitle = postType.pluralTitle;
-
-            return model;
-        });
+        const duplicateFieldIds = correctPostTypes.some(
+            (postType) =>
+                new Set(postType.fields.map((field) => field.id)).size !== postType.fields.length,
+        );
+        if (duplicateFieldIds) {
+            return res.status(422).send({ error: 'Duplicate field ids' });
+        }
 
         if (new Set(postTypesTypes).size !== postTypesTypes.length) {
-            res.status(422).send({ error: 'Duplicate types' });
+            return res.status(422).send({ error: 'Duplicate types' });
         }
 
         if (correctPostTypes.length) {
-            Promise.all([Counter.findOne({}), Model.find({})])
-                .then((response) => {
-                    const counter = response[0];
-                    const currentPostTypes = response[1].map((postType) => {
-                        return postType.type;
-                    });
-                    const allPostTypes = currentPostTypes.concat(postTypesTypes);
-                    if (new Set(allPostTypes).size !== allPostTypes.length) {
-                        res.status(422).send({
+            Model.find({ type: { $in: postTypesTypes } })
+                .then((existingPostTypes) => {
+                    if (existingPostTypes.length) {
+                        return res.status(422).send({
                             error: 'Some of imported post type already exists',
                         });
                     }
-
-                    const postTypeModels = [];
-                    correctPostTypes.forEach((postType, i) => {
-                        const model = postType;
-                        model.id = counter.counter + i;
-                        postTypeModels.push(model);
-                    });
-
-                    Model.create(postTypeModels)
-                        .then((postTypes) => {
-                            Counter.update(counter, {
-                                $inc: { counter: postTypeModels.length },
-                            })
-                                .then(() => {
-                                    console.log('Counter incremented');
-                                    Model.find({})
-                                        .then((postTypes) => {
-                                            res.send(postTypes);
-                                        })
-                                        .catch(next);
-                                })
-                                .catch(next);
-                        })
-                        .catch(next);
+                    return Model.saveImport(correctPostTypes)
+                        .then(() => Model.find({}))
+                        .then((postTypes) => res.send(postTypes));
                 })
                 .catch(next);
         } else {

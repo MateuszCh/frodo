@@ -2,6 +2,7 @@ const mongoose = require('mongoose'),
     PostTypeAbstractSchema = require('./abstract-schemas/postTypeAbstractSchema'),
     format = require('./tools/format'),
     timestamps = require('./tools/timestamps'),
+    exportable = require('./tools/exportable'),
     extend = require('mongoose-extend-schema');
 
 const ComponentSchema = extend(
@@ -25,6 +26,7 @@ ComponentSchema.pre('save', function (next) {
 });
 
 ComponentSchema.plugin(timestamps);
+ComponentSchema.plugin(exportable);
 
 const Component = mongoose.model('component', ComponentSchema);
 

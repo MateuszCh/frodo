@@ -50,6 +50,13 @@ mongoose.connection.on('open', () => {
 
 const app = express();
 
+// an import sends a whole export at once – the files alone come near 1 MB – so it gets more room;
+// the parser below then leaves its already read body alone
+const importBodyParser = bodyParser.json({ limit: '10mb' });
+app.use((req, res, next) =>
+    req.path.startsWith('/api/import') ? importBodyParser(req, res, next) : next()
+);
+
 app.use(bodyParser.json({ limit: '1mb' }));
 
 app.use(bodyParser.urlencoded({ extended: false, limit: '1mb' }));
