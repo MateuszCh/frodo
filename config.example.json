@@ -2,6 +2,7 @@
     "mongoUrl": "mongodb://mongo:27017/frodo",
     "uploadsPath": "uploads",
     "sessionSecret": "CHANGE_ME_random_long_secret",
+    "deployDomain": "cms.your-domain.example",
     "admin": {
         "username": "CHANGE_ME",
         "password": "CHANGE_ME"
