@@ -50,6 +50,8 @@
                         @for (pageType of model().pageTypes; track pageType; let i = $index) {
                         <app-page-type [pageType]="pageType"
                                        [usedBy]="usedBy(pageType)"
+                                       [collapseKey]="pageType.type ? 'def:settings/' + pageType.type : null"
+                                       [collapseOpen]="!pageType.type"
                                        (remove)="removePageType(i)"></app-page-type>
                         }
                     </div>

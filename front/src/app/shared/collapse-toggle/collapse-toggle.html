@@ -1,0 +1,12 @@
+@let collapsed = target().collapsed();
+<button mat-icon-button
+        type="button"
+        class="btn--sm"
+        [attr.aria-expanded]="!collapsed"
+        [attr.aria-label]="t(collapsed ? 'section.expand' : 'section.collapse', { name: name() })"
+        (click)="target().toggle()">
+    <svg class="icon"
+         aria-hidden="true">
+        <use href="icons.svg#i-chevron-down" />
+    </svg>
+</button>

@@ -128,7 +128,13 @@
         </div>
     }
     @case ('repeater') {
-        <app-repeater class="repeater" [parentModel]="data" [field]="f" [namePrefix]="ctrl"></app-repeater>
+        <app-repeater
+            class="repeater"
+            [parentModel]="data"
+            [field]="f"
+            [namePrefix]="ctrl"
+            [collapsePath]="collapseScope() && f.id ? collapseScope() + '/' + f.id : ''"
+        ></app-repeater>
     }
     @case ('component') {
         <app-component-field class="component-field" [parentModel]="data" [field]="f" [namePrefix]="ctrl"></app-component-field>

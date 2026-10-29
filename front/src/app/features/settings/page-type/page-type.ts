@@ -7,16 +7,24 @@ import { PageType } from '../../../models/models';
 import { blankField, formatKey } from '../../../models/fields';
 import { AddFieldComponent } from '../../post-types/add-field/add-field';
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { CollapseDirective } from '../../../shared/collapse.directive';
 
 let uidCounter = 0;
 
 /**
  * Edits one page type in the settings: its title, the key pages store and the
- * fields pages of this type fill in.
+ * fields pages of this type fill in. The card starts collapsed to its head; the settings
+ * pass the key it is remembered under and open a new page type (no key yet).
  */
 @Component({
     selector: 'app-page-type',
     viewProviders: [{ provide: ControlContainer, useExisting: NgForm }],
+    hostDirectives: [
+        {
+            directive: CollapseDirective,
+            inputs: ['appCollapse: collapseKey', 'appCollapseOpen: collapseOpen'],
+        },
+    ],
     imports: [FormsModule, MatFormFieldModule, MatInputModule, MatButtonModule, AddFieldComponent],
     templateUrl: './page-type.html',
 })
@@ -26,6 +34,7 @@ export class PageTypeComponent {
     /** Titles of the pages of this type: such a type cannot be removed or get a new key. */
     readonly usedBy = input<string[]>([]);
     readonly remove = output<void>();
+    readonly collapse = inject(CollapseDirective, { self: true });
 
     protected readonly uid = `pt${uidCounter++}`;
 

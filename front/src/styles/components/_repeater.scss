@@ -1,6 +1,7 @@
 // Repeater (design/components.css, 17). Rows are numbered by a CSS counter;
 // nested rows alternate white / sunken / white instead of growing indents, so
-// they keep their width on a phone.
+// they keep their width on a phone. A row folds to its head (the number and the
+// first filled text), so a long list reads as a list.
 
 .repeater {
     display: grid;
@@ -15,6 +16,17 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
+    min-height: var(--control-h-sm);
+
+    // the repeater groups fields: its title reads above their labels
+    > .field__label {
+        font-size: var(--text-md);
+        line-height: var(--leading-md);
+    }
+}
+
+.repeater__toggle-all.mat-mdc-button-base {
+    margin-left: auto;
 }
 
 .repeater__rows {
@@ -24,9 +36,7 @@
 }
 
 .repeater__row {
-    display: grid;
-    gap: var(--space-4);
-    padding: var(--space-4);
+    min-width: 0;
     border: 1px solid var(--color-border);
     border-radius: var(--radius-md);
     background: var(--color-surface);
@@ -45,18 +55,35 @@
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    margin: calc(var(--space-1) * -1) 0;
+    padding: var(--space-1-5);
 }
 
 .repeater__row-index {
-    margin-right: auto;
-    font-size: var(--text-xs);
-    line-height: var(--leading-xs);
+    flex: none;
+    font-size: var(--text-sm);
+    line-height: var(--leading-sm);
     font-weight: var(--weight-semibold);
-    color: var(--color-text-subtle);
+    color: var(--color-text-muted);
 
     // the word comes from the template (data-label), so it follows the language
     &::before {
         content: attr(data-label) ' ' counter(repeater-row);
     }
+}
+
+.repeater__row-summary {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: var(--text-sm);
+    line-height: var(--leading-sm);
+    color: var(--color-text);
+}
+
+.repeater__row-body {
+    display: grid;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    border-top: 1px solid var(--color-border);
 }

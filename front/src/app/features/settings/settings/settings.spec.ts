@@ -271,3 +271,77 @@ describe('SettingsComponent — import and export', () => {
         expect(tools.alert).toHaveBeenCalledWith('There was an error exporting');
     });
 });
+
+describe('SettingsComponent — collapsing', () => {
+    beforeEach(() => localStorage.removeItem('frodo.expanded'));
+    afterEach(() => localStorage.removeItem('frodo.expanded'));
+
+    const toggle = (root: HTMLElement, name: string) =>
+        Array.from(root.querySelectorAll<HTMLButtonElement>('.schema-field__toggle')).find(
+            (b) => b.querySelector('.schema-field__name')?.textContent?.trim() === name,
+        )!;
+    const bodyOf = (root: HTMLElement, name: string) =>
+        document.getElementById(toggle(root, name).getAttribute('aria-controls')!)!;
+
+    it('starts with the page types and field definitions collapsed', async () => {
+        const { root } = await setup(makeSettings());
+
+        expect(bodyOf(root, 'Map').hidden).toBe(true);
+        expect(bodyOf(root, 'Zoom').hidden).toBe(true);
+        expect(toggle(root, 'Map').getAttribute('aria-expanded')).toBe('false');
+    });
+
+    it('remembers the page types and field definitions left expanded, by their keys', async () => {
+        const { fixture, root } = await setup(makeSettings());
+
+        toggle(root, 'Map').click();
+        toggle(root, 'Zoom').click();
+        fixture.detectChanges();
+
+        expect(bodyOf(root, 'Map').hidden).toBe(false);
+        expect(JSON.parse(localStorage.getItem('frodo.expanded')!)).toEqual([
+            'def:settings/map',
+            'def:page-type:map/zoom',
+        ]);
+
+        TestBed.resetTestingModule();
+        const next = await setup(makeSettings());
+        next.fixture.detectChanges();
+
+        expect(bodyOf(next.root, 'Map').hidden).toBe(false);
+        expect(bodyOf(next.root, 'Zoom').hidden).toBe(false);
+    });
+
+    it('starts a new page type and a new field expanded', async () => {
+        const { fixture, root, button } = await setup(makeSettings());
+
+        button('Add page type').click();
+        fixture.detectChanges();
+        await fixture.whenStable();
+        fixture.detectChanges();
+
+        expect(bodyOf(root, 'Untitled type').hidden).toBe(false);
+
+        toggle(root, 'Map').click();
+        fixture.detectChanges();
+        Array.from(bodyOf(root, 'Map').querySelectorAll('button'))
+            .find((b) => b.textContent?.trim() === 'Add field')!
+            .click();
+        fixture.detectChanges();
+
+        expect(bodyOf(root, 'Untitled field').hidden).toBe(false);
+    });
+
+    it('expands the collapsed cards that hold an empty required field on save', async () => {
+        const { fixture, root, edit, type, submit } = await setup(makeSettings());
+        const [mapBody, zoomBody] = [bodyOf(root, 'Map'), bodyOf(root, 'Zoom')];
+        await type(zoomBody.querySelector<HTMLInputElement>('input')!, '');
+        fixture.detectChanges();
+        expect([mapBody.hidden, zoomBody.hidden]).toEqual([true, true]);
+
+        await submit();
+
+        expect(edit).not.toHaveBeenCalled();
+        expect([mapBody.hidden, zoomBody.hidden]).toEqual([false, false]);
+    });
+});

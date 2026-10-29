@@ -88,10 +88,11 @@
                     <p class="empty__text">{{ t('post.noFieldsText') }}</p>
                 </div>
                 } @else {
-                <div class="card__body">
+                <div class="card__body fields">
                     @for (field of fields(); track field.id) {
                     <app-field [field]="field"
-                               [model]="model().data"></app-field>
+                               [model]="model().data"
+                               [collapseScope]="'post:' + postType().type"></app-field>
                     }
                 </div>
                 }

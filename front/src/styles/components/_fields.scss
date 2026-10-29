@@ -1,0 +1,26 @@
+// The fields of a schema in the editors (.fields > app-field.fields__item): post, page type
+// fields, page component, repeater row, nested component. A short field (number, date,
+// select, catalogue, True/False) shares a line with the short field next to it, two at most,
+// while each gets 280 px; alone, or next to a longer field, it takes the whole line, as the
+// longer fields always do. Each container keeps its own row gap.
+
+.fields {
+    display: flex;
+    flex-wrap: wrap;
+    column-gap: var(--space-4);
+
+    > * {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    > .fields__item--short {
+        flex-basis: max(calc(50% - var(--space-4) / 2), 280px);
+    }
+
+    // beside a field with its label above, the checkbox sits on the line of the control
+    > .fields__item--checkbox {
+        display: flex;
+        align-items: flex-end;
+    }
+}

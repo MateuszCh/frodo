@@ -44,14 +44,20 @@
 
     <div class="page page--form">
         <div class="form-stack">
-            <section class="card">
+            <section class="card"
+                     appCollapse="section:page/basic"
+                     [appCollapseOpen]="!edit()"
+                     #basic="appCollapse">
                 <header class="card__header">
                     <div class="card__heading">
                         <h2 class="card__title">{{ t('common.basicInfo') }}</h2>
                         <p class="card__desc">{{ t('page.basicDesc') }}</p>
                     </div>
+                    <app-collapse-toggle [target]="basic"
+                                         [name]="t('common.basicInfo')"></app-collapse-toggle>
                 </header>
-                <div class="card__body">
+                <div class="card__body"
+                     [hidden]="basic.collapsed()">
                     <div class="field">
                         <label class="field__label"
                                for="page-title">{{ t('common.title') }}<span class="field__req"
@@ -124,33 +130,47 @@
             </section>
 
             @if (typeFields().length) {
-            <section class="card">
+            @let typeFieldsTitle = t('page.typeFields', { type: pageType()!.title });
+            <section class="card"
+                     appCollapse="section:page/type-fields"
+                     [appCollapseOpen]="!edit() || typeChosen()"
+                     #typeSection="appCollapse">
                 <header class="card__header">
                     <div class="card__heading">
-                        <h2 class="card__title">{{ t('page.typeFields', { type: pageType()!.title }) }}</h2>
+                        <h2 class="card__title">{{ typeFieldsTitle }}</h2>
                         <p class="card__desc">{{ t('page.typeFieldsDesc') }}</p>
                     </div>
+                    <app-collapse-toggle [target]="typeSection"
+                                         [name]="typeFieldsTitle"></app-collapse-toggle>
                 </header>
-                <div class="card__body">
+                <div class="card__body fields"
+                     [hidden]="typeSection.collapsed()">
                     <!-- a type change renders new fields: track the field, not its id,
                          which another type may use for a field of a different kind -->
                     @for (field of typeFields(); track field) {
                     <app-field [field]="field"
                                [model]="model().typeData!"
-                               namePrefix="typeData_"></app-field>
+                               namePrefix="typeData_"
+                               [collapseScope]="'page-type:' + pageType()!.type"></app-field>
                     }
                 </div>
             </section>
             }
 
-            <section class="card">
+            <section class="card"
+                     appCollapse="section:page/seo"
+                     [appCollapseOpen]="!edit()"
+                     #seo="appCollapse">
                 <header class="card__header">
                     <div class="card__heading">
                         <h2 class="card__title">{{ t('page.seo') }}</h2>
                         <p class="card__desc">{{ t('page.seoDesc') }}</p>
                     </div>
+                    <app-collapse-toggle [target]="seo"
+                                         [name]="t('page.seo')"></app-collapse-toggle>
                 </header>
-                <div class="card__body">
+                <div class="card__body"
+                     [hidden]="seo.collapsed()">
                     <div class="field">
                         <label class="field__label"
                                for="page-seo-title">{{ t('page.seoTitle') }}</label>
@@ -178,7 +198,10 @@
                 </div>
             </section>
 
-            <section class="card">
+            <section class="card"
+                     appCollapse="section:page/components"
+                     [appCollapseOpen]="!edit()"
+                     #componentsSection="appCollapse">
                 <header class="card__header">
                     <div class="card__heading">
                         <h2 class="card__title">{{ t('page.components') }}</h2>
@@ -187,8 +210,19 @@
                     @if (rows().length) {
                     <span class="badge badge--neutral">{{ rows().length }}<span class="visually-hidden"> {{ t('page.componentsCount', { count: rows().length }) }}</span></span>
                     }
+                    @if (rows().length > 1 && !componentsSection.collapsed()) {
+                    <button mat-button
+                            type="button"
+                            class="btn--sm card__header-action"
+                            (click)="toggleBlocks()">
+                        {{ blockList.allCollapsed() ? t('page.expandComponents') : t('page.collapseComponents') }}
+                    </button>
+                    }
+                    <app-collapse-toggle [target]="componentsSection"
+                                         [name]="t('page.components')"></app-collapse-toggle>
                 </header>
-                <div class="card__body">
+                <div class="card__body"
+                     [hidden]="componentsSection.collapsed()">
                     @if (!rows().length) {
                     <div class="empty empty--compact">
                         <span class="empty__icon">
@@ -221,6 +255,8 @@
                                                [components]="components()"
                                                [model]="row"
                                                [order]="i"
+                                               [collapseOpen]="blocksStartOpen"
+                                               (collapseChange)="rememberBlocks()"
                                                (remove)="removeComponent(i)"></app-add-component>
                         </li>
                         }
