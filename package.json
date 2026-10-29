@@ -6,7 +6,8 @@
     "scripts": {
         "start": "node app.js",
         "watch": "nodemon --watch ./server --watch app.js app.js",
-        "test": "node --test \"server/**/*.test.js\""
+        "test": "node --test \"server/**/*.test.js\"",
+        "deploy": "sh deploy.sh"
     },
     "keywords": [],
     "author": "",

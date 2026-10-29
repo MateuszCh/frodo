@@ -41,6 +41,28 @@ ng test            # Unit tests via Vitest
 docker compose up -d    # Production build and run
 ```
 
+### Deploy (MyDevil)
+
+Run by the user on the server, in the clone the domain runs from — never by Claude: it
+restarts the production CMS. The same flow as in geosilesia:
+```bash
+git pull
+npm run deploy    # deploy.sh: root npm install --omit=dev, front deps, ng build, devil www restart <deployDomain>
+```
+- Needs `deployDomain` in the server's `config.json` (the domain as `devil www list` shows it);
+  without it the script stops before installing anything. `node` on the server must be a
+  version Angular 22 accepts (the Dockerfile uses 24.16).
+- Front dependencies: `npm ci` once `front/package-lock.json` is in the repository, `npm install`
+  while it is gitignored. Geosilesia keeps its lockfile in git: unpinned, `@angular/build` 22.2
+  pulled `sass-embedded`, which hung the build on the server.
+- The build goes to `tmp/front-build` and replaces `front/public` only once it has succeeded, so a
+  failed build leaves the running CMS as it was. The restart always comes after the build;
+  sessions live in MongoDB, so nobody is logged out.
+- `config.json`, `uploads/` (`uploadsPath`) and `exports/` are gitignored and outside the build —
+  `git pull` and the script never touch them.
+
+On a server with Docker instead: `git pull && docker compose up -d --build`.
+
 ### Single test
 ```bash
 cd front && ng test --include='**/path/to/spec.ts'
@@ -104,6 +126,7 @@ All Angular components are **standalone** (no NgModules). Routing is configured 
   "user": { "login": "...", "password": "..." }
 }
 ```
+`deployDomain` is read only by `npm run deploy` (see Deploy).
 
 ### Public site cache (geosilesia)
 
