@@ -1,4 +1,13 @@
-import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import {
+    Component,
+    OnInit,
+    computed,
+    inject,
+    input,
+    signal,
+    viewChild,
+    viewChildren,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
@@ -13,6 +22,12 @@ import { ToolsService } from '../../../core/tools.service';
 import { AddComponentComponent } from '../add-component/add-component';
 import { FieldInputComponent } from '../../fields/field-input/field-input';
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { CollapseStateService } from '../../../core/collapse-state.service';
+import { CollapseDirective, collapsibleList } from '../../../shared/collapse.directive';
+import { CollapseToggleComponent } from '../../../shared/collapse-toggle/collapse-toggle';
+
+/** Page components start collapsed; when they were all left expanded, the next page starts so. */
+const BLOCKS_KEY = 'rows:page/components';
 
 @Component({
     selector: 'app-page',
@@ -25,6 +40,8 @@ import { I18nService } from '../../../core/i18n/i18n.service';
         MatSelectModule,
         AddComponentComponent,
         FieldInputComponent,
+        CollapseDirective,
+        CollapseToggleComponent,
     ],
     templateUrl: './page.html',
 })
@@ -37,6 +54,7 @@ export class PageComponent implements OnInit {
     private router = inject(Router);
     private pagesService = inject(PagesService);
     private tools = inject(ToolsService);
+    private collapseState = inject(CollapseStateService);
 
     protected readonly model = signal<Page>(this.blankModel());
     protected readonly currentTitle = signal('');
@@ -52,6 +70,18 @@ export class PageComponent implements OnInit {
         const key = this.model().type;
         return key && !this.pageType() ? key : null;
     });
+    private readonly blocks = viewChildren(AddComponentComponent);
+    /** The components with fields to show; one without a type (or of a removed one) has none. */
+    private readonly blockParts = computed(() =>
+        this.blocks()
+            .filter((block) => block.hasFields())
+            .map((block) => block.collapse),
+    );
+    protected readonly blockList = collapsibleList(this.blockParts);
+    protected readonly blocksStartOpen = this.collapseState.isExpanded(BLOCKS_KEY);
+    private readonly typeSection = viewChild<CollapseDirective>('typeSection');
+    /** A type chosen in this editor: its fields card opens to be filled in. */
+    protected readonly typeChosen = signal(false);
     /** Values of the types chosen before in this editor, by type key (null: no type). */
     private readonly typeDataByType = new Map<string | null, Record<string, unknown>>();
 
@@ -87,6 +117,9 @@ export class PageComponent implements OnInit {
             .map((field) => [field.id, typeData[field.id]]);
         const next = this.typeDataByType.get(type) ?? Object.fromEntries(carried);
         this.model.set({ ...this.model(), type, typeData: next });
+        // the card of the new type's fields opens: a new card through typeChosen, one that stays here
+        this.typeChosen.set(true);
+        this.typeSection()?.collapsed.set(false);
     }
 
     addComponent(): void {
@@ -97,6 +130,20 @@ export class PageComponent implements OnInit {
     removeComponent(index: number): void {
         this.model().rows.splice(index, 1);
         this.model.set({ ...this.model() });
+    }
+
+    toggleBlocks(): void {
+        this.blockList.toggleAll();
+        this.rememberBlocks();
+    }
+
+    /** After the user collapses or expands components: are they all expanded now. */
+    rememberBlocks(): void {
+        const parts = this.blockParts();
+        this.collapseState.set(
+            BLOCKS_KEY,
+            parts.length > 0 && parts.every((part) => !part.collapsed()),
+        );
     }
 
     drop(event: CdkDragDrop<unknown>): void {

@@ -1,13 +1,25 @@
 @let pt = pageType();
 <!-- pages keep the key of their type: a used type cannot go or get a new key -->
 @let used = usedBy().length > 0;
-<article class="schema-field">
+@let collapsed = collapse.collapsed();
+<article class="schema-field"
+         [class.is-collapsed]="collapsed">
     <header class="schema-field__head">
-        <span class="schema-field__name"
-              [class.is-placeholder]="!pt.title">{{ pt.title || t('settings.untitledPageType') }}</span>
-        @if (pt.type) {
-        <span class="badge badge--neutral">{{ pt.type }}</span>
-        }
+        <button type="button"
+                class="collapse-toggle schema-field__toggle"
+                [attr.aria-expanded]="!collapsed"
+                [attr.aria-controls]="uid + '_body'"
+                (click)="collapse.toggle()">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-chevron-down" />
+            </svg>
+            <span class="schema-field__name"
+                  [class.is-placeholder]="!pt.title">{{ pt.title || t('settings.untitledPageType') }}</span>
+            @if (pt.type) {
+            <span class="badge badge--neutral">{{ pt.type }}</span>
+            }
+        </button>
         <button mat-icon-button
                 type="button"
                 class="btn--sm"
@@ -21,7 +33,10 @@
         </button>
     </header>
 
-    <div class="schema-field__body">
+    <!-- hidden, not removed: the controls stay in the form and still validate -->
+    <div class="schema-field__body"
+         [id]="uid + '_body'"
+         [hidden]="collapsed">
         <div class="form-grid form-grid--2">
             <div class="field">
                 <label class="field__label"
@@ -79,6 +94,8 @@
             }
             @for (field of pt.fields; track field; let i = $index) {
             <app-add-field [field]="field"
+                           [collapseKey]="pt.type && field.id ? 'def:page-type:' + pt.type + '/' + field.id : null"
+                           [collapseOpen]="!field.id"
                            (remove)="removeField(i)"></app-add-field>
             }
             <button mat-stroked-button

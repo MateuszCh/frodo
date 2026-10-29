@@ -1,6 +1,7 @@
 // Field definition card: post type and component editors (design/components.css, 18),
 // also a page type in the settings. app-add-field is recursive: repeater sub-fields
-// (and the fields of a page type) are indented with a line on the left.
+// (and the fields of a page type) are indented with a line on the left. A card
+// collapses to its head (CollapseDirective, _collapse.scss).
 
 .schema-list {
     display: grid;
@@ -19,18 +20,18 @@
     }
 }
 
+// the toggle (chevron, name, badge) fills the head up to the delete button
 .schema-field__head {
     display: flex;
     align-items: center;
     gap: var(--space-2);
-    padding: var(--space-2) var(--space-2) var(--space-2) var(--space-4);
+    padding: var(--space-1-5);
     border-bottom: 1px solid var(--color-border);
+}
 
-    > .badge,
-    // a page type with no key yet has no badge
-    > .schema-field__name:nth-last-child(2) {
-        margin-right: auto;
-    }
+// a collapsed card is its head alone
+.schema-field.is-collapsed > .schema-field__head {
+    border-bottom: 0;
 }
 
 .schema-field__name {

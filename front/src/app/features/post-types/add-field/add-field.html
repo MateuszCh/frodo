@@ -1,9 +1,21 @@
 @let f = field();
-<article class="schema-field">
+@let collapsed = collapse.collapsed();
+<article class="schema-field"
+         [class.is-collapsed]="collapsed">
     <header class="schema-field__head">
-        <span class="schema-field__name"
-              [class.is-placeholder]="!f.title">{{ f.title || t('schema.untitledField') }}</span>
-        <span class="badge badge--neutral">{{ f.type }}</span>
+        <button type="button"
+                class="collapse-toggle schema-field__toggle"
+                [attr.aria-expanded]="!collapsed"
+                [attr.aria-controls]="uid + '_body'"
+                (click)="collapse.toggle()">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-chevron-down" />
+            </svg>
+            <span class="schema-field__name"
+                  [class.is-placeholder]="!f.title">{{ f.title || t('schema.untitledField') }}</span>
+            <span class="badge badge--neutral">{{ f.type }}</span>
+        </button>
         <button mat-icon-button
                 type="button"
                 class="btn--sm"
@@ -16,7 +28,10 @@
         </button>
     </header>
 
-    <div class="schema-field__body">
+    <!-- hidden, not removed: the controls stay in the form and still validate -->
+    <div class="schema-field__body"
+         [id]="uid + '_body'"
+         [hidden]="collapsed">
         <div class="form-grid form-grid--2">
             <div class="field">
                 <label class="field__label"
@@ -145,6 +160,8 @@
             <span class="field__label">{{ t('schema.rowFields') }}</span>
             @for (rf of f.repeaterFields ?? []; track rf; let i = $index) {
             <app-add-field [field]="rf"
+                           [collapseKey]="childKey(rf)"
+                           [collapseOpen]="!rf.id"
                            (remove)="removeRepeaterField(i)"></app-add-field>
             }
             <button mat-stroked-button

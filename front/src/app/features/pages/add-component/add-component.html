@@ -1,4 +1,5 @@
 @let component = current();
+@let collapsed = collapse.collapsed();
 <div class="block-card__head">
     <span class="block-card__index"
           aria-hidden="true"></span>
@@ -6,9 +7,9 @@
     <button mat-icon-button
             type="button"
             class="btn--sm block-card__toggle"
-            [attr.aria-expanded]="open()"
-            [attr.aria-label]="t(open() ? 'block.hideFields' : 'block.showFields', { name: component.title })"
-            (click)="open.set(!open())">
+            [attr.aria-expanded]="!collapsed"
+            [attr.aria-label]="t(collapsed ? 'block.showFields' : 'block.hideFields', { name: component.title })"
+            (click)="collapse.toggle()">
         <svg class="icon"
              aria-hidden="true">
             <use href="icons.svg#i-chevron-down" />
@@ -40,12 +41,17 @@
     </button>
 </div>
 
-@if (open() && component) {
-<div class="block-card__body">
-    @for (field of component.fields; track field.id) {
+<!-- hidden, not removed: the fields stay in the form while the component is collapsed -->
+@if (component) {
+<div class="block-card__body fields"
+     [hidden]="collapsed">
+    <!-- track the field object: another component may use the same id for a field of
+         another kind or with other options, and app-field reads them once -->
+    @for (field of component.fields; track field) {
     <app-field [field]="field"
                [model]="model().data!"
-               [namePrefix]="'comp_' + order() + '_'"></app-field>
+               [namePrefix]="'comp_' + order() + '_'"
+               [collapseScope]="'component:' + component.type"></app-field>
     }
 </div>
 }

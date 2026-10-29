@@ -31,12 +31,18 @@
 </div>
 
 @if (component) {
-    <div class="component-field__body">
+    <div class="component-field__body fields">
         <!-- track the field object: another component may use the same id for a
              field of a different kind. The "." separator cannot clash with a sibling's id
              the way "_" can (ids are formatted with underscores). -->
         @for (child of component.fields; track child) {
-            <app-field [field]="child" [model]="value()!.data!" [namePrefix]="ctrl + '.'"></app-field>
+            <!-- a component's fields are its own schema, wherever it is used -->
+            <app-field
+                [field]="child"
+                [model]="value()!.data!"
+                [namePrefix]="ctrl + '.'"
+                [collapseScope]="'component:' + component.type"
+            ></app-field>
         } @empty {
             <p class="field__hint">{{ t('componentField.noFields') }}</p>
         }

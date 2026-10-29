@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { ChangeDetectorRef, Component, signal } from '@angular/core';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { FormsModule, NgModel } from '@angular/forms';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
@@ -386,5 +386,57 @@ describe('FieldInputComponent — openFiles()', () => {
 
         expect(model['img']).toBe('/old.jpg');
         expect(comp.fileSrc()).toBe('/old.jpg');
+    });
+});
+
+// ---------------------------------------------------------------------------
+// Layout — which fields may share a line (.fields in _fields.scss)
+// ---------------------------------------------------------------------------
+
+describe('FieldInputComponent — layout', () => {
+    function hostClasses(field: Field): DOMTokenList {
+        const { fixture } = setup(field);
+        return fixture.nativeElement.querySelector('app-field').classList;
+    }
+
+    it.each(['number', 'date', 'select', 'catalogue', 'checkbox'] as const)(
+        'lets a %s field share a line',
+        (type) => {
+            const classes = hostClasses(makeField(type, 'f', 'F'));
+
+            expect(classes).toContain('fields__item');
+            expect(classes).toContain('fields__item--short');
+        },
+    );
+
+    it.each(['text', 'textarea', 'multiselect', 'file'] as const)(
+        'gives a %s field the whole line',
+        (type) => {
+            const classes = hostClasses(makeField(type, 'f', 'F'));
+
+            expect(classes).toContain('fields__item');
+            expect(classes).not.toContain('fields__item--short');
+        },
+    );
+
+    it('marks a checkbox, which lines up with the control beside it', () => {
+        expect(hostClasses(makeField('checkbox', 'f', 'F'))).toContain('fields__item--checkbox');
+        TestBed.resetTestingModule();
+        expect(hostClasses(makeField('number', 'f', 'F'))).not.toContain('fields__item--checkbox');
+    });
+});
+
+describe('FieldInputComponent — file preview', () => {
+    it('follows the bound model when another object is bound', () => {
+        const { fixture } = setup(makeField('file', 'img', 'Image'), { img: '/uploads/a.jpg' });
+
+        fixture.componentInstance.model = { img: '/uploads/b.jpg' };
+        // the host's model is a plain property: mark the host for the check
+        fixture.debugElement.injector.get(ChangeDetectorRef).markForCheck();
+        fixture.detectChanges();
+
+        expect(
+            fixture.nativeElement.querySelector('.file-field__preview img')?.getAttribute('src'),
+        ).toBe('/uploads/b.jpg');
     });
 });
