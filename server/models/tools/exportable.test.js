@@ -185,5 +185,105 @@ describe('exportable', () => {
             assert.equal(reserve.mock.callCount(), 0);
             assert.equal(create.mock.callCount(), 0);
         });
+
+        it('with keepIds keeps the ids of the export that are free, and moves the counter past them', async (t) => {
+            const calls = [];
+            t.mock.method(Post, 'find', async (query) => {
+                calls.push(['find', query.id.$in]);
+                return [{ id: 7 }];
+            });
+            t.mock.method(Counter, 'passId', async (id) => calls.push(['passId', id]));
+            t.mock.method(Counter, 'reserve', async (count) => {
+                calls.push(['reserve', count]);
+                return 500;
+            });
+            t.mock.method(Post, 'create', async (models) => models);
+
+            const saved = await Post.saveImport(
+                [
+                    { title: 'Wolne', id: 42 },
+                    { title: 'Zajęte', id: 7 },
+                    { title: 'Powtórzone', id: 42 },
+                    { title: 'Bez id' },
+                    { title: 'Wolne dalej', id: 300 },
+                ],
+                { type: 'zasob' },
+                { keepIds: true },
+            );
+
+            assert.deepEqual(
+                saved.map((post) => [post.title, post.id]),
+                [
+                    ['Wolne', 42],
+                    ['Zajęte', 500],
+                    ['Powtórzone', 501],
+                    ['Bez id', 502],
+                    ['Wolne dalej', 300],
+                ],
+            );
+            // past the kept ids before the counter hands out new ones
+            assert.deepEqual(calls, [
+                ['find', [42, 7, 42, 300]],
+                ['passId', 300],
+                ['reserve', 3],
+            ]);
+        });
+
+        it('with keepIds and every id free takes no new ids', async (t) => {
+            t.mock.method(Post, 'find', async () => []);
+            const passId = t.mock.method(Counter, 'passId', async () => {});
+            const reserve = t.mock.method(Counter, 'reserve', async () => 500);
+            t.mock.method(Post, 'create', async (models) => models);
+
+            const saved = await Post.saveImport([{ title: 'A', id: 3 }], { type: 'zasob' }, { keepIds: true });
+
+            assert.equal(saved[0].id, 3);
+            assert.deepEqual(passId.mock.calls[0].arguments, [3]);
+            assert.equal(reserve.mock.callCount(), 0);
+        });
+    });
+
+    it('keeps the post type of a "post" field, in repeater rows too', () => {
+        const postType = PostType.hydrate({
+            _id,
+            ...stored.postType,
+            fields: [
+                { title: 'Powiązane', type: 'post', id: 'powiazane', postType: 'marker', repeaterFields: [] },
+                {
+                    title: 'Lista',
+                    type: 'repeater',
+                    id: 'lista',
+                    repeaterFields: [
+                        { title: 'Wpis', type: 'post', id: 'wpis', postType: 'zasob', repeaterFields: [] },
+                    ],
+                },
+            ],
+        });
+        const imported = PostType.fromExport(JSON.parse(JSON.stringify(postType.toExport())));
+
+        assert.equal(imported.fields[0].postType, 'marker');
+        assert.equal(imported.fields[1].repeaterFields[0].postType, 'zasob');
+        assert.equal(new PostType(imported).validateSync(), undefined);
+    });
+
+    it('does not take a "post" field without a post type', () => {
+        const error = new PostType({
+            ...stored.postType,
+            fields: [{ title: 'Powiązane', type: 'post', id: 'powiazane', repeaterFields: [] }],
+        }).validateSync();
+        assert.match(error.message, /post type of field is required/);
+
+        const nested = new PostType({
+            ...stored.postType,
+            fields: [
+                {
+                    title: 'Lista',
+                    type: 'repeater',
+                    id: 'lista',
+                    repeaterFields: [{ title: 'Wpis', type: 'post', id: 'wpis', repeaterFields: [] }],
+                },
+            ],
+        }).validateSync();
+        assert.match(nested.message, /post type of field is required/);
     });
 });

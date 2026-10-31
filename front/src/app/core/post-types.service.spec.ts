@@ -124,4 +124,52 @@ describe('PostTypesService', () => {
         expect(req.request.body).toEqual(data);
         req.flush([]);
     });
+
+    // ---- post titles of "post" fields ------------------------------------------
+
+    describe('getPostTitles()', () => {
+        const url = '/api/postTypeByTypePostTitles/marker';
+
+        it('shares one request among the fields of a type', () => {
+            const pt = makePostType({ type: 'marker' });
+            const results: PostType[] = [];
+            service.getPostTitles('marker').subscribe((r) => results.push(r));
+            service.getPostTitles('marker').subscribe((r) => results.push(r));
+            http.expectOne({ method: 'GET', url }).flush(pt);
+            service.getPostTitles('marker').subscribe((r) => results.push(r));
+            http.expectNone(url);
+            expect(results).toEqual([pt, pt, pt]);
+        });
+
+        it('asks again once posts or post types change', () => {
+            service.getPostTitles('marker').subscribe();
+            http.expectOne(url).flush(makePostType());
+
+            service.postsChanged();
+            service.getPostTitles('marker').subscribe();
+            http.expectOne(url).flush(makePostType());
+
+            service.edit(makePostType()).subscribe();
+            http.expectOne('/api/postType/edit').flush(makePostType());
+            service.getPostTitles('marker').subscribe();
+            http.expectOne(url).flush(makePostType());
+        });
+
+        it('does not keep a failed request', () => {
+            let failed = false;
+            service.getPostTitles('marker').subscribe({ error: () => (failed = true) });
+            http.expectOne(url).flush(null, { status: 500, statusText: 'Error' });
+            expect(failed).toBe(true);
+
+            service.getPostTitles('marker').subscribe();
+            http.expectOne(url).flush(makePostType());
+        });
+    });
+
+    it('menuLoaded is false until the menu list has loaded', () => {
+        expect(service.menuLoaded()).toBe(false);
+        service.getAll().subscribe();
+        http.expectOne('/api/postType').flush([]);
+        expect(service.menuLoaded()).toBe(true);
+    });
 });

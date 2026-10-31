@@ -1,3 +1,4 @@
+import { signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
@@ -31,7 +32,11 @@ const marker = (): PostType => ({
     ],
 });
 
-async function setup(schema?: PostType | ComponentEntity, family = 'postTypes') {
+async function setup(
+    schema?: PostType | ComponentEntity,
+    family = 'postTypes',
+    menu: PostType[] = [marker(), { ...marker(), type: 'event', pluralTitle: 'Events' }],
+) {
     // the server answers with new objects, as a real save does
     const edit = vi.fn((data: PostType) => of(structuredClone(data)));
     const api = { create: vi.fn(), edit, remove: vi.fn() };
@@ -40,7 +45,15 @@ async function setup(schema?: PostType | ComponentEntity, family = 'postTypes') 
         providers: [
             provideRouter([]),
             provideNoopAnimations(),
-            { provide: PostTypesService, useValue: { ...api, refreshMenu: vi.fn() } },
+            {
+                provide: PostTypesService,
+                useValue: {
+                    ...api,
+                    refreshMenu: vi.fn(),
+                    menu: signal(menu),
+                    menuLoaded: signal(true),
+                },
+            },
             { provide: ComponentsService, useValue: api },
             { provide: ToolsService, useValue: { alert: vi.fn(), scrollToError: vi.fn() } },
         ],
@@ -194,5 +207,61 @@ describe('PostTypeComponent — collapsing', () => {
         expect(sectionBody('Fields').hidden).toBe(false);
         expect(cardBody('Untitled field').hidden).toBe(false);
         expect(cardBody('Gallery').hidden).toBe(true);
+    });
+});
+
+describe('PostTypeComponent — "post" field', () => {
+    it('lists the post types to choose from, a removed one too, and saves the chosen key', async () => {
+        const schema = marker();
+        schema.fields = [{ title: 'Related', type: 'post', id: 'related', postType: 'gone' }];
+        const { fixture, cardBody, edit, save } = await setup(schema);
+
+        // the second select of the card, after the field type
+        cardBody('Related').querySelectorAll<HTMLElement>('mat-select')[1].click();
+        fixture.detectChanges();
+        const options = Array.from(document.querySelectorAll<HTMLElement>('mat-option'));
+        expect(options.map((o) => o.textContent?.trim())).toEqual(['Markers', 'Events', 'gone (no such post type)']);
+
+        options[1].click();
+        fixture.detectChanges();
+        await save();
+
+        expect(edit.mock.calls[0][0].fields[0].postType).toBe('event');
+    });
+
+    it('does not save a "post" field without a post type', async () => {
+        const schema = marker();
+        schema.fields = [{ title: 'Related', type: 'post', id: 'related' }];
+        const { edit, save, cardBody } = await setup(schema);
+
+        await save();
+
+        expect(edit).not.toHaveBeenCalled();
+        expect(cardBody('Related').textContent).toContain('This field is required');
+    });
+
+    it('drops the post type of a field that stops being a "post" field', async () => {
+        const schema = marker();
+        schema.fields = [{ title: 'Related', type: 'post', id: 'related', postType: 'marker' }];
+        const { fixture, cardBody, edit, save } = await setup(schema);
+
+        cardBody('Related').querySelectorAll<HTMLElement>('mat-select')[0].click();
+        fixture.detectChanges();
+        Array.from(document.querySelectorAll<HTMLElement>('mat-option'))
+            .find((o) => o.textContent?.trim() === 'Text')!
+            .click();
+        fixture.detectChanges();
+        await save();
+
+        expect(edit.mock.calls[0][0].fields[0]).not.toHaveProperty('postType');
+        expect(edit.mock.calls[0][0].fields[0].type).toBe('text');
+    });
+
+    it('says when there is no post type to choose yet', async () => {
+        const schema = marker();
+        schema.fields = [{ title: 'Related', type: 'post', id: 'related' }];
+        const { cardBody } = await setup(schema, 'postTypes', []);
+
+        expect(cardBody('Related').textContent).toContain('There are no post types yet.');
     });
 });

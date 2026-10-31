@@ -10,6 +10,12 @@ module.exports = {
             return false;
         });
     },
+    /** Whether a "post" field, here or in repeater rows at any depth, has no post type. */
+    validatePostTypes: function validate(fields) {
+        return (fields || []).some(
+            (field) => (field.type === 'post' && !field.postType) || validate(field.repeaterFields),
+        );
+    },
     validateRepeaterIds: function validate(fields) {
         if (!(fields || fields.length)) {
             return false;

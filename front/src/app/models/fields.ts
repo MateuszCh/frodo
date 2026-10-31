@@ -18,6 +18,7 @@ export const FIELDS: Record<FieldType, FieldTypeDef> = {
     date: { name: 'Date', type: 'date' },
     catalogue: { name: 'Catalogue', type: 'catalogue' },
     component: { name: 'Component', type: 'component' },
+    post: { name: 'Post', type: 'post' },
 };
 
 export const FIELD_LIST: FieldTypeDef[] = Object.values(FIELDS);

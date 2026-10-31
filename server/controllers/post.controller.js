@@ -45,8 +45,9 @@ module.exports = {
                             error: 'There is no ' + postType + ' post type.',
                         });
                     }
-                    // into the type imported to, whichever type they were exported from
-                    return Post.saveImport(correctPosts, { type: postType })
+                    // into the type imported to, whichever type they were exported from; with the
+                    // ids of the export where they are free, which "post" fields point to
+                    return Post.saveImport(correctPosts, { type: postType }, { keepIds: true })
                         .then((posts) =>
                             postTypeModel.update({
                                 $push: { posts: { $each: posts.map((post) => post._id) } },

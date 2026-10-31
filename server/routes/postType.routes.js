@@ -15,6 +15,8 @@ module.exports = (app) => {
 
     app.get('/api/postTypeByTypePosts/:type', PostTypeController.getByTypeWithPosts);
 
+    app.get('/api/postTypeByTypePostTitles/:type', PostTypeController.getByTypeWithPostTitles);
+
     app.delete('/api/postType/:id', PostTypeController.delete);
 
     app.get('/api/exportPostTypes', PostTypeController.exportPostTypes);

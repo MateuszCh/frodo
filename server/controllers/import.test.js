@@ -107,6 +107,24 @@ describe('import of posts', () => {
         assert.equal(saveImport.mock.callCount(), 0);
     });
 
+    it('keeps the ids of the export that are free, which "post" fields point to', async (t) => {
+        const postTypeModel = { update: async () => {} };
+        t.mock.method(PostType, 'findOne', () => {
+            const found = Promise.resolve(postTypeModel);
+            found.populate = async () => ({ type: 'zasob', posts: [] });
+            return found;
+        });
+        const saveImport = t.mock.method(Post, 'saveImport', async () => [{ _id: 'p1' }]);
+
+        const response = await run(PostController.importPosts, {
+            postType: 'zasob',
+            posts: [{ title: 'Jaskinia', id: 42 }],
+        });
+
+        assert.equal(response.status, 200);
+        assert.deepEqual(saveImport.mock.calls[0].arguments.slice(1), [{ type: 'zasob' }, { keepIds: true }]);
+    });
+
     it('refuses an export of pages', async () => {
         const response = await run(PostController.importPosts, {
             postType: 'zasob',

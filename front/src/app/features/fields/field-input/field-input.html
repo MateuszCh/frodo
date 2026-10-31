@@ -139,6 +139,9 @@
     @case ('component') {
         <app-component-field class="component-field" [parentModel]="data" [field]="f" [namePrefix]="ctrl"></app-component-field>
     }
+    @case ('post') {
+        <app-post-field class="post-field" [parentModel]="data" [field]="f"></app-post-field>
+    }
     @case ('file') {
         <div class="field">
             <span class="field__label">{{ f.title }}</span>
