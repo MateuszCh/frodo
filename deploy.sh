@@ -1,8 +1,16 @@
 #!/bin/sh
-# Run on the server after `git pull` (`npm run deploy`). Build first, restart second – the
-# new server expects the new build.
+# Run on the server (`npm run deploy`): pulls the code, builds, restarts. Build first, restart
+# second – the new server expects the new build.
 set -eu
 cd "$(dirname "$0")"
+
+# The pull may change this very script, so after it the new version runs from the start.
+# --ff-only: the server clone never makes commits of its own, a diverged branch stops here.
+if [ -z "${DEPLOY_PULLED:-}" ]; then
+    git pull --ff-only
+    DEPLOY_PULLED=1 exec sh "./$(basename "$0")" "$@"
+fi
+
 # Domain under which the app is registered on MyDevil (`devil www list`). Checked before
 # building, so a missing entry does not leave a new build running on the old server.
 domain=$(node -p "require('./config.json').deployDomain || ''")

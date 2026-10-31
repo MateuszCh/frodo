@@ -46,8 +46,7 @@ docker compose up -d    # Production build and run
 Run by the user on the server, in the clone the domain runs from — never by Claude: it
 restarts the production CMS. The same flow as in geosilesia:
 ```bash
-git pull
-npm run deploy    # deploy.sh: root npm install --omit=dev, front deps, ng build, devil www restart <deployDomain>
+npm run deploy    # deploy.sh: git pull --ff-only, root npm install --omit=dev, front deps, ng build, devil www restart <deployDomain>
 ```
 - Needs `deployDomain` in the server's `config.json` (the domain as `devil www list` shows it);
   without it the script stops before installing anything. `node` on the server must be a
@@ -58,6 +57,8 @@ npm run deploy    # deploy.sh: root npm install --omit=dev, front deps, ng build
 - The build goes to `tmp/front-build` and replaces `front/public` only once it has succeeded, so a
   failed build leaves the running CMS as it was. The restart always comes after the build;
   sessions live in MongoDB, so nobody is logged out.
+- The script pulls first (`--ff-only`: a clone with its own commits stops there) and then runs
+  again as the pulled version, so changes to `deploy.sh` itself apply in the same deploy.
 - `config.json`, `uploads/` (`uploadsPath`) and `exports/` are gitignored and outside the build —
   `git pull` and the script never touch them.
 
