@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { PostsService } from './posts.service';
+import { PostTypesService } from './post-types.service';
 import { makePost } from '../testing/test-helpers';
 import type { Post } from '../models/models';
 
@@ -68,5 +69,18 @@ describe('PostsService', () => {
         const req = http.expectOne({ method: 'POST', url: '/api/importPosts' });
         expect(req.request.body).toEqual(body);
         req.flush({});
+    });
+
+    it('drops the post titles of "post" fields after each write', () => {
+        const types = TestBed.inject(PostTypesService);
+        const url = '/api/postTypeByTypePostTitles/marker';
+        types.getPostTitles('marker').subscribe();
+        http.expectOne(url).flush({});
+
+        service.edit(makePost()).subscribe();
+        http.expectOne('/api/post/edit').flush(makePost());
+
+        types.getPostTitles('marker').subscribe();
+        http.expectOne(url).flush({});
     });
 });

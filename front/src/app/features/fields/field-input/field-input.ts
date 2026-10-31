@@ -21,6 +21,7 @@ import { parseOptions } from '../../../shared/parse-options';
 import { FilePickerDialogComponent } from '../../files/file-picker-dialog/file-picker-dialog';
 import { RepeaterComponent } from '../repeater/repeater';
 import { ComponentFieldComponent } from '../component-field/component-field';
+import { PostFieldComponent } from '../post-field/post-field';
 import { provideAppDateAdapter } from '../../../core/i18n/date-adapter';
 import { I18nService } from '../../../core/i18n/i18n.service';
 
@@ -62,6 +63,7 @@ const SHORT_TYPES: ReadonlySet<FieldType> = new Set([
         forwardRef(() => RepeaterComponent),
         /* v8 ignore next */
         forwardRef(() => ComponentFieldComponent),
+        PostFieldComponent,
     ],
     templateUrl: './field-input.html',
 })

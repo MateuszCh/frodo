@@ -36,15 +36,44 @@ module.exports = function exportable(schema, { omit = [] } = {}) {
      * Saves the documents of an import, with `overrides` and new ids. All are validated before any
      * is saved – Model.create would save the valid ones and fail on the rest – and only then take
      * their ids. Resolves to the documents, rejects with the first validation error.
+     *
+     * With `keepIds` a document keeps the id of its export when no document of this model has
+     * it (nor an earlier one of the import): values that point to it by id ("post" fields hold
+     * post ids) still do after an import into another site. The counter moves past kept ids.
      */
-    schema.statics.saveImport = function (values, overrides = {}) {
+    schema.statics.saveImport = function (values, overrides = {}, { keepIds = false } = {}) {
         const models = values.map((value) => ({ ...this.fromExport(value), ...overrides }));
         const invalid = models.map((model) => new this(model).validateSync()).find(Boolean);
         if (invalid) {
             return Promise.reject(invalid);
         }
-        return Counter.reserve(models.length).then((firstId) =>
-            this.create(models.map((model, i) => ({ ...model, id: firstId + i }))),
+        const wanted = values.map((value) =>
+            keepIds && Number.isInteger(value.id) && value.id > 0 ? value.id : null,
         );
+        const candidates = wanted.filter((id) => id !== null);
+        const taken = candidates.length
+            ? this.find({ id: { $in: candidates } }, 'id').then((docs) => docs.map((doc) => doc.id))
+            : Promise.resolve([]);
+        return taken.then((takenIds) => {
+            const used = new Set(takenIds);
+            const ids = wanted.map((id) => {
+                if (id === null || used.has(id)) {
+                    return null;
+                }
+                used.add(id);
+                return id;
+            });
+            const kept = ids.filter((id) => id !== null);
+            const missing = ids.length - kept.length;
+            // past the kept ids first, so the new ids cannot be one of them
+            return Promise.resolve(kept.length ? Counter.passId(Math.max(...kept)) : null)
+                .then(() => (missing ? Counter.reserve(missing) : null))
+                .then((firstId) => {
+                    let next = firstId;
+                    return this.create(
+                        models.map((model, i) => ({ ...model, id: ids[i] !== null ? ids[i] : next++ })),
+                    );
+                });
+        });
     };
 };

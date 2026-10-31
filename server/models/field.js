@@ -22,6 +22,16 @@ const FieldSchema = new Schema(
         multiselectOptions: {
             type: String,
         },
+        // "post" field: key of the post type its posts are chosen from
+        postType: {
+            type: String,
+            required: [
+                function () {
+                    return this.type === 'post';
+                },
+                'post type of field is required',
+            ],
+        },
         repeaterFields: {
             type: [this],
             validate: [
@@ -44,6 +54,11 @@ const FieldSchema = new Schema(
                     validator: (repeaterFields) =>
                         !fieldValidation.validateRepeaterIds(repeaterFields),
                     message: 'Each field in the same level should have a different id',
+                },
+                {
+                    validator: (repeaterFields) =>
+                        !fieldValidation.validatePostTypes(repeaterFields),
+                    message: 'post type of field is required',
                 },
             ],
         },

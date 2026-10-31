@@ -1,0 +1,66 @@
+@let f = field();
+@let labelId = uid + '-label';
+
+<div class="field">
+    <span class="field__label" [id]="labelId">{{ f.title }}</span>
+    @if (postType()) {
+        <div class="post-field__body">
+            @if (chosen().length) {
+                <ul class="post-field__list" [attr.aria-labelledby]="labelId">
+                    @for (item of chosen(); track item.id; let i = $index) {
+                        @let name = label(item);
+                        <li class="post-field__item" [class.is-missing]="posts() && !item.post">
+                            <span class="post-field__title">{{ name }}</span>
+                            <button
+                                mat-icon-button
+                                type="button"
+                                class="btn--sm"
+                                [attr.aria-label]="t('postField.removePost', { name })"
+                                (click)="removePost(i)"
+                            >
+                                <svg class="icon" aria-hidden="true"><use href="icons.svg#i-x" /></svg>
+                            </button>
+                        </li>
+                    }
+                </ul>
+            } @else {
+                <p class="field__hint">{{ t('postField.noPosts') }}</p>
+            }
+            @if (loadError()) {
+                <p class="field__hint post-field__error" role="alert">
+                    {{ t('postField.loadError') }}
+                    <button mat-button type="button" class="btn--sm" (click)="reload()">
+                        {{ t('postField.retry') }}
+                    </button>
+                </p>
+            }
+            <div class="post-field__actions">
+                <button
+                    mat-stroked-button
+                    type="button"
+                    class="btn--sm post-field__choose"
+                    [attr.aria-describedby]="labelId"
+                    [disabled]="!posts()"
+                    (click)="choosePosts()"
+                >
+                    <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-plus" /></svg>
+                    {{ t('postField.choosePosts') }}
+                </button>
+                @if (chosen().length) {
+                    <button
+                        mat-button
+                        type="button"
+                        class="btn--sm"
+                        [attr.aria-describedby]="labelId"
+                        (click)="clear()"
+                    >
+                        <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-x" /></svg>
+                        {{ t('common.clear') }}
+                    </button>
+                }
+            </div>
+        </div>
+    } @else {
+        <p class="field__hint">{{ t('postField.noPostType') }}</p>
+    }
+</div>

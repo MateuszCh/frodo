@@ -15,6 +15,14 @@ CounterSchema.statics.reserve = function (count = 1) {
     );
 };
 
+/**
+ * Moves the counter past `id`, an id a document kept (an import), so no id it hands out later
+ * is that one again. A counter already past it stays as it is.
+ */
+CounterSchema.statics.passId = function (id) {
+    return this.updateOne({ counter: { $lte: id } }, { $set: { counter: id + 1 } });
+};
+
 const Counter = mongoose.model('counter', CounterSchema);
 
 module.exports = Counter;

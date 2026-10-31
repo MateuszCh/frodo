@@ -1,0 +1,152 @@
+// the halo of --shadow-focus (tokens): the room the focus ring of the search takes
+$focus-halo: 4px;
+
+// "Post" field: the chosen posts in a bordered list, Choose posts and Clear under it. The
+// dialog lists the posts of the field's post type with checkboxes, filtered by title.
+
+.post-field {
+    display: grid;
+    gap: var(--space-3);
+}
+
+.post-field__body {
+    display: grid;
+    gap: var(--space-3);
+    justify-items: start;
+}
+
+.post-field__list {
+    justify-self: stretch;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+.post-field__item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: 44px;
+    padding: var(--space-1) var(--space-1) var(--space-1) var(--space-4);
+    border-top: 1px solid var(--color-border);
+    font-size: var(--text-sm);
+
+    &:first-child {
+        border-top: 0;
+    }
+
+    &.is-missing {
+        color: var(--color-text-subtle);
+        font-style: italic;
+    }
+}
+
+.post-field__error {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    color: var(--color-error);
+}
+
+.post-field__actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+}
+
+.post-field__title {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+// MDC: the dialog content scrolls; here only the list does, so the search stays in view and
+// its focus ring is not clipped. As specific as the MDC rule for content under a title,
+// which (injected after these styles) would set its display, padding and colour.
+.mat-mdc-dialog-container .mat-mdc-dialog-title + .post-picker.mat-mdc-dialog-content {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+    min-height: 0;
+    // as MDC sets it: the dialog stays within the screen
+    max-height: 65vh;
+    // clips at the padding edge: the focus ring of the search shows in the side padding
+    overflow: hidden;
+    // and in this room right under the title: the 4 px halo of --shadow-focus
+    padding-top: $focus-halo;
+    color: var(--color-text);
+
+    > .mat-mdc-form-field {
+        flex: none;
+    }
+}
+
+.post-picker__list {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+}
+
+// "No posts found."
+.post-picker__none {
+    margin: 0;
+    padding: var(--space-3) 0;
+}
+
+// the whole row is the checkbox label: padded, with a hover fill
+.post-picker__item {
+    position: relative;
+    border-top: 1px solid var(--color-border);
+
+    &:first-child {
+        border-top: 0;
+    }
+
+    &:hover {
+        background: var(--color-surface-hover);
+    }
+
+    > .mat-mdc-checkbox {
+        display: block;
+    }
+
+    .mdc-form-field {
+        display: flex;
+        width: 100%;
+        padding: var(--space-3) var(--space-4);
+    }
+
+    .mdc-form-field > label {
+        flex: 1;
+        min-width: 0;
+        cursor: pointer;
+
+        // MDC: the label covers the whole row, padding and box included, so a click
+        // anywhere on it toggles the checkbox once
+        &::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+        }
+    }
+
+    // MDC: a 16 px box (18 px elsewhere), in proportion to the text of the row; above the
+    // label's ::after, so it keeps its hover colour (a click on it toggles it all the same)
+    .mdc-checkbox {
+        z-index: 1;
+        flex: none;
+        transform: scale(calc(16 / 18));
+    }
+}
