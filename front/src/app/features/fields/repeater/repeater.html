@@ -3,31 +3,57 @@
     @if (rows().length) {
         <span class="badge badge--neutral">{{ rows().length }}<span class="visually-hidden"> {{ t('repeater.rows', { count: rows().length }) }}</span></span>
     }
+    @if (rows().length > 1) {
+        <button mat-button type="button" class="btn--sm repeater__toggle-all" (click)="toggleAll()">
+            {{ allCollapsed() ? t('repeater.expandAll') : t('repeater.collapseAll') }}
+        </button>
+    }
 </div>
 
 @if (!rows().length) {
     <p class="field__hint">{{ t('repeater.noRows') }}</p>
 } @else {
     <div class="repeater__rows">
-        @for (row of rows(); track $index; let rowIndex = $index) {
-            <div class="repeater__row">
+        <!-- track the row object: a row's fields keep their own state (file preview,
+             nested rows) when a row above is removed -->
+        @for (row of rows(); track row; let rowIndex = $index) {
+            @let collapsed = collapsedRows().has(rowIndex);
+            @let bodyId = 'repeater-' + namePrefix() + '-' + rowIndex;
+            <div class="repeater__row" [class.is-collapsed]="collapsed">
                 <div class="repeater__row-head">
-                    <span class="repeater__row-index" [attr.data-label]="t('repeater.row')"></span>
+                    <button
+                        type="button"
+                        class="collapse-toggle repeater__row-toggle"
+                        [attr.aria-expanded]="!collapsed"
+                        [attr.aria-controls]="bodyId"
+                        (click)="toggleRow(rowIndex)"
+                    >
+                        <svg class="icon" aria-hidden="true"><use href="icons.svg#i-chevron-down" /></svg>
+                        <span class="repeater__row-index" [attr.data-label]="t('repeater.row')"></span>
+                        @if (collapsed) {
+                            <span class="repeater__row-summary">{{ summary(row) }}</span>
+                        }
+                    </button>
                     <button mat-button type="button" class="btn--sm" (click)="removeRow(rowIndex)">
                         <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-trash" /></svg>
                         {{ t('repeater.deleteRow') }}
                     </button>
                 </div>
-                @for (rf of field().repeaterFields ?? []; track rf.id) {
-                    <!-- use the outer row index: the inner @for shadows $index, which
-                         would give every row the same control-name prefix and make
-                         NgForm merge the rows' ngModels into one control -->
-                    <app-field
-                        [field]="rf"
-                        [model]="row"
-                        [namePrefix]="namePrefix() + '.' + rowIndex + '.'"
-                    ></app-field>
-                }
+                <!-- hidden, not removed: the fields stay rendered, so a collapsed row keeps
+                     its controls in the form and its values as the field components set them -->
+                <div class="repeater__row-body fields" [id]="bodyId" [hidden]="collapsed">
+                    @for (rf of field().repeaterFields ?? []; track rf.id) {
+                        <!-- use the outer row index: the inner @for shadows $index, which
+                             would give every row the same control-name prefix and make
+                             NgForm merge the rows' ngModels into one control -->
+                        <app-field
+                            [field]="rf"
+                            [model]="row"
+                            [namePrefix]="namePrefix() + '.' + rowIndex + '.'"
+                            [collapseScope]="collapsePath()"
+                        ></app-field>
+                    }
+                </div>
             </div>
         }
     </div>

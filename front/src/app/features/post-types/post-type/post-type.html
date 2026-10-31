@@ -51,7 +51,10 @@
 
     <div class="page page--form">
         <div class="form-stack">
-            <section class="card">
+            <section class="card"
+                     [appCollapse]="sectionKey('basic')"
+                     [appCollapseOpen]="!edit()"
+                     #basic="appCollapse">
                 <header class="card__header">
                     <div class="card__heading">
                         <h2 class="card__title">{{ t('common.basicInfo') }}</h2>
@@ -59,8 +62,11 @@
                             {{ t(isComponent() ? 'schema.descComponent' : 'schema.descPostType') }}
                         </p>
                     </div>
+                    <app-collapse-toggle [target]="basic"
+                                         [name]="t('common.basicInfo')"></app-collapse-toggle>
                 </header>
-                <div class="card__body">
+                <div class="card__body"
+                     [hidden]="basic.collapsed()">
                     <div class="form-grid form-grid--2">
                         <div class="field">
                             <label class="field__label"
@@ -133,7 +139,10 @@
                 </div>
             </section>
 
-            <section class="card">
+            <section class="card"
+                     [appCollapse]="sectionKey('fields')"
+                     [appCollapseOpen]="!edit()"
+                     #fieldsSection="appCollapse">
                 <header class="card__header">
                     <div class="card__heading">
                         <h2 class="card__title">{{ t('common.fields') }}</h2>
@@ -144,8 +153,19 @@
                     @if (fieldCount) {
                     <span class="badge badge--neutral">{{ fieldCount }}<span class="visually-hidden"> {{ t('schema.fieldsCount', { count: fieldCount }) }}</span></span>
                     }
+                    @if (fieldCount > 1 && !fieldsSection.collapsed()) {
+                    <button mat-button
+                            type="button"
+                            class="btn--sm card__header-action"
+                            (click)="fieldList.toggleAll()">
+                        {{ fieldList.allCollapsed() ? t('schema.expandFields') : t('schema.collapseFields') }}
+                    </button>
+                    }
+                    <app-collapse-toggle [target]="fieldsSection"
+                                         [name]="t('common.fields')"></app-collapse-toggle>
                 </header>
-                <div class="card__body">
+                <div class="card__body"
+                     [hidden]="fieldsSection.collapsed()">
                     @if (!fieldCount) {
                     <div class="empty empty--compact">
                         <span class="empty__icon">
@@ -163,6 +183,8 @@
                     <div class="schema-list">
                         @for (field of model().fields; track field; let i = $index) {
                         <app-add-field [field]="field"
+                                       [collapseKey]="fieldKey(field)"
+                                       [collapseOpen]="!field.id"
                                        (remove)="removeField(i)"></app-add-field>
                         }
                     </div>

@@ -107,7 +107,7 @@ app-root {
     padding-right: max(var(--layout-gutter), env(safe-area-inset-right, 0px));
 }
 
-// editors: 720 px column; extra room for the fixed action bar on mobile
+// editors: 960 px column; extra room for the fixed action bar on mobile
 .page--form {
     max-width: calc(var(--layout-form-max) + 2 * var(--layout-gutter));
     padding-bottom: calc(var(--space-16) + var(--control-h));

@@ -1,4 +1,13 @@
-import { Component, OnInit, computed, effect, inject, input, signal } from '@angular/core';
+import {
+    Component,
+    OnInit,
+    computed,
+    effect,
+    inject,
+    input,
+    signal,
+    viewChildren,
+} from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { Observable } from 'rxjs';
@@ -6,19 +15,29 @@ import { MatButtonModule } from '@angular/material/button';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 
-import { ComponentEntity, PostType } from '../../../models/models';
+import { ComponentEntity, Field, PostType } from '../../../models/models';
 import { blankField, formatKey } from '../../../models/fields';
 import { PostTypesService } from '../../../core/post-types.service';
 import { ComponentsService } from '../../../core/components.service';
 import { ToolsService } from '../../../core/tools.service';
 import { AddFieldComponent } from '../add-field/add-field';
 import { I18nService } from '../../../core/i18n/i18n.service';
+import { CollapseDirective, collapsibleList } from '../../../shared/collapse.directive';
+import { CollapseToggleComponent } from '../../../shared/collapse-toggle/collapse-toggle';
 
 type Schema = PostType & ComponentEntity;
 
 @Component({
     selector: 'app-post-type',
-    imports: [FormsModule, MatButtonModule, MatFormFieldModule, MatInputModule, AddFieldComponent],
+    imports: [
+        FormsModule,
+        MatButtonModule,
+        MatFormFieldModule,
+        MatInputModule,
+        AddFieldComponent,
+        CollapseDirective,
+        CollapseToggleComponent,
+    ],
     templateUrl: './post-type.html',
 })
 export class PostTypeComponent implements OnInit {
@@ -40,6 +59,11 @@ export class PostTypeComponent implements OnInit {
     protected readonly isComponent = computed(() => this.family() === 'components');
     protected readonly edit = computed(() => !!this.postType());
 
+    private readonly fieldCards = viewChildren(AddFieldComponent);
+    protected readonly fieldList = collapsibleList(() =>
+        this.fieldCards().map((card) => card.collapse),
+    );
+
     constructor() {
         effect(() => {
             const resolved = this.postType();
@@ -56,6 +80,19 @@ export class PostTypeComponent implements OnInit {
         if (!this.postType()) {
             this.model.set(this.blankModel(this.family()));
         }
+    }
+
+    /** A card of this editor, remembered for all post types (or all components). */
+    protected sectionKey(section: string): string {
+        return `section:${this.isComponent() ? 'component' : 'post-type'}/${section}`;
+    }
+
+    /** A field definition, remembered by the type key and the field id, once both are set. */
+    protected fieldKey(field: Field): string | null {
+        const type = this.model().type;
+        return type && field.id
+            ? `def:${this.isComponent() ? 'component' : 'post-type'}:${type}/${field.id}`
+            : null;
     }
 
     addField(): void {
