@@ -8,6 +8,8 @@ export interface Field {
     selectOptions?: string;
     multiselectOptions?: string;
     repeaterFields?: Field[];
+    /** "post" field: key of the post type its posts are chosen from */
+    postType?: string;
     // virtuals computed server-side from select/multiselectOptions
     options?: string[] | null;
     multiOptions?: string[] | null;
@@ -25,7 +27,9 @@ export type FieldType =
     | 'date'
     | 'catalogue'
     // a nested component; its value has the shape of a page row (PageComponent)
-    | 'component';
+    | 'component'
+    // chosen posts of the post type in `postType` (PostFieldValue)
+    | 'post';
 
 /** Base shape shared by PostType and Component (postTypeAbstractSchema). */
 export interface SchemaEntity {
@@ -55,6 +59,11 @@ export interface Post {
     created?: number;
     updated?: number;
     url?: string;
+}
+
+/** Value of a "post" field: the numeric ids of the chosen posts, in the chosen order. */
+export interface PostFieldValue {
+    ids: number[];
 }
 
 export interface Page {

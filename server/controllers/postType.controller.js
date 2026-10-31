@@ -3,7 +3,8 @@ const PostType = require('../models/postType'),
     mongoose = require('mongoose'),
     Counter = require('../models/counter'),
     { writeExport } = require('../exports'),
-    format = require('../models/tools/format');
+    format = require('../models/tools/format'),
+    { usesPostType, postTypeUsage, postTypeInUseError } = require('../post-type-usage');
 
 function postTypeReturn(req, res, postType) {
     if (!postType) {
@@ -63,15 +64,29 @@ module.exports = {
                 if (existingType === null) {
                     Model.findById(postTypeProps._id)
                         .then((postType) => {
-                            postType.type = postTypeProps.type;
-                            postType.title = postTypeProps.title;
-                            postType.fields = postTypeProps.fields;
-                            postType.pluralTitle = postTypeProps.pluralTitle;
+                            const oldType = postType.type;
+                            // "post" fields keep the key, so one they use cannot be renamed
+                            const usage =
+                                !isComponent && oldType !== postTypeProps.type
+                                    ? postTypeUsage(oldType, postType._id).then((titles) =>
+                                          usesPostType(postTypeProps.fields, oldType)
+                                              ? [postTypeProps.title, ...titles]
+                                              : titles,
+                                      )
+                                    : Promise.resolve([]);
+                            return usage.then((titles) => {
+                                if (titles.length) {
+                                    return res.status(422).send({
+                                        error: postTypeInUseError(oldType, titles),
+                                    });
+                                }
+                                postType.type = postTypeProps.type;
+                                postType.title = postTypeProps.title;
+                                postType.fields = postTypeProps.fields;
+                                postType.pluralTitle = postTypeProps.pluralTitle;
 
-                            postType
-                                .save()
-                                .then((postType) => res.send(postType))
-                                .catch(next);
+                                return postType.save().then((postType) => res.send(postType));
+                            });
                         })
                         .catch(next);
                 } else {
@@ -117,6 +132,13 @@ module.exports = {
             .then((postType) => postTypeReturn(req, res, postType))
             .catch(next);
     },
+    // for "post" fields: the posts to choose from, without their data
+    getByTypeWithPostTitles(req, res, next) {
+        PostType.findOne({ type: req.params.type })
+            .populate('posts', 'id title type')
+            .then((postType) => postTypeReturn(req, res, postType))
+            .catch(next);
+    },
     delete(req, res, next) {
         const path = req.route.path;
         let Model;
@@ -124,12 +146,22 @@ module.exports = {
         isComponent ? (Model = Component) : (Model = PostType);
         Model.findById(req.params.id)
             .then((postToRemove) => {
-                postToRemove
-                    .remove()
-                    .then((postType) =>
-                        res.status(200).send(`${postType.type} type removed successfully`),
-                    )
-                    .catch(next);
+                // its posts go with it, and "post" fields would point to nothing
+                const usage = isComponent
+                    ? Promise.resolve([])
+                    : postTypeUsage(postToRemove.type, postToRemove._id);
+                return usage.then((titles) => {
+                    if (titles.length) {
+                        return res.status(422).send({
+                            error: postTypeInUseError(postToRemove.type, titles),
+                        });
+                    }
+                    return postToRemove
+                        .remove()
+                        .then((postType) =>
+                            res.status(200).send(`${postType.type} type removed successfully`),
+                        );
+                });
             })
             .catch(next);
     },

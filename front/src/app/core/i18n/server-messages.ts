@@ -57,6 +57,10 @@ const SERVER_MESSAGES: ServerMessage[] = [
     { pattern: /^Duplicate types$/, pl: 'Typy importowanych pozycji powtarzają się' },
     { pattern: /^Some of imported post type already exists$/, pl: 'Część importowanych typów już istnieje' },
     { pattern: /^There is no valid post types to import$/, pl: 'Brak poprawnych typów do zaimportowania' },
+    {
+        pattern: /^Post type "(.*)" is used by "post" fields in: (.+)$/,
+        pl: 'Typ wpisu „$1” jest używany przez pola „Post” w: $2',
+    },
 
     // files
     { pattern: /^There was error uploading files$/, pl: 'Wystąpił błąd podczas przesyłania plików' },
@@ -78,6 +82,7 @@ const SERVER_MESSAGES: ServerMessage[] = [
     { pattern: /^title of field is required$/, pl: 'Tytuł pola jest wymagany' },
     { pattern: /^type of field is required$/, pl: 'Typ pola jest wymagany' },
     { pattern: /^id of field is required$/, pl: 'Id pola jest wymagane' },
+    { pattern: /^post type of field is required$/, pl: 'Typ postów pola jest wymagany' },
     {
         pattern: /^Each field in the same level should have a different id$/,
         pl: 'Pola na tym samym poziomie muszą mieć różne id',

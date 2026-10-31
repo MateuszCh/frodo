@@ -90,7 +90,8 @@
                             [aria-labelledby]="uid + '_type-label'"
                             [name]="uid + '_type'"
                             required
-                            [(ngModel)]="f.type">
+                            [ngModel]="f.type"
+                            (ngModelChange)="setType($event)">
                     @for (option of fieldTypes; track option.type) {
                     <mat-option [value]="option.type">{{ fieldType(option.type) }}</mat-option>
                     }
@@ -152,6 +153,35 @@
                 </mat-error>
             </mat-form-field>
             <span class="field__hint">{{ t('schema.optionsHint') }}</span>
+        </div>
+        }
+
+        @if (f.type === 'post') {
+        <div class="field">
+            <span class="field__label"
+                  [id]="uid + '_postType-label'">{{ t('schema.postType') }}<span class="field__req"
+                      aria-hidden="true">*</span></span>
+            <mat-form-field appearance="outline"
+                            subscriptSizing="dynamic">
+                <mat-select [placeholder]="t('schema.choosePostType')"
+                            [aria-labelledby]="uid + '_postType-label'"
+                            [name]="uid + '_postType'"
+                            required
+                            [(ngModel)]="f.postType"
+                            (openedChange)="loadPostTypes($event)">
+                    @for (option of postTypeOptions(); track option.type) {
+                    <mat-option [value]="option.type">{{ option.title }}</mat-option>
+                    }
+                </mat-select>
+                <mat-error>
+                    <svg class="icon"
+                         aria-hidden="true">
+                        <use href="icons.svg#i-alert" />
+                    </svg>
+                    {{ t('common.required') }}
+                </mat-error>
+            </mat-form-field>
+            <span class="field__hint">{{ noPostTypes() ? t('schema.noPostTypes') : t('schema.postTypeHint') }}</span>
         </div>
         }
 

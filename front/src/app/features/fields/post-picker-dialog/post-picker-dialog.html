@@ -1,0 +1,42 @@
+<h2 mat-dialog-title>{{ t('postField.dialogTitle', { name: data.title }) }}</h2>
+<mat-dialog-content class="post-picker">
+    @if (posts.length) {
+        <mat-form-field appearance="outline" subscriptSizing="dynamic">
+            <input
+                matInput
+                type="search"
+                [attr.aria-label]="t('postField.search')"
+                [placeholder]="t('postField.search')"
+                [value]="query()"
+                (input)="query.set($any($event.target).value)"
+                (keydown.escape)="clearSearch($event)"
+            />
+        </mat-form-field>
+        <!-- only the list scrolls: the search stays in view and its focus ring is not clipped -->
+        @if (filtered().length) {
+            <ul class="post-picker__list" [attr.aria-label]="data.title">
+                @for (post of filtered(); track post.id) {
+                    <li class="post-picker__item">
+                        <mat-checkbox [checked]="isSelected(post.id!)" (change)="toggle(post.id!, $event.checked)">
+                            {{ post.title || t('common.untitled') }}
+                        </mat-checkbox>
+                    </li>
+                }
+            </ul>
+        }
+        <!-- always there, so a screen reader announces it when a search finds nothing -->
+        <p class="field__hint post-picker__none" role="status" [hidden]="filtered().length">
+            @if (!filtered().length) {
+                {{ t('postField.nothingFound') }}
+            }
+        </p>
+    } @else {
+        <p class="field__hint">{{ t('postField.empty') }}</p>
+    }
+</mat-dialog-content>
+<mat-dialog-actions>
+    <button mat-stroked-button type="button" mat-dialog-close>{{ t('common.cancel') }}</button>
+    <button mat-flat-button type="button" (click)="confirm()">
+        {{ t('postField.confirm', { count: count() }) }}
+    </button>
+</mat-dialog-actions>

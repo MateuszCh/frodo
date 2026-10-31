@@ -97,6 +97,13 @@ A **component** field type nests a component: its value has the shape of a page 
 `{ type, title, data }` (`shared/component-value.ts`). Nested control names are joined with
 `.` (`list.0.item.heading`), which field ids cannot clash with.
 
+A **post** field type picks posts of one post type: the field stores its key in `postType`
+(required by the server, in repeater rows too), and its value is `{ ids: number[] }` (numeric
+post ids in the chosen order) or `null`. The key is the link, so `server/post-type-usage.js`
+refuses to rename or remove a post type that a post field of another schema uses. An import of
+posts keeps each post's exported `id` when no post has it (`saveImport` with `keepIds`), so
+the ids still point to the same posts on another site.
+
 ### Frontend (`front/src/app/`)
 
 | Directory | Purpose |

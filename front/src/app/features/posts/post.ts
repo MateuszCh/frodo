@@ -1,4 +1,4 @@
-import { Component, OnInit, computed, inject, input, signal } from '@angular/core';
+import { Component, OnInit, computed, forwardRef, inject, input, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { MatButtonModule } from '@angular/material/button';
@@ -10,6 +10,7 @@ import { PostsService } from '../../core/posts.service';
 import { ToolsService } from '../../core/tools.service';
 import { FieldInputComponent } from '../fields/field-input/field-input';
 import { I18nService } from '../../core/i18n/i18n.service';
+import { EDITED_POST, EditedPost } from '../../shared/edited-post';
 
 @Component({
     selector: 'app-post',
@@ -21,8 +22,9 @@ import { I18nService } from '../../core/i18n/i18n.service';
         FieldInputComponent,
     ],
     templateUrl: './post.html',
+    providers: [{ provide: EDITED_POST, useExisting: forwardRef(() => PostComponent) }],
 })
-export class PostComponent implements OnInit {
+export class PostComponent implements OnInit, EditedPost {
     private readonly i18n = inject(I18nService);
     protected readonly t = this.i18n.t;
     protected readonly newOfType = this.i18n.newOfType;
@@ -39,6 +41,7 @@ export class PostComponent implements OnInit {
     protected readonly actionStatus = signal<'' | 'save' | 'remove'>('');
     protected readonly edit = computed(() => !!this.post());
     protected readonly fields = computed(() => this.postType().fields);
+    readonly postId = computed(() => this.model().id);
 
     ngOnInit(): void {
         const postType = this.postType();
