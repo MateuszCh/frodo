@@ -66,6 +66,7 @@
                                         subscriptSizing="dynamic">
                             <input matInput
                                    id="page-title"
+                                   spellcheck="true"
                                    name="title"
                                    required
                                    [(ngModel)]="model().title" />
@@ -87,6 +88,7 @@
                                         subscriptSizing="dynamic">
                             <input matInput
                                    id="page-url"
+                                   spellcheck="false"
                                    name="pageUrl"
                                    required
                                    [(ngModel)]="model().pageUrl" />
@@ -178,6 +180,7 @@
                                         subscriptSizing="dynamic">
                             <input matInput
                                    id="page-seo-title"
+                                   spellcheck="true"
                                    name="seoTitle"
                                    [(ngModel)]="model().seoTitle" />
                         </mat-form-field>
@@ -191,6 +194,7 @@
                             <textarea matInput
                                       rows="3"
                                       id="page-seo-description"
+                                      spellcheck="true"
                                       name="seoDescription"
                                       [(ngModel)]="model().seoDescription"></textarea>
                         </mat-form-field>

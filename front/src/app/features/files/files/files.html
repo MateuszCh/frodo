@@ -354,6 +354,7 @@
                                                 subscriptSizing="dynamic">
                                     <input matInput
                                            id="file-title"
+                                           spellcheck="true"
                                            [(ngModel)]="file.title" />
                                 </mat-form-field>
                             </div>
@@ -365,6 +366,7 @@
                                     <textarea matInput
                                               rows="2"
                                               id="file-description"
+                                              spellcheck="true"
                                               [(ngModel)]="file.description"></textarea>
                                 </mat-form-field>
                             </div>
@@ -375,6 +377,7 @@
                                                 subscriptSizing="dynamic">
                                     <input matInput
                                            id="file-author"
+                                           spellcheck="false"
                                            [(ngModel)]="file.author" />
                                 </mat-form-field>
                             </div>
@@ -385,6 +388,7 @@
                                                 subscriptSizing="dynamic">
                                     <input matInput
                                            id="file-place"
+                                           spellcheck="true"
                                            [(ngModel)]="file.place" />
                                 </mat-form-field>
                             </div>
@@ -423,6 +427,7 @@
                                                     subscriptSizing="dynamic">
                                         <input matInput
                                                id="file-new-catalogue"
+                                               spellcheck="true"
                                                [ngModel]="newCatalogue()"
                                                (ngModelChange)="newCatalogue.set($event)" />
                                     </mat-form-field>
@@ -573,6 +578,7 @@
                                                     subscriptSizing="dynamic">
                                         <input matInput
                                                id="pending-title"
+                                               spellcheck="true"
                                                [(ngModel)]="item.meta.title" />
                                     </mat-form-field>
                                 </div>
@@ -584,6 +590,7 @@
                                         <textarea matInput
                                                   rows="2"
                                                   id="pending-description"
+                                                  spellcheck="true"
                                                   [(ngModel)]="item.meta.description"></textarea>
                                     </mat-form-field>
                                 </div>
@@ -594,6 +601,7 @@
                                                     subscriptSizing="dynamic">
                                         <input matInput
                                                id="pending-author"
+                                               spellcheck="false"
                                                [(ngModel)]="item.meta.author" />
                                     </mat-form-field>
                                 </div>
@@ -604,6 +612,7 @@
                                                     subscriptSizing="dynamic">
                                         <input matInput
                                                id="pending-place"
+                                               spellcheck="true"
                                                [(ngModel)]="item.meta.place" />
                                     </mat-form-field>
                                 </div>
@@ -642,6 +651,7 @@
                                                         subscriptSizing="dynamic">
                                             <input matInput
                                                    id="pending-new-catalogue"
+                                                   spellcheck="true"
                                                    [ngModel]="newCataloguePending()"
                                                    (ngModelChange)="newCataloguePending.set($event)" />
                                         </mat-form-field>

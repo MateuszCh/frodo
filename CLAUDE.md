@@ -12,7 +12,7 @@ Frodo is a full-stack CMS for managing custom content types, posts, pages, and f
 
 ## Commands
 
-> **Never start a server.** Do not run `npm start`, `npm run watch`, `ng serve`,
+> **Never start a server.** Do not run `npm start`, `npm run watch`, `npm run dev`, `ng serve`,
 > `./dev.sh up`, `docker compose up`, or any other long-running/dev-server command.
 > The user runs servers themselves — if one is needed, ask them to start it
 > (e.g. by typing `! npm run watch`) and wait. Commands listed below are reference
@@ -25,6 +25,7 @@ Frodo is a full-stack CMS for managing custom content types, posts, pages, and f
 ```bash
 npm start          # Run Express server on port 3000
 npm run watch      # Nodemon dev server (watches server/ and app.js)
+npm run dev        # dev-local.sh: front/ `npm start` (:4200) + root `npm run watch` (:3000) together
 npm test           # Backend unit tests (node:test, server/**/*.test.js, no database)
 ```
 
@@ -34,6 +35,10 @@ npm start          # ng serve — dev server on port 4200, proxied to :3000
 ng build           # Production build → front/public/ (served by Express)
 ng test            # Unit tests via Vitest
 ```
+
+`npm run dev` is local development without Docker: open `http://localhost:4200`. It does not
+start MongoDB — `mongoUrl` in `config.json` must point to a running one. Ctrl+C stops both
+watchers; if either one exits, the other is stopped too.
 
 ### Docker
 ```bash
