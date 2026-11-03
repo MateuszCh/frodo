@@ -42,6 +42,7 @@
                     <input matInput
                            type="text"
                            [id]="uid + '_title'"
+                           spellcheck="true"
                            [name]="uid + '_title'"
                            required
                            [(ngModel)]="f.title" />
@@ -65,6 +66,7 @@
                            type="text"
                            class="mono"
                            [id]="uid + '_id'"
+                           spellcheck="false"
                            [name]="uid + '_id'"
                            required
                            [(ngModel)]="f.id"
@@ -116,6 +118,7 @@
                 <input matInput
                        type="text"
                        [id]="uid + '_selectOptions'"
+                       spellcheck="true"
                        [name]="uid + '_selectOptions'"
                        required
                        [(ngModel)]="f.selectOptions" />
@@ -141,6 +144,7 @@
                 <input matInput
                        type="text"
                        [id]="uid + '_multiselectOptions'"
+                       spellcheck="true"
                        [name]="uid + '_multiselectOptions'"
                        required
                        [(ngModel)]="f.multiselectOptions" />
