@@ -66,6 +66,19 @@ export const pl = {
     'nav.themeLightLabel': 'Jasny motyw',
     'nav.themeDarkLabel': 'Ciemny motyw',
     'nav.language': 'Język',
+    'nav.posts': 'Wpisy',
+    'nav.postTypeCount': {
+        one: '{count} typ',
+        few: '{count} typy',
+        many: '{count} typów',
+        other: '{count} typu',
+    },
+    'nav.postCount': {
+        one: '{count} wpis',
+        few: '{count} wpisy',
+        many: '{count} wpisów',
+        other: '{count} wpisu',
+    },
 
     // listing
     'listing.title.pages': 'strony',
@@ -419,6 +432,9 @@ export const en: Record<MessageKey, Message> = {
     'nav.themeLightLabel': 'Light theme',
     'nav.themeDarkLabel': 'Dark theme',
     'nav.language': 'Language',
+    'nav.posts': 'Posts',
+    'nav.postTypeCount': { one: '{count} type', other: '{count} types' },
+    'nav.postCount': { one: '{count} post', other: '{count} posts' },
 
     'listing.title.pages': 'pages',
     'listing.title.components': 'components',
