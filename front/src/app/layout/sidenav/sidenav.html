@@ -21,16 +21,42 @@
             </svg>
             <span class="nav__label">{{ t('nav.pages') }}</span>
         </a>
-        @for (type of postTypes(); track type._id) {
-        <a class="nav__item"
-           [routerLink]="['/posts', type.type]"
-           [attr.aria-current]="current.family === 'posts' && current.type === type.type ? 'page' : null">
+        @if (postTypes().length) {
+        <button type="button"
+                class="nav__item nav__toggle"
+                aria-controls="nav-posts"
+                [attr.aria-expanded]="postsOpen()"
+                [class.nav__toggle--active]="!postsOpen() && postsActive()"
+                (click)="togglePosts()">
             <svg class="icon"
                  aria-hidden="true">
-                <use href="icons.svg#i-doc" />
+                <use href="icons.svg#i-folder" />
             </svg>
-            <span class="nav__label">{{ type.pluralTitle }}</span>
-        </a>
+            <span class="nav__label">{{ t('nav.posts') }}</span>
+            <span class="nav__count">{{ t('nav.postTypeCount', { count: postTypes().length }) }}</span>
+            <svg class="icon nav__chevron"
+                 aria-hidden="true">
+                <use href="icons.svg#i-chevron-down" />
+            </svg>
+        </button>
+        <div class="nav__sub"
+             id="nav-posts"
+             [hidden]="!postsOpen()">
+            @for (type of postTypes(); track type._id) {
+            @let count = type.posts?.length ?? 0;
+            <a class="nav__item"
+               [routerLink]="['/posts', type.type]"
+               [attr.aria-current]="current.family === 'posts' && current.type === type.type ? 'page' : null">
+                <svg class="icon"
+                     aria-hidden="true">
+                    <use href="icons.svg#i-doc" />
+                </svg>
+                <span class="nav__label">{{ type.pluralTitle }}</span>
+                <span class="nav__count"
+                      [title]="t('nav.postCount', { count })">{{ count.toLocaleString(locale()) }}</span>
+            </a>
+            }
+        </div>
         }
 
         <p class="nav__group">{{ t('nav.media') }}</p>

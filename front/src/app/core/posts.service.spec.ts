@@ -26,6 +26,7 @@ describe('PostsService', () => {
         let result: Post | undefined;
         service.create(post).subscribe((r) => (result = r));
         http.expectOne({ method: 'POST', url: '/api/post' }).flush(created);
+        http.expectOne({ method: 'GET', url: '/api/postType' }).flush([]);
         expect(result).toEqual(created);
     });
 
@@ -51,6 +52,7 @@ describe('PostsService', () => {
         const req = http.expectOne({ method: 'DELETE', url: '/api/post/abc' });
         expect(req.request.responseType).toBe('text');
         req.flush('ok');
+        http.expectOne({ method: 'GET', url: '/api/postType' }).flush([]);
         expect(result).toBe('ok');
     });
 
@@ -69,6 +71,7 @@ describe('PostsService', () => {
         const req = http.expectOne({ method: 'POST', url: '/api/importPosts' });
         expect(req.request.body).toEqual(body);
         req.flush({});
+        http.expectOne({ method: 'GET', url: '/api/postType' }).flush([]);
     });
 
     it('drops the post titles of "post" fields after each write', () => {
@@ -82,5 +85,19 @@ describe('PostsService', () => {
 
         types.getPostTitles('marker').subscribe();
         http.expectOne(url).flush({});
+    });
+
+    it('reloads the menu with its post counts after posts are added or removed, not after an edit', () => {
+        const types = TestBed.inject(PostTypesService);
+        const menu = [{ _id: 'a', type: 'marker', posts: [] }];
+
+        service.create(makePost()).subscribe();
+        http.expectOne('/api/post').flush(makePost());
+        http.expectOne({ method: 'GET', url: '/api/postType' }).flush(menu);
+        expect(types.menu()).toEqual(menu);
+
+        service.edit(makePost()).subscribe();
+        http.expectOne('/api/post/edit').flush(makePost());
+        http.expectNone('/api/postType');
     });
 });
