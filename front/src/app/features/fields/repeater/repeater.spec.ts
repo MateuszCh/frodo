@@ -327,12 +327,17 @@ describe('RepeaterComponent', () => {
                     { id: 'when', title: 'When', type: 'date' },
                 ],
             };
-            // a date the datepicker cannot read makes its control invalid
-            host.model = { items: [{ name: 'a' }, { name: 'b', when: 'not a date' }, { name: 'c' }] };
+            host.model = { items: [{ name: 'a' }, { name: 'b' }, { name: 'c' }] };
             fixture.detectChanges();
             await fixture.whenStable();
             fixture.detectChanges();
             expect(bodies().map((b) => b.hidden)).toEqual([true, true, true]);
+
+            // a date typed in a form the datepicker cannot read makes its control invalid
+            const dateInput = bodies()[1].querySelector<HTMLInputElement>('input[name$="when"]')!;
+            dateInput.value = 'not a date';
+            dateInput.dispatchEvent(new Event('input'));
+            fixture.detectChanges();
 
             fixture.nativeElement.querySelector('form').dispatchEvent(new Event('submit'));
             fixture.detectChanges();

@@ -149,6 +149,11 @@ describe('FieldInputComponent — ngOnInit', () => {
         expect(model['when']).toBeNull();
     });
 
+    it.each(['', 'not a date'])('turns an unparseable date value (%j) into null', (value) => {
+        const { model } = setup(makeField('date', 'when', 'When'), { when: value });
+        expect(model['when']).toBeNull();
+    });
+
     it('initialises fileSrc from the model for file fields', () => {
         const { comp } = setup(makeField('file', 'img', 'Image'), { img: '/uploads/a.jpg' });
         expect(comp.fileSrc()).toBe('/uploads/a.jpg');

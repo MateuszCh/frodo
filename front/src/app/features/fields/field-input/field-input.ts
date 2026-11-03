@@ -111,7 +111,10 @@ export class FieldInputComponent implements OnInit {
             model[field.id] != null &&
             !(model[field.id] instanceof Date)
         ) {
-            model[field.id] = new Date(model[field.id] as string | number);
+            // an empty string or any other unparseable value would be an Invalid Date, which
+            // the datepicker marks as an error that blocks saving: it becomes "no date" instead
+            const date = new Date(model[field.id] as string | number);
+            model[field.id] = isNaN(date.getTime()) ? null : date;
         }
     }
 
