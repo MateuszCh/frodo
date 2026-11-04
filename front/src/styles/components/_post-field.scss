@@ -11,6 +11,9 @@ $focus-halo: 4px;
 
 .post-field__body {
     display: grid;
+    // not auto: its minimum would be the full width of the longest title (nowrap), and the
+    // list would widen the field instead of cutting the title with an ellipsis
+    grid-template-columns: minmax(0, 1fr);
     gap: var(--space-3);
     justify-items: start;
 }
