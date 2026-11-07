@@ -19,8 +19,9 @@ import { PostsService } from '../../../core/posts.service';
 import { PostTypesService } from '../../../core/post-types.service';
 import { ComponentsService } from '../../../core/components.service';
 import { FilesService } from '../../../core/files.service';
+import { ListingPage, ListingService } from '../../../core/listing.service';
 import { makeField, makePost, makePostType } from '../../../testing/test-helpers';
-import type { Page } from '../../../models/models';
+import type { Page, PostType } from '../../../models/models';
 
 // These tests assert the English texts; the Polish default is covered in i18n.service.spec.ts
 // and in the Polish rendering tests.
@@ -31,28 +32,29 @@ afterEach(() => localStorage.removeItem('frodo.lang'));
 // Shared helpers
 // ---------------------------------------------------------------------------
 
-/** Scrolls the listing container to the bottom — jsdom does no layout, so the
- *  scroll geometry has to be faked. */
-function scrollListToBottom(fixture: ComponentFixture<ListingComponent>): void {
-    const list: HTMLElement = fixture.nativeElement.querySelector('.listing-list');
-    for (const [prop, value] of Object.entries({
-        scrollTop: 950,
-        scrollHeight: 1100,
-        clientHeight: 100,
-    })) {
-        Object.defineProperty(list, prop, { value, configurable: true });
-    }
-    list.dispatchEvent(new Event('scroll'));
+/**
+ * What the server would serve for the bound model: the pages / types passed as `model`, or the
+ * posts of the post type, with the ranges of its number and date fields.
+ */
+function servedFor(model: unknown): ListingPage {
+    const posts = Array.isArray(model) ? model : ((model as PostType | undefined)?.posts ?? []);
+    const ranges: Record<string, [number, number] | [string, string]> = {};
+    ((model as PostType | undefined)?.fields ?? []).forEach((field) => {
+        if (field.type !== 'number' && field.type !== 'date') return;
+        const values: any[] = posts.map((p: any) => p.data?.[field.id]).filter((v: unknown) => v != null).sort();
+        if (values.length) ranges[field.id] = [values[0], values[values.length - 1]];
+    });
+    return { items: posts, page: 1, limit: 20, matched: posts.length, total: posts.length, ranges };
 }
 
 function createMocks(sizeValue = 'size-x') {
     return {
         tools: { confirm: vi.fn().mockReturnValue(of(true)), alert: vi.fn() },
-        layout: { size: signal<string>(sizeValue) },
+        layout: { size: signal<string>(sizeValue), scrollToTop: vi.fn() },
         pages: {
             remove: vi.fn().mockReturnValue(of('ok')),
             exportData: vi.fn().mockReturnValue(of('/path')),
-            importData: vi.fn().mockReturnValue(of([])),
+            importData: vi.fn().mockReturnValue(of({ imported: 0 })),
         },
         posts: {
             remove: vi.fn().mockReturnValue(of('ok')),
@@ -62,15 +64,16 @@ function createMocks(sizeValue = 'size-x') {
         postTypes: {
             remove: vi.fn().mockReturnValue(of('ok')),
             exportData: vi.fn().mockReturnValue(of('/path')),
-            importData: vi.fn().mockReturnValue(of([])),
+            importData: vi.fn().mockReturnValue(of({ imported: 0 })),
             refreshMenu: vi.fn(),
         },
         components: {
             remove: vi.fn().mockReturnValue(of('ok')),
             exportData: vi.fn().mockReturnValue(of('/path')),
-            importData: vi.fn().mockReturnValue(of([])),
+            importData: vi.fn().mockReturnValue(of({ imported: 0 })),
         },
         files: { catalogues: signal<string[]>(['nature', 'tech']) },
+        listing: { query: vi.fn() },
     };
 }
 
@@ -88,10 +91,14 @@ function setup(mocks = createMocks()) {
             { provide: PostTypesService, useValue: mocks.postTypes },
             { provide: ComponentsService, useValue: mocks.components },
             { provide: FilesService, useValue: mocks.files },
+            { provide: ListingService, useValue: mocks.listing },
         ],
     });
     const fixture = TestBed.createComponent(ListingComponent);
     const comp = fixture.componentInstance as any;
+    if (!mocks.listing.query.getMockImplementation()) {
+        mocks.listing.query.mockImplementation(() => of(servedFor(comp.model())));
+    }
     return { fixture, comp, mocks };
 }
 
@@ -152,13 +159,9 @@ describe('listing.html — pages with items', () => {
         fixture.componentRef.setInput('model', pages);
         fixture.detectChanges();
 
-        // Set a text filter that matches nothing
-        const filters = comp.filters();
-        if (filters) {
-            filters.textFilter.value = 'zzznomatch';
-            comp.filterTick.update((n: number) => n + 1);
-            fixture.detectChanges();
-        }
+        // the server found nothing for the search
+        comp.showPage({ items: [], page: 1, limit: 20, matched: 0, total: 1 });
+        fixture.detectChanges();
         expect(fixture.nativeElement.textContent).toContain('No pages match your search');
     });
 });
@@ -260,49 +263,77 @@ describe('listing.html — mobile filters backdrop', () => {
 });
 
 // ---------------------------------------------------------------------------
-// listing.html — infinite scroll on the scrolling list container
+// listing.html — pager under the list
 // ---------------------------------------------------------------------------
 
-describe('listing.html — infinite scroll container', () => {
+describe('listing.html — pagination', () => {
     function makePages(count: number): Page[] {
         return Array.from({ length: count }, (_, i) => ({
             _id: `p${i}`, id: i, title: `Page ${i}`, pageUrl: `/${i}`, rows: [],
         }));
     }
 
-    it('carries the infinite-scroll directive on the scrolling list', () => {
-        const { fixture } = setup();
+    it('shows the range and links to the other pages', () => {
+        const mocks = createMocks();
+        mocks.listing.query.mockReturnValue(
+            of({ items: makePages(20) as any, page: 1, limit: 20, matched: 45, total: 45 }),
+        );
+        const { fixture } = setup(mocks);
         fixture.componentRef.setInput('family', 'pages');
-        fixture.componentRef.setInput('model', makePages(25));
         fixture.detectChanges();
-        expect(
-            fixture.nativeElement.querySelector('.listing-list[appInfiniteScroll]'),
-        ).not.toBeNull();
+        const pager: HTMLElement = fixture.nativeElement.querySelector('.pagination');
+        expect(pager.textContent).toContain('1–20 of 45');
+        const links = Array.from<HTMLAnchorElement>(pager.querySelectorAll('a.pagination__link'));
+        expect(links.map((a) => a.getAttribute('aria-label'))).toEqual(['Page 2', 'Page 3', 'Next page']);
+        expect(links[0].getAttribute('href')).toContain('page=2');
+        expect(pager.querySelector('[aria-current="page"]')?.textContent).toContain('1');
     });
 
-    it('scrolling the list loads more items while visible < total', () => {
-        const { fixture, comp } = setup();
+    it('leaves the pager out when the listing has no more items than the smallest page size', () => {
+        const mocks = createMocks();
+        mocks.listing.query.mockReturnValue(of({ items: makePages(10) as any, page: 1, limit: 20, matched: 10, total: 10 }));
+        const { fixture } = setup(mocks);
         fixture.componentRef.setInput('family', 'pages');
-        fixture.componentRef.setInput('model', makePages(25));
         fixture.detectChanges();
-
-        expect(comp.visible()).toHaveLength(20);
-        scrollListToBottom(fixture); // triggers reached → incrementLimit()
-        fixture.detectChanges();
-        expect(comp.visible()).toHaveLength(25);
+        expect(fixture.nativeElement.querySelector('app-pagination')).toBeNull();
     });
 
-    it('scrolling does nothing when all items are already visible (enabled = false)', () => {
+    it('shows the pager above the smallest page size, even when a search matches fewer', () => {
+        const mocks = createMocks();
+        mocks.listing.query.mockReturnValue(of({ items: makePages(3) as any, page: 1, limit: 20, matched: 3, total: 11 }));
+        const { fixture } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.detectChanges();
+        expect(fixture.nativeElement.querySelector('.pagination')).not.toBeNull();
+    });
+
+    it('changing the page size calls setPageSize', () => {
         const { fixture, comp } = setup();
         fixture.componentRef.setInput('family', 'pages');
-        fixture.componentRef.setInput('model', makePages(5));
+        fixture.componentRef.setInput('model', makePages(12));
         fixture.detectChanges();
+        const spy = vi.spyOn(comp, 'setPageSize');
+        const select: HTMLSelectElement = fixture.nativeElement.querySelector('.pagination select');
+        select.value = '50';
+        select.dispatchEvent(new Event('change'));
+        expect(spy).toHaveBeenCalledWith(50);
+        localStorage.removeItem('listing.pageSize.pages');
+    });
 
-        const spy = vi.spyOn(comp, 'incrementLimit');
-        scrollListToBottom(fixture);
+    it('marks the list busy and keeps room for it while the first page loads', () => {
+        const page$ = new Subject<ListingPage>();
+        const mocks = createMocks();
+        mocks.listing.query.mockReturnValue(page$.asObservable());
+        const { fixture } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
         fixture.detectChanges();
-        expect(spy).not.toHaveBeenCalled();
-        expect(comp.visible()).toHaveLength(5);
+        const list: HTMLElement = fixture.nativeElement.querySelector('.listing-list');
+        expect(list.getAttribute('aria-busy')).toBe('true');
+        expect(fixture.nativeElement.querySelector('.list-loading')).not.toBeNull();
+        page$.next({ items: makePages(1) as any, page: 1, limit: 20, matched: 1, total: 1 });
+        fixture.detectChanges();
+        expect(list.getAttribute('aria-busy')).toBe('false');
+        expect(fixture.nativeElement.querySelector('.list-loading')).toBeNull();
     });
 });
 
@@ -634,8 +665,9 @@ describe('listing.html — remaining event handler interactions', () => {
 // ---------------------------------------------------------------------------
 
 describe('listing.html — list toolbar', () => {
-    it('typing in the search field updates the text filter and the list', () => {
-        const { fixture, comp } = setup();
+    it('typing in the search field searches on the server after a pause', () => {
+        vi.useFakeTimers();
+        const { fixture, comp, mocks } = setup();
         const pages: Page[] = [
             { _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] },
             { _id: 'p2', id: 2, title: 'About', pageUrl: '/about', rows: [] },
@@ -648,10 +680,11 @@ describe('listing.html — list toolbar', () => {
         expect(search.placeholder).toBe('Search pages');
         search.value = 'abo';
         search.dispatchEvent(new Event('input'));
+        expect(comp.search()).toBe('abo');
+        vi.advanceTimersByTime(300);
         fixture.detectChanges();
-
-        expect(comp.filters().textFilter.value).toBe('abo');
-        expect(comp.matchCount()).toBe(1);
+        expect(mocks.listing.query).toHaveBeenLastCalledWith('pages', expect.objectContaining({ q: 'abo' }));
+        vi.useRealTimers();
     });
 
     it('shows the name of the current sort on the sort button', () => {

@@ -66,6 +66,11 @@ export interface PostFieldValue {
     ids: number[];
 }
 
+/** Answer of an import of pages, post types, components or posts: how many were saved. */
+export interface ImportResult {
+    imported: number;
+}
+
 export interface Page {
     _id?: string;
     id?: number;

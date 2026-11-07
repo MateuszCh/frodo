@@ -8,11 +8,11 @@ import { ComponentsService } from './components.service';
 import { FilesService } from './files.service';
 import { UserService } from './user.service';
 import { SettingsService } from './settings.service';
+import { ListingFamily, ListingPage, ListingService } from './listing.service';
+import { listingKey, readPageSize, readSort } from '../features/listing/listing-filter';
 import { ComponentEntity, FileItem, Page, Post, PostType, Settings, User } from '../models/models';
 
 // Port of constants/promises.states.constant.js (statePromises).
-
-export const pagesResolver: ResolveFn<Page[]> = () => inject(PagesService).getAll();
 
 // the page editor loads all components anyway: keep them for "component" fields too
 export const componentsResolver: ResolveFn<ComponentEntity[]> = () => {
@@ -20,13 +20,31 @@ export const componentsResolver: ResolveFn<ComponentEntity[]> = () => {
     return componentsService.getAll().pipe(tap((components) => componentsService.setList(components)));
 };
 
-export const postTypesResolver: ResolveFn<PostType[]> = () => inject(PostTypesService).getAll();
+/** A page number from the URL (`?page=N`): anything else is the first page. */
+export function parsePage(value: string | number | null | undefined): number {
+    const page = Number(value);
+    return Number.isInteger(page) && page >= 1 ? page : 1;
+}
+
+/**
+ * The listing page in the URL (`?page=N`), with the page size and sort kept for that
+ * listing, so the list shows at once. Later pages, searches and filters are loaded by
+ * the listing itself.
+ */
+export const listingResolver: ResolveFn<ListingPage> = (route: ActivatedRouteSnapshot) => {
+    const family = route.data['family'] as ListingFamily;
+    const postType = route.paramMap.get('type') ?? undefined;
+    const key = listingKey(family, postType);
+    return inject(ListingService).query(family, {
+        postType,
+        page: parsePage(route.queryParamMap.get('page')),
+        limit: readPageSize(key),
+        sort: readSort(key),
+    });
+};
 
 export const pageResolver: ResolveFn<Page> = (route: ActivatedRouteSnapshot) =>
     inject(PagesService).getById(route.paramMap.get('id')!);
-
-export const postTypeWithPostsResolver: ResolveFn<PostType> = (route: ActivatedRouteSnapshot) =>
-    inject(PostTypesService).getByTypeWithPosts(route.paramMap.get('type')!);
 
 export const postTypeResolver: ResolveFn<PostType> = (route: ActivatedRouteSnapshot) =>
     inject(PostTypesService).getByType(route.paramMap.get('type')!);

@@ -38,13 +38,6 @@ describe('PagesService', () => {
         expect(result).toEqual(page);
     });
 
-    it('getAll() sends GET /api/page', () => {
-        let result: Page[] | undefined;
-        service.getAll().subscribe((r) => (result = r));
-        http.expectOne({ method: 'GET', url: '/api/page' }).flush([makePage()]);
-        expect(result).toHaveLength(1);
-    });
-
     it('getById() sends GET /api/page/:id', () => {
         let result: Page | undefined;
         service.getById(3).subscribe((r) => (result = r));

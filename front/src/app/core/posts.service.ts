@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import { Post, PostType } from '../models/models';
+import { ImportResult, Post, PostType } from '../models/models';
 import { PostTypesService } from './post-types.service';
 
 /** Port of posts.service.js */
@@ -37,7 +37,7 @@ export class PostsService {
         return this.http.get(`/api/exportPosts/${postType}`, { responseType: 'text' });
     }
 
-    importData(data: { postType: string; posts: Post[] }): Observable<PostType> {
-        return this.http.post<PostType>('/api/importPosts', data).pipe(tap(this.postCountChanged));
+    importData(data: { postType: string; posts: Post[] }): Observable<ImportResult> {
+        return this.http.post<ImportResult>('/api/importPosts', data).pipe(tap(this.postCountChanged));
     }
 }

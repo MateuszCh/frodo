@@ -5,6 +5,7 @@ const postTypeRoutes = require('./postType.routes'),
     fileRoutes = require('./file.routes'),
     userRoutes = require('./user.routes'),
     settingsRoutes = require('./settings.routes'),
+    listingRoutes = require('./listing.routes'),
     { bumpContentVersion } = require('../content-version');
 
 // Writes to what the public site reads (pages, posts, files – imports included). Post types
@@ -17,8 +18,9 @@ module.exports = (app) => {
     app.put(['*'], isAuthenticated);
     app.post(['*'], isAuthenticated);
     app.delete(['*'], isAuthenticated);
-    // an export writes a file on the server and hands out the whole collection
-    app.get('/api/export*', isAuthenticated);
+    // every read of the CMS data too (listings, exports, settings…); /user/* stays open, the
+    // login screen needs it, and so does /uploads (served apart, read by the public site)
+    app.get('/api/*', isAuthenticated);
 
     app.use(notifyOnContentChange);
 
@@ -29,6 +31,7 @@ module.exports = (app) => {
     fileRoutes(app);
     userRoutes(app);
     settingsRoutes(app);
+    listingRoutes(app);
 };
 
 // Only successful writes – a rejected save (422) changed nothing on the site.

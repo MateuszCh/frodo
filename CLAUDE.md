@@ -87,7 +87,8 @@ cd front && ng test --include='**/path/to/spec.ts'
 
 API routes are prefixed `/api/*`. Static uploads served from `/uploads`. Exports are written
 to `exports/` (gitignored) by `server/exports.js`, which also serves that folder alone at
-`/export`, to logged-in users only; `/api/export*` needs a login too. Write any new export
+`/export`, to logged-in users only. Every `/api/*` request (reads included) needs a login; `/user/*`
+(the login screen) and `/uploads` stay open. Write any new export
 through `writeExport`: the project root holds `config.json` and must never be served.
 
 **PostType** is central — it defines the field schema for Post documents. When editing or creating a Post, the frontend fetches its PostType to know which dynamic fields to render.
@@ -109,6 +110,14 @@ post ids in the chosen order) or `null`. The key is the link, so `server/post-ty
 refuses to rename or remove a post type that a post field of another schema uses. An import of
 posts keeps each post's exported `id` when no post has it (`saveImport` with `keepIds`), so
 the ids still point to the same posts on another site.
+
+**Listings** (pages, post types, components, posts of a type) are paginated on the server:
+`GET /api/listing/:family?page&limit&sort&q&filters` (posts also `postType`) returns
+`{ items, page, limit, matched, total, ranges? }`. Search, post filters and sort run in MongoDB
+(`server/listing-query.js`), so the frontend never holds a whole collection. The page lives in
+the URL (`?page=N`), the page size (10/20/50/100, default 20) in localStorage per listing.
+`listingResolver` loads the page in the URL on entering a listing; later pages, searches and
+filters are loaded by the listing itself (under `LoadingService`, which shows the route loader).
 
 ### Frontend (`front/src/app/`)
 

@@ -192,3 +192,15 @@
         }
     }
 }
+
+// room for the first page of a listing while it loads (the app's loader is over it)
+.list-loading {
+    min-height: 240px;
+}
+
+// a search, a filter or the sort loading: the current rows stay, dimmed (another page gets the
+// app's loader instead)
+.listing-list[aria-busy='true'] .list {
+    opacity: 0.6;
+    transition: opacity var(--duration-instant) var(--ease-standard);
+}

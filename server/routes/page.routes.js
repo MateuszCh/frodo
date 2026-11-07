@@ -5,8 +5,6 @@ module.exports = (app) => {
 
     app.put('/api/page/edit', PageController.edit);
 
-    app.get('/api/page', PageController.getAll);
-
     app.get('/api/page/:id', PageController.getById);
 
     app.delete('/api/page/:id', PageController.delete);

@@ -11,6 +11,7 @@ import {
 import { Subject } from 'rxjs';
 
 import { ROUTE_LOADER_DELAY, RouteLoaderComponent } from './route-loader';
+import { LoadingService } from '../../core/loading.service';
 
 beforeEach(() => {
     localStorage.setItem('frodo.lang', 'en');
@@ -40,7 +41,7 @@ function setup() {
         fixture.detectChanges();
     };
     const overlay = () => el.querySelector('.route-loader');
-    return { el, emit, wait, overlay };
+    return { el, emit, wait, overlay, loading: TestBed.inject(LoadingService) };
 }
 
 const start = () => new NavigationStart(1, '/files');
@@ -100,5 +101,18 @@ describe('RouteLoaderComponent', () => {
         expect(overlay()).toBeNull();
         wait(10);
         expect(overlay()).not.toBeNull();
+    });
+
+    it('also shows while a request of LoadingService runs (a listing page)', () => {
+        const { wait, overlay, loading } = setup();
+        const request = new Subject<void>();
+        loading.track(request).subscribe();
+        wait(ROUTE_LOADER_DELAY - 1);
+        expect(overlay()).toBeNull();
+        wait(1);
+        expect(overlay()?.querySelector('.spinner')).not.toBeNull();
+        request.complete();
+        wait(0);
+        expect(overlay()).toBeNull();
     });
 });

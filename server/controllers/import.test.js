@@ -55,13 +55,13 @@ describe('import of post types', () => {
 
     it('leaves out a field without a type, an id or a title', async (t) => {
         t.mock.method(PostType, 'find', async () => []);
-        const saveImport = t.mock.method(PostType, 'saveImport', async () => []);
+        const saveImport = t.mock.method(PostType, 'saveImport', async (postTypes) => postTypes);
 
         const response = await importPostTypes([
             { ...marker, fields: [...fields, { title: 'Bez id', type: 'text' }] },
         ]);
 
-        assert.equal(response.status, 200);
+        assert.deepEqual(response, { status: 200, body: { imported: 1 } });
         assert.deepEqual(saveImport.mock.calls[0].arguments[0][0].fields, fields);
     });
 
@@ -121,7 +121,7 @@ describe('import of posts', () => {
             posts: [{ title: 'Jaskinia', id: 42 }],
         });
 
-        assert.equal(response.status, 200);
+        assert.deepEqual(response, { status: 200, body: { imported: 1 } });
         assert.deepEqual(saveImport.mock.calls[0].arguments.slice(1), [{ type: 'zasob' }, { keepIds: true }]);
     });
 
@@ -179,13 +179,13 @@ describe('import of pages', () => {
     it('imports only the values of the fields of the page type', async (t) => {
         t.mock.method(Page, 'find', async () => []);
         t.mock.method(Settings, 'findSettings', async () => ({ pageTypes }));
-        const saveImport = t.mock.method(Page, 'saveImport', async () => []);
+        const saveImport = t.mock.method(Page, 'saveImport', async (pages) => pages);
 
         const response = await run(PageController.importPages, {
             posts: [{ ...page, type: 'region', typeData: { area: 12, removed: 'x' } }],
         });
 
-        assert.equal(response.status, 200);
+        assert.deepEqual(response, { status: 200, body: { imported: 1 } });
         const [imported] = saveImport.mock.calls[0].arguments[0];
         assert.deepEqual([imported.type, imported.typeData], ['region', { area: 12 }]);
     });

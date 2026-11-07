@@ -1,0 +1,82 @@
+@if (matched() > 0) {
+<div class="pagination">
+    <p class="pagination__range">{{ t('pagination.range', { from: from(), to: to(), total: matched() }) }}</p>
+
+    @if (last() > 1) {
+    <nav class="pagination__pages"
+         [attr.aria-label]="t('pagination.label')">
+        @if (page() > 1) {
+        <a class="pagination__link pagination__link--step"
+           [routerLink]="[]"
+           [queryParams]="params(page() - 1)"
+           queryParamsHandling="merge"
+           [attr.aria-label]="t('pagination.previous')">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-chevron-left" />
+            </svg>
+        </a>
+        }
+        @for (item of items(); track $index) {
+        @if (item === null) {
+        <span class="pagination__gap"
+              aria-hidden="true">…</span>
+        } @else if (item === page()) {
+        <span class="pagination__link is-current"
+              aria-current="page"><span class="visually-hidden">{{ t('pagination.page', { page: item }) }}</span><span aria-hidden="true">{{ item }}</span></span>
+        } @else {
+        <a class="pagination__link"
+           [routerLink]="[]"
+           [queryParams]="params(item)"
+           queryParamsHandling="merge"
+           [attr.aria-label]="t('pagination.page', { page: item })">{{ item }}</a>
+        }
+        }
+        @if (page() < last()) {
+        <a class="pagination__link pagination__link--step"
+           [routerLink]="[]"
+           [queryParams]="params(page() + 1)"
+           queryParamsHandling="merge"
+           [attr.aria-label]="t('pagination.next')">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-chevron-right" />
+            </svg>
+        </a>
+        }
+        @if (hasGaps()) {
+        <label class="pagination__jump">
+            <span>{{ t('pagination.goTo') }}</span>
+            <input class="input"
+                   type="number"
+                   inputmode="numeric"
+                   min="1"
+                   [max]="last()"
+                   [placeholder]="page()"
+                   [attr.aria-label]="t('pagination.goToLabel', { last: last() })"
+                   (keydown.enter)="jump($event)"
+                   (change)="jump($event)" />
+        </label>
+        }
+    </nav>
+    }
+
+    <label class="pagination__size">
+        <span>{{ t('pagination.pageSize') }}</span>
+        <span class="control control--select">
+            <select class="input"
+                    [value]="pageSize()"
+                    (change)="onSize($event)">
+                @for (size of sizes; track size) {
+                <option [value]="size"
+                        [selected]="size === pageSize()">{{ size }}</option>
+                }
+            </select>
+            <svg class="icon control__icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-chevron-down" />
+            </svg>
+        </span>
+    </label>
+</div>
+}

@@ -16,6 +16,7 @@ import { PagesService } from '../pages.service';
 import { PostsService } from '../posts.service';
 import { PostTypesService } from '../post-types.service';
 import { ComponentsService } from '../components.service';
+import { ListingService } from '../listing.service';
 import { FilesService } from '../files.service';
 
 // Polish is the default interface language; a switch re-renders without a reload.
@@ -85,6 +86,10 @@ describe('Polish interface', () => {
                 { provide: PostTypesService, useValue: {} },
                 { provide: ComponentsService, useValue: {} },
                 { provide: FilesService, useValue: { catalogues: signal<string[]>([]) } },
+                {
+                    provide: ListingService,
+                    useValue: { query: () => of({ items: [], page: 1, limit: 20, matched: 0, total: 0 }) },
+                },
             ],
         });
         const fixture = TestBed.createComponent(ListingComponent);
@@ -113,6 +118,10 @@ describe('Polish interface', () => {
                 { provide: PostTypesService, useValue: {} },
                 { provide: ComponentsService, useValue: {} },
                 { provide: FilesService, useValue: { catalogues: signal<string[]>([]) } },
+                {
+                    provide: ListingService,
+                    useValue: { query: () => of({ items: [], page: 1, limit: 20, matched: 0, total: 0 }) },
+                },
             ],
         });
         const fixture = TestBed.createComponent(ListingComponent);

@@ -1,4 +1,5 @@
 import { DOCUMENT, Injectable, effect, inject, signal } from '@angular/core';
+import { Subject } from 'rxjs';
 
 @Injectable({ providedIn: 'root' })
 export class LayoutService {
@@ -8,6 +9,8 @@ export class LayoutService {
     readonly scrolled = signal(false);
     readonly hasFilters = signal(false);
     readonly sidenavOpen = signal(false);
+    /** Asks the app to scroll its content (#scroll) smoothly back to the top. */
+    readonly scrollToTopRequests = new Subject<void>();
 
     constructor() {
         const win = this.document.defaultView;
@@ -32,6 +35,10 @@ export class LayoutService {
 
     closeSidenav(): void {
         this.sidenavOpen.set(false);
+    }
+
+    scrollToTop(): void {
+        this.scrollToTopRequests.next();
     }
 
     private computeSize(): string {

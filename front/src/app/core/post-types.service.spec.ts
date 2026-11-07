@@ -77,27 +77,11 @@ describe('PostTypesService', () => {
         expect(result).toEqual(pt);
     });
 
-    it('getByIdWithPosts() sends GET /api/postTypePosts/:id and returns the post type', () => {
-        const pt = makePostType();
-        let result: PostType | undefined;
-        service.getByIdWithPosts(2).subscribe((r) => (result = r));
-        http.expectOne({ method: 'GET', url: '/api/postTypePosts/2' }).flush(pt);
-        expect(result).toEqual(pt);
-    });
-
     it('getByType() sends GET /api/postTypeByType/:type and returns the post type', () => {
         const pt = makePostType();
         let result: PostType | undefined;
         service.getByType('articles').subscribe((r) => (result = r));
         http.expectOne({ method: 'GET', url: '/api/postTypeByType/articles' }).flush(pt);
-        expect(result).toEqual(pt);
-    });
-
-    it('getByTypeWithPosts() sends GET /api/postTypeByTypePosts/:type and returns the post type', () => {
-        const pt = makePostType();
-        let result: PostType | undefined;
-        service.getByTypeWithPosts('news').subscribe((r) => (result = r));
-        http.expectOne({ method: 'GET', url: '/api/postTypeByTypePosts/news' }).flush(pt);
         expect(result).toEqual(pt);
     });
 

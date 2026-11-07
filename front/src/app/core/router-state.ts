@@ -1,19 +1,28 @@
 import { DOCUMENT, Signal, inject } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
-import { filter, map, skip } from 'rxjs';
+import { filter, map, pairwise } from 'rxjs';
+
+/** The path of a router URL, without its query and fragment. */
+function pathOf(url: string): string {
+    return url.split(/[?#]/)[0];
+}
 
 /**
- * Scrolls `target` back to the top after every navigation. The app scrolls #scroll
- * (mat-sidenav-content), not the window, so the router's own scroll handling never
- * reaches it. The first navigation is skipped: the page opens at the top anyway, and
- * the view holding `target` may not exist yet.
+ * Scrolls `target` back to the top after every navigation to another path. The app
+ * scrolls #scroll (mat-sidenav-content), not the window, so the router's own scroll
+ * handling never reaches it. The first navigation is skipped: the page opens at the top
+ * anyway, and the view holding `target` may not exist yet. A change of the query alone
+ * (a listing's ?page=N) stays where it is: the listing scrolls itself once the new page
+ * is shown.
  */
 export function scrollToTopOnNavigation(target: () => { scrollTo(options: ScrollToOptions): void }): void {
     inject(Router)
         .events.pipe(
             filter((e) => e instanceof NavigationEnd),
-            skip(1),
+            map((e) => pathOf(e.urlAfterRedirects)),
+            pairwise(),
+            filter(([before, after]) => before !== after),
             takeUntilDestroyed(),
         )
         .subscribe(() => target().scrollTo({ top: 0, behavior: 'instant' }));

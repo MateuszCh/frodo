@@ -32,6 +32,16 @@ describe('scrollToTopOnNavigation', () => {
         expect(scroller.scrollTo).toHaveBeenLastCalledWith({ top: 0, behavior: 'instant' });
     });
 
+    it('stays put when only the query changes (a listing page), scrolls when the path does', () => {
+        const { events, scroller } = setup();
+        events.next(end(1, '/pages'));
+        events.next(end(2, '/pages?page=2'));
+        events.next(end(3, '/pages?page=3#top'));
+        expect(scroller.scrollTo).not.toHaveBeenCalled();
+        events.next(end(4, '/components?page=2'));
+        expect(scroller.scrollTo).toHaveBeenCalledTimes(1);
+    });
+
     it('does not scroll for navigations that start or get cancelled', () => {
         const { events, scroller } = setup();
         events.next(end(1, '/'));

@@ -68,11 +68,6 @@ module.exports = {
             }),
         ).catch(next);
     },
-    getAll(req, res, next) {
-        Page.find({})
-            .then((pages) => res.send(pages))
-            .catch(next);
-    },
     getById(req, res, next) {
         if (isNaN(req.params.id)) return res.status(404).send({ error: 'Invalid page id' });
         Page.findOne({ id: req.params.id })
@@ -138,9 +133,8 @@ module.exports = {
                         typeData: typeProps[i].typeData,
                     }));
 
-                    return Page.saveImport(pages)
-                        .then(() => Page.find({}))
-                        .then((allPages) => res.send(allPages));
+                    // the count only: the listing loads its page again itself
+                    return Page.saveImport(pages).then((saved) => res.send({ imported: saved.length }));
                 },
             ),
         ).catch(next);

@@ -115,20 +115,8 @@ module.exports = {
             .then((postType) => postTypeReturn(req, res, postType))
             .catch(next);
     },
-    getByIdWithPosts(req, res, next) {
-        PostType.findOne({ id: req.params.id })
-            .populate('posts')
-            .then((postType) => postTypeReturn(req, res, postType))
-            .catch(next);
-    },
     getByType(req, res, next) {
         PostType.findOne({ type: req.params.type })
-            .then((postType) => postTypeReturn(req, res, postType))
-            .catch(next);
-    },
-    getByTypeWithPosts(req, res, next) {
-        PostType.findOne({ type: req.params.type })
-            .populate('posts')
             .then((postType) => postTypeReturn(req, res, postType))
             .catch(next);
     },
@@ -229,9 +217,10 @@ module.exports = {
                             error: 'Some of imported post type already exists',
                         });
                     }
-                    return Model.saveImport(correctPostTypes)
-                        .then(() => Model.find({}))
-                        .then((postTypes) => res.send(postTypes));
+                    // the count only: the listing loads its page again itself
+                    return Model.saveImport(correctPostTypes).then((saved) =>
+                        res.send({ imported: saved.length }),
+                    );
                 })
                 .catch(next);
         } else {

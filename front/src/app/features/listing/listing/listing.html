@@ -57,7 +57,7 @@
                    hidden
                    (change)="onImportFile($event)" />
 
-            @if (baseModels().length) {
+            @if (count()) {
             <button mat-button
                     type="button"
                     [attr.aria-busy]="exportStatus()"
@@ -83,10 +83,8 @@
          [class.listing--single]="!isPosts()">
         <section class="card list-card listing-list"
                  [attr.aria-label]="t('listing.list')"
-                 appInfiniteScroll
-                 (reached)="incrementLimit()"
-                 [enabled]="visible().length < filtered().length">
-            @if (f || baseModels().length || isPosts()) {
+                 [attr.aria-busy]="loading()">
+            @if (f || count() || isPosts()) {
             <div class="list-toolbar">
                 @if (f) {
                 <label class="control control--search">
@@ -98,12 +96,12 @@
                     <input class="input"
                            type="search"
                            [placeholder]="t(`listing.search.${key}`, { title: heading })"
-                           [value]="f.textFilter.value ?? ''"
-                           (input)="f.textFilter.value = $any($event.target).value; onFilterChange()" />
+                           [value]="search()"
+                           (input)="onSearch($any($event.target).value)" />
                 </label>
                 }
 
-                @if (baseModels().length) {
+                @if (count()) {
                 <button mat-stroked-button
                         type="button"
                         class="sort-toggle"
@@ -157,7 +155,10 @@
             </div>
             }
 
-            @if (!baseModels().length) {
+            @if (!loaded()) {
+            <!-- the first page: the app's loader covers the view meanwhile -->
+            <div class="list-loading"></div>
+            } @else if (!count()) {
             <div class="empty">
                 <span class="empty__icon">
                     <svg class="icon icon--lg"
@@ -196,7 +197,7 @@
             </div>
             } @else {
             <ul class="list">
-                @for (model of visible(); track model._id) {
+                @for (model of items(); track model._id) {
                 @if (lastRemoved() !== model) {
                 @let busy = removeStatus()?.busy === model._id && !removeStatus()?.status;
                 <li class="list__row"
@@ -233,6 +234,13 @@
                 }
                 }
             </ul>
+            <!-- no more items than the smallest page size: one page whatever the size, no pager -->
+            @if (count() > minPageSize) {
+            <app-pagination [page]="currentPage()"
+                            [pageSize]="pageSize()"
+                            [matched]="matchCount()"
+                            (pageSizeChange)="setPageSize($event)"></app-pagination>
+            }
             }
         </section>
 
@@ -244,7 +252,7 @@
                  aria-hidden="true"></div>
             <div class="filters__head">
                 <h2 class="filters__title">{{ t('listing.filters') }}</h2>
-                @if (baseModels().length) {
+                @if (count()) {
                 <button mat-button
                         type="button"
                         class="btn--sm"
@@ -261,7 +269,7 @@
                     </svg>
                 </button>
             </div>
-            @if (baseModels().length) {
+            @if (count()) {
             <app-listing-filters [filters]="f"
                                  [type]="family()"
                                  (changed)="onFilterChange()"></app-listing-filters>

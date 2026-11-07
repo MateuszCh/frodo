@@ -43,6 +43,7 @@ export const pl = {
     'common.errorRemoving': 'Błąd usuwania',
     'common.errorImporting': 'Wystąpił błąd podczas importu',
     'common.errorExporting': 'Wystąpił błąd podczas eksportu',
+    'common.errorLoading': 'Nie udało się wczytać listy',
     'common.wrongFileFormat': 'Nieprawidłowy format pliku!',
 
     // shell and navigation
@@ -120,6 +121,16 @@ export const pl = {
         many: 'Zaimportowano {count} pozycji',
         other: 'Zaimportowano {count} pozycji',
     },
+
+    // pagination
+    'pagination.label': 'Strony listy',
+    'pagination.previous': 'Poprzednia strona',
+    'pagination.next': 'Następna strona',
+    'pagination.page': 'Strona {page}',
+    'pagination.range': '{from}–{to} z {total}',
+    'pagination.pageSize': 'Na stronie',
+    'pagination.goTo': 'Idź do',
+    'pagination.goToLabel': 'Idź do strony (1–{last})',
 
     // filters
     'filters.true': 'Tak',
@@ -410,6 +421,7 @@ export const en: Record<MessageKey, Message> = {
     'common.errorRemoving': 'Error removing',
     'common.errorImporting': 'There was an error importing',
     'common.errorExporting': 'There was an error exporting',
+    'common.errorLoading': 'The list could not be loaded',
     'common.wrongFileFormat': 'Wrong file format!',
 
     'app.backToTop': 'Back to top',
@@ -473,6 +485,15 @@ export const en: Record<MessageKey, Message> = {
         one: '{count} {title} was successfully imported',
         other: '{count} {title} were successfully imported',
     },
+
+    'pagination.label': 'List pages',
+    'pagination.previous': 'Previous page',
+    'pagination.next': 'Next page',
+    'pagination.page': 'Page {page}',
+    'pagination.range': '{from}–{to} of {total}',
+    'pagination.pageSize': 'Per page',
+    'pagination.goTo': 'Go to',
+    'pagination.goToLabel': 'Go to page (1–{last})',
 
     'filters.true': 'True',
     'filters.false': 'False',

@@ -5,14 +5,12 @@ import {
     componentsResolver,
     existResolver,
     filesResolver,
+    listingResolver,
     pageResolver,
     pageSettingsResolver,
-    pagesResolver,
     postResolver,
     postTypeByIdResolver,
     postTypeResolver,
-    postTypeWithPostsResolver,
-    postTypesResolver,
     settingsResolver,
     userResolver,
 } from './core/resolvers';
@@ -25,7 +23,7 @@ export const routes: Routes = [
         pathMatch: 'full',
         canActivate: [authGuard],
         data: { family: 'pages', title: 'pages' },
-        resolve: { model: pagesResolver },
+        resolve: { listing: listingResolver },
         loadComponent: () =>
             import('./features/listing/listing/listing').then((m) => m.ListingComponent),
     },
@@ -33,7 +31,7 @@ export const routes: Routes = [
         path: 'pages',
         canActivate: [authGuard],
         data: { family: 'pages', title: 'pages' },
-        resolve: { model: pagesResolver },
+        resolve: { listing: listingResolver },
         loadComponent: () =>
             import('./features/listing/listing/listing').then((m) => m.ListingComponent),
     },
@@ -71,7 +69,7 @@ export const routes: Routes = [
         path: 'posts/:type',
         canActivate: [authGuard],
         data: { family: 'posts' },
-        resolve: { model: postTypeWithPostsResolver },
+        resolve: { model: postTypeResolver, listing: listingResolver },
         loadComponent: () =>
             import('./features/listing/listing/listing').then((m) => m.ListingComponent),
     },
@@ -81,7 +79,7 @@ export const routes: Routes = [
         path: 'post-types',
         canActivate: [authGuard],
         data: { family: 'postTypes', title: 'post types' },
-        resolve: { model: postTypesResolver },
+        resolve: { listing: listingResolver },
         loadComponent: () =>
             import('./features/listing/listing/listing').then((m) => m.ListingComponent),
     },
@@ -106,7 +104,7 @@ export const routes: Routes = [
         path: 'components',
         canActivate: [authGuard],
         data: { family: 'components', title: 'components' },
-        resolve: { model: componentsResolver },
+        resolve: { listing: listingResolver },
         loadComponent: () =>
             import('./features/listing/listing/listing').then((m) => m.ListingComponent),
     },

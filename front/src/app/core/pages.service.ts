@@ -1,7 +1,7 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
-import { Page } from '../models/models';
+import { ImportResult, Page } from '../models/models';
 
 /** Port of pages.service.js */
 @Injectable({ providedIn: 'root' })
@@ -16,10 +16,6 @@ export class PagesService {
         return this.http.put<Page>('/api/page/edit', data);
     }
 
-    getAll(): Observable<Page[]> {
-        return this.http.get<Page[]>('/api/page');
-    }
-
     getById(id: string | number): Observable<Page> {
         return this.http.get<Page>(`/api/page/${id}`);
     }
@@ -32,7 +28,7 @@ export class PagesService {
         return this.http.get('/api/exportPages', { responseType: 'text' });
     }
 
-    importData(data: { posts: Page[] }): Observable<Page[]> {
-        return this.http.post<Page[]>('/api/importPages', data);
+    importData(data: { posts: Page[] }): Observable<ImportResult> {
+        return this.http.post<ImportResult>('/api/importPages', data);
     }
 }

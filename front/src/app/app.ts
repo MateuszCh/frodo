@@ -1,4 +1,5 @@
 import { Component, computed, effect, inject, viewChild } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterOutlet } from '@angular/router';
 import { MatSidenavContent, MatSidenavModule } from '@angular/material/sidenav';
 import { HeaderComponent } from './layout/header/header';
@@ -44,6 +45,8 @@ export class App {
 
         // every new page opens at the top
         scrollToTopOnNavigation(() => this.content());
+        // and a listing goes back up smoothly once it shows another page
+        this.layout.scrollToTopRequests.pipe(takeUntilDestroyed()).subscribe(() => this.scrollTop());
     }
 
     onScroll(): void {

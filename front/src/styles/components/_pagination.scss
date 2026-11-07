@@ -1,0 +1,135 @@
+// Pager at the bottom of a listing card: range, page links, page size.
+// One row when the card is wide enough for all of it; otherwise range and page size on the
+// first row and the page links with the page box centred below (sized by the card, not the
+// window: the posts listing shares its width with the filter panel).
+
+app-pagination {
+    display: block;
+    container-type: inline-size;
+}
+
+.pagination {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
+    border-top: 1px solid var(--color-border);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+}
+
+.pagination__range {
+    margin: 0;
+    font-variant-numeric: tabular-nums;
+}
+
+.pagination__pages {
+    display: flex;
+    align-items: center;
+    gap: var(--space-1);
+    margin-inline: auto;
+}
+
+.pagination__link,
+.pagination__gap {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: var(--control-h-sm);
+    height: var(--control-h-sm);
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-md);
+    font-variant-numeric: tabular-nums;
+}
+
+.pagination__link {
+    color: var(--color-text);
+    font-weight: var(--weight-medium);
+    text-decoration: none;
+    transition: background-color var(--duration-instant) var(--ease-standard);
+
+    &:hover {
+        background: var(--color-fill-hover);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-focus-ring);
+        outline-offset: 1px;
+    }
+
+    &.is-current {
+        background: var(--color-accent-subtle);
+        color: var(--color-accent-subtle-text);
+        font-weight: var(--weight-semibold);
+    }
+
+    .icon {
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.pagination__size,
+.pagination__jump {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    white-space: nowrap;
+
+    .input {
+        height: var(--control-h-sm);
+        font-size: var(--text-sm);
+        font-variant-numeric: tabular-nums;
+    }
+}
+
+.pagination__size {
+    margin-left: auto;
+}
+
+// native select with a chevron, so it reads as a list to open
+.control--select {
+    .input {
+        width: auto;
+        padding-right: calc(var(--space-2) + 20px);
+        cursor: pointer;
+    }
+
+    .control__icon {
+        right: var(--space-2);
+        width: 16px;
+        height: 16px;
+    }
+}
+
+.pagination__jump {
+    margin-left: var(--space-3);
+
+    .input {
+        width: 56px;
+        padding: 0 var(--space-2);
+        text-align: center;
+        -moz-appearance: textfield;
+
+        &::-webkit-inner-spin-button,
+        &::-webkit-outer-spin-button {
+            margin: 0;
+            -webkit-appearance: none;
+        }
+    }
+}
+
+@container (max-width: 879px) {
+    .pagination__pages {
+        order: 3;
+        flex-basis: 100%;
+        flex-wrap: wrap;
+        justify-content: center;
+        row-gap: var(--space-2);
+    }
+
+    .pagination__jump {
+        margin-left: var(--space-2);
+    }
+}

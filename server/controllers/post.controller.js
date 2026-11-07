@@ -49,12 +49,11 @@ module.exports = {
                     // ids of the export where they are free, which "post" fields point to
                     return Post.saveImport(correctPosts, { type: postType }, { keepIds: true })
                         .then((posts) =>
-                            postTypeModel.update({
-                                $push: { posts: { $each: posts.map((post) => post._id) } },
-                            }),
-                        )
-                        .then(() => PostType.findOne({ type: postType }).populate('posts'))
-                        .then((postTypeWithPosts) => res.send(postTypeWithPosts));
+                            postTypeModel
+                                .update({ $push: { posts: { $each: posts.map((post) => post._id) } } })
+                                // the count only: the listing loads its page again itself
+                                .then(() => res.send({ imported: posts.length })),
+                        );
                 })
                 .catch(next);
         } else {

@@ -39,31 +39,26 @@ export interface SortState {
 
 const FILTERABLE = ['checkbox', 'number', 'select', 'multiselect', 'date', 'catalogue'];
 
-function setRange(
-    posts: Post[],
-    id: string,
-    dates = false,
-): [number, number] | [Date, Date] | undefined {
-    let values = posts
-        .map((post) => post.data[id])
-        .filter((v): v is number | string => v !== undefined && v !== null) as Array<
-        number | string
-    >;
-    if (!values.length) {
-        return undefined;
-    }
-    values = [...values].sort((a, b) => (a < b ? -1 : a > b ? 1 : 0));
-    const first = values[0];
-    const last = values[values.length - 1];
-    return dates
-        ? [new Date(first), new Date(last)]
-        : [Math.floor(Number(first)), Math.ceil(Number(last))];
+export const PAGE_SIZES = [10, 20, 50, 100] as const;
+export const DEFAULT_PAGE_SIZE = 20;
+
+/** `{ fieldId: [min, max] }` from the server; dates come as ISO strings. */
+export type FilterRanges = Record<string, [number, number] | [string, string]>;
+
+/** The filters sent to the server: only the active ones, by field type and id. */
+export interface ActiveFilters {
+    checkbox?: Record<string, boolean>;
+    select?: Record<string, string[]>;
+    multiselect?: Record<string, string[]>;
+    catalogue?: Record<string, string[]>;
+    number?: Record<string, [number, number]>;
+    date?: Record<string, [string, string]>;
 }
 
 /** Port of createFilters() from listing.factory.js. */
 export function buildFilters(
     fields: Field[] | undefined,
-    posts: Post[],
+    ranges: FilterRanges,
     family: string,
     catalogues: string[],
 ): Filters | undefined {
@@ -92,7 +87,8 @@ export function buildFilters(
                 checkboxes.fields.push(filterField);
                 break;
             case 'number': {
-                const range = setRange(posts, field.id) as [number, number] | undefined;
+                const raw = ranges[field.id];
+                const range = raw ? ([Number(raw[0]), Number(raw[1])] as [number, number]) : undefined;
                 if (range) {
                     filterField.range = range;
                     filterField.minValue = range[0];
@@ -112,7 +108,8 @@ export function buildFilters(
                 multiselects.fields.push(filterField);
                 break;
             case 'date': {
-                const range = setRange(posts, field.id, true) as [Date, Date] | undefined;
+                const raw = ranges[field.id];
+                const range = raw ? ([new Date(raw[0]), new Date(raw[1])] as [Date, Date]) : undefined;
                 if (range) {
                     filterField.range = range;
                     filterField.minValue = range[0];
@@ -160,104 +157,76 @@ export function resetFilters(filters: Filters, type: string): void {
     filters.catalogues?.fields.forEach((f) => (f.values = []));
 }
 
-function textMatches(item: unknown, text: string): boolean {
-    return JSON.stringify(item ?? '')
-        .toLowerCase()
-        .includes(text.toLowerCase());
-}
-
-/** Port of listingFilter.filter.js. */
-export function applyFilters<T extends Record<string, unknown>>(
-    models: T[],
-    filters: Filters | undefined,
-    type: string,
-): T[] {
-    if (!models.length || !filters) {
-        return models;
+/** The active post filters in the shape the server reads; null when none is active. */
+export function serializeFilters(filters: Filters | undefined): ActiveFilters | null {
+    if (!filters) {
+        return null;
     }
+    const active: ActiveFilters = {};
+    const put = <K extends keyof ActiveFilters>(type: K, id: string, value: unknown) => {
+        const group = (active[type] ?? {}) as Record<string, unknown>;
+        group[id] = value;
+        active[type] = group as ActiveFilters[K];
+    };
 
-    let result = models;
-
-    const text = filters.textFilter.value;
-    if (text) {
-        result = result.filter((m) => textMatches(m, text));
-    }
-
-    if (type !== 'posts') {
-        return result;
-    }
-
-    const data = (m: T) => (m as unknown as Post).data;
-
-    filters.checkboxes?.fields.forEach((checkbox) => {
-        if (checkbox.value !== 'all') {
-            result = result.filter((m) => data(m)[checkbox.id] === checkbox.value);
+    filters.checkboxes?.fields.forEach((f) => {
+        if (typeof f.value === 'boolean') {
+            put('checkbox', f.id, f.value);
         }
     });
-
-    filters.selects?.fields.forEach((select) => {
-        if (select.values && select.values.length) {
-            result = result.filter((m) => {
-                const v = data(m)[select.id] as string;
-                return !!v && select.values!.indexOf(v) > -1;
-            });
+    filters.selects?.fields.forEach((f) => f.values?.length && put('select', f.id, [...f.values]));
+    filters.multiselects?.fields.forEach(
+        (f) => f.values?.length && put('multiselect', f.id, [...f.values]),
+    );
+    filters.catalogues?.fields.forEach((f) => f.values?.length && put('catalogue', f.id, [...f.values]));
+    filters.numbers?.fields.forEach((f) => {
+        const range = f.range as [number, number];
+        const [min, max] = [f.minValue, f.maxValue];
+        // a cleared box is no bound, not a bound at 0
+        if (typeof min !== 'number' || typeof max !== 'number' || isNaN(min) || isNaN(max)) {
+            return;
+        }
+        if (min !== range[0] || max !== range[1]) {
+            put('number', f.id, [min, max]);
         }
     });
-
-    filters.multiselects?.fields.forEach((multiselect) => {
-        if (multiselect.values && multiselect.values.length) {
-            result = result.filter((m) => {
-                const v = data(m)[multiselect.id] as string[] | undefined;
-                if (!v || !v.length) return false;
-                return v.some((opt) => multiselect.values!.indexOf(opt) > -1);
-            });
+    filters.dates?.fields.forEach((f) => {
+        const range = f.range as [Date, Date];
+        const [min, max] = [f.minValue, f.maxValue];
+        if (!(min instanceof Date) || !(max instanceof Date) || isNaN(min.getTime()) || isNaN(max.getTime())) {
+            return;
+        }
+        if (min.getTime() !== range[0].getTime() || max.getTime() !== range[1].getTime()) {
+            put('date', f.id, [min.toISOString(), max.toISOString()]);
         }
     });
-
-    filters.catalogues?.fields.forEach((catalogue) => {
-        if (catalogue.values && catalogue.values.length) {
-            result = result.filter((m) => {
-                const v = data(m)[catalogue.id] as string;
-                return catalogue.values!.indexOf(v) > -1;
-            });
-        }
-    });
-
-    filters.numbers?.fields.forEach((number) => {
-        const range = number.range as [number, number];
-        if (number.minValue !== range[0] || number.maxValue !== range[1]) {
-            result = result.filter((m) => {
-                const v = Number(data(m)[number.id]);
-                return (number.minValue as number) <= v && (number.maxValue as number) >= v;
-            });
-        }
-    });
-
-    filters.dates?.fields.forEach((date) => {
-        const range = date.range as [Date, Date];
-        if (date.minValue !== range[0] || date.maxValue !== range[1]) {
-            result = result.filter((m) => {
-                const raw = data(m)[date.id];
-                if (!raw) return false;
-                const t = new Date(raw as string).getTime();
-                return (
-                    (date.minValue as Date).getTime() <= t && (date.maxValue as Date).getTime() >= t
-                );
-            });
-        }
-    });
-
-    return result;
+    return Object.keys(active).length ? active : null;
 }
 
 /** Port of createSort() from listing.factory.js. */
+/**
+ * Key of the sort and page size kept per listing: the family, or "posts.<type>" for the
+ * posts of a type (known from the URL, so the route resolver can read them too).
+ */
+export function listingKey(family: string, postType?: string): string {
+    return family === 'posts' && postType ? `posts.${postType}` : family;
+}
+
+/** The sort chosen for a listing in this session, or "created". */
+export function readSort(listingId: string | number): string {
+    try {
+        return sessionStorage.getItem('sorting.' + listingId) || 'created';
+    } catch {
+        return 'created';
+    }
+}
+
 export function buildSort(
     listingId: string | number,
     type: string,
     fields: Field[] | undefined,
 ): SortState {
-    const key = 'sorting.' + listingId;
-    const current = sessionStorage.getItem(key) || 'created';
+    const current = readSort(listingId);
     const types: SortType[] = [
         { name: 'newest', varName: '-created' },
         { name: 'oldest', varName: 'created' },
@@ -279,6 +248,24 @@ export function buildSort(
 
 export function persistSort(listingId: string | number, varName: string): void {
     sessionStorage.setItem('sorting.' + listingId, varName);
+}
+
+/** The page size chosen for a listing (localStorage), or the default. */
+export function readPageSize(listingId: string | number): number {
+    try {
+        const size = Number(localStorage.getItem('listing.pageSize.' + listingId));
+        return (PAGE_SIZES as readonly number[]).includes(size) ? size : DEFAULT_PAGE_SIZE;
+    } catch {
+        return DEFAULT_PAGE_SIZE;
+    }
+}
+
+export function persistPageSize(listingId: string | number, size: number): void {
+    try {
+        localStorage.setItem('listing.pageSize.' + listingId, String(size));
+    } catch {
+        // storage blocked: the size holds until the listing is left
+    }
 }
 
 /** Sort comparator for a varName like "-created" | "title" | "data_<id>". */

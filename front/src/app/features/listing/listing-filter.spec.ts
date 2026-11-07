@@ -1,16 +1,23 @@
-import { makeField, makePost, makePostType } from '../../testing/test-helpers';
+import { makeField, makePost } from '../../testing/test-helpers';
 import {
-    applyFilters,
     applySort,
     buildFilters,
     buildSort,
+    listingKey,
+    persistPageSize,
     persistSort,
+    readPageSize,
+    readSort,
     resetFilters,
+    serializeFilters,
 } from './listing-filter';
 import type { Filters } from './listing-filter';
 import type { Post } from '../../models/models';
 
-afterEach(() => sessionStorage.clear());
+afterEach(() => {
+    sessionStorage.clear();
+    localStorage.clear();
+});
 
 // ---------------------------------------------------------------------------
 // buildFilters
@@ -18,32 +25,25 @@ afterEach(() => sessionStorage.clear());
 
 describe('buildFilters', () => {
     it('returns a text-only filter when family is not "posts"', () => {
-        const result = buildFilters([], [], 'pages', []);
+        const result = buildFilters([], {}, 'pages', []);
         expect(result).toEqual({ textFilter: { type: 'text', value: undefined } });
     });
 
     it('returns undefined when family is "posts" and fields is empty', () => {
-        expect(buildFilters([], [], 'posts', [])).toBeUndefined();
-        expect(buildFilters(undefined, [], 'posts', [])).toBeUndefined();
+        expect(buildFilters([], {}, 'posts', [])).toBeUndefined();
+        expect(buildFilters(undefined, {}, 'posts', [])).toBeUndefined();
     });
 
     it('adds a checkbox group with value "all"', () => {
         const fields = [makeField('checkbox', 'active', 'Active')];
-        const result = buildFilters(fields, [], 'posts', [])!;
+        const result = buildFilters(fields, {}, 'posts', [])!;
         expect(result.checkboxes!.fields).toHaveLength(1);
         expect(result.checkboxes!.fields[0].value).toBe('all');
     });
 
-    it('adds a number group with range when posts have numeric data', () => {
-        // Three posts with one duplicate to cover all branches of the sort comparator in setRange:
-        // a < b (ascending), a > b (descending), and a === b (equal → returns 0)
-        const posts = [
-            makePost({ data: { price: 50 } }),
-            makePost({ data: { price: 10 } }),
-            makePost({ data: { price: 10 } }), // duplicate covers a===b → returns 0
-        ];
+    it('adds a number group with the range from the server', () => {
         const fields = [makeField('number', 'price', 'Price')];
-        const result = buildFilters(fields, posts, 'posts', [])!;
+        const result = buildFilters(fields, { price: [10, 50] }, 'posts', [])!;
         expect(result.numbers!.fields).toHaveLength(1);
         const f = result.numbers!.fields[0];
         expect(f.range).toEqual([10, 50]);
@@ -51,16 +51,15 @@ describe('buildFilters', () => {
         expect(f.maxValue).toBe(50);
     });
 
-    it('omits number field when no posts have that data', () => {
-        const posts = [makePost({ data: {} })];
+    it('omits number field when the server has no range for it', () => {
         const fields = [makeField('number', 'price', 'Price')];
-        const result = buildFilters(fields, posts, 'posts', [])!;
+        const result = buildFilters(fields, {}, 'posts', [])!;
         expect(result.numbers!.fields).toHaveLength(0);
     });
 
     it('adds a select group with options', () => {
         const fields = [makeField('select', 'status', 'Status', { options: ['a', 'b'] })];
-        const result = buildFilters(fields, [], 'posts', [])!;
+        const result = buildFilters(fields, {}, 'posts', [])!;
         expect(result.selects!.fields).toHaveLength(1);
         expect(result.selects!.fields[0].options).toEqual(['a', 'b']);
         expect(result.selects!.fields[0].values).toEqual([]);
@@ -68,13 +67,13 @@ describe('buildFilters', () => {
 
     it('select field without options falls back to []', () => {
         const fields = [makeField('select', 'status', 'Status')]; // no options
-        const result = buildFilters(fields, [], 'posts', [])!;
+        const result = buildFilters(fields, {}, 'posts', [])!;
         expect(result.selects!.fields[0].options).toEqual([]);
     });
 
     it('adds a multiselect group with multiOptions', () => {
         const fields = [makeField('multiselect', 'tags', 'Tags', { multiOptions: ['x', 'y'] })];
-        const result = buildFilters(fields, [], 'posts', [])!;
+        const result = buildFilters(fields, {}, 'posts', [])!;
         expect(result.multiselects!.fields).toHaveLength(1);
         expect(result.multiselects!.fields[0].multiOptions).toEqual(['x', 'y']);
         expect(result.multiselects!.fields[0].values).toEqual([]);
@@ -82,17 +81,14 @@ describe('buildFilters', () => {
 
     it('multiselect field without multiOptions falls back to []', () => {
         const fields = [makeField('multiselect', 'tags', 'Tags')]; // no multiOptions
-        const result = buildFilters(fields, [], 'posts', [])!;
+        const result = buildFilters(fields, {}, 'posts', [])!;
         expect(result.multiselects!.fields[0].multiOptions).toEqual([]);
     });
 
-    it('adds a date group with Date range when posts have date strings', () => {
-        const posts = [
-            makePost({ data: { published: '2024-01-01' } }),
-            makePost({ data: { published: '2024-12-31' } }),
-        ];
+    it('adds a date group with a Date range from the ISO strings of the server', () => {
         const fields = [makeField('date', 'published', 'Published')];
-        const result = buildFilters(fields, posts, 'posts', [])!;
+        const ranges = { published: ['2024-01-01T00:00:00.000Z', '2024-12-31T00:00:00.000Z'] as [string, string] };
+        const result = buildFilters(fields, ranges, 'posts', [])!;
         expect(result.dates!.fields).toHaveLength(1);
         const [min, max] = result.dates!.fields[0].range as [Date, Date];
         expect(min).toBeInstanceOf(Date);
@@ -102,14 +98,14 @@ describe('buildFilters', () => {
 
     it('date field with no valid date values: date group stays empty', () => {
         const fields = [makeField('date', 'published', 'Published')];
-        const result = buildFilters(fields, [], 'posts', [])!;
+        const result = buildFilters(fields, {}, 'posts', [])!;
         expect(result.dates!.fields).toHaveLength(0);
     });
 
     it('adds a catalogue group with the passed catalogues', () => {
         const fields = [makeField('catalogue', 'cat', 'Category')];
         const catalogues = ['nature', 'tech'];
-        const result = buildFilters(fields, [], 'posts', catalogues)!;
+        const result = buildFilters(fields, {}, 'posts', catalogues)!;
         expect(result.catalogues!.fields).toHaveLength(1);
         expect(result.catalogues!.fields[0].options).toEqual(catalogues);
     });
@@ -121,7 +117,7 @@ describe('buildFilters', () => {
             makeField('file', 'img', 'Image'),
             makeField('repeater', 'items', 'Items'),
         ];
-        const result = buildFilters(fields, [], 'posts', [])!;
+        const result = buildFilters(fields, {}, 'posts', [])!;
         expect(result.checkboxes!.fields).toHaveLength(0);
         expect(result.numbers!.fields).toHaveLength(0);
         expect(result.selects!.fields).toHaveLength(0);
@@ -207,188 +203,101 @@ describe('resetFilters', () => {
 });
 
 // ---------------------------------------------------------------------------
-// applyFilters
+// serializeFilters
 // ---------------------------------------------------------------------------
 
-describe('applyFilters', () => {
-    const posts: Post[] = [
-        makePost({ title: 'Alpha', data: { active: true, status: 'open', tags: ['a', 'b'], score: 5, cat: 'nature' } }),
-        makePost({ title: 'Beta', data: { active: false, status: 'closed', tags: ['b', 'c'], score: 15, cat: 'tech' } }),
-        makePost({ title: 'Gamma', data: { active: true, status: 'open', tags: ['c'], score: 25, cat: 'nature' } }),
-    ];
+describe('serializeFilters', () => {
+    const d1 = new Date('2024-01-01T00:00:00.000Z');
+    const d2 = new Date('2024-12-31T00:00:00.000Z');
 
-    it('returns models unchanged when filters is undefined', () => {
-        expect(applyFilters(posts as unknown as Record<string, unknown>[], undefined, 'posts')).toBe(posts);
+    function fullFilters(): Filters {
+        return buildFilters(
+            [
+                makeField('checkbox', 'active', 'Active'),
+                makeField('select', 'status', 'Status', { options: ['open', 'closed'] }),
+                makeField('multiselect', 'tags', 'Tags', { multiOptions: ['a', 'b'] }),
+                makeField('catalogue', 'cat', 'Category'),
+                makeField('number', 'score', 'Score'),
+                makeField('date', 'pub', 'Published'),
+            ],
+            { score: [0, 100], pub: [d1.toISOString(), d2.toISOString()] },
+            'posts',
+            ['nature', 'tech'],
+        )!;
+    }
+
+    it('is null without filters or without an active one', () => {
+        expect(serializeFilters(undefined)).toBeNull();
+        expect(serializeFilters(fullFilters())).toBeNull();
+        expect(serializeFilters({ textFilter: { type: 'text', value: 'x' } })).toBeNull();
     });
 
-    it('returns empty array unchanged', () => {
-        const filters: Filters = { textFilter: { type: 'text' } };
-        expect(applyFilters([], filters, 'posts')).toHaveLength(0);
+    it('sends only the active filters, by type and field id', () => {
+        const f = fullFilters();
+        f.checkboxes!.fields[0].value = false;
+        f.selects!.fields[0].values = ['open'];
+        f.multiselects!.fields[0].values = ['a', 'b'];
+        f.catalogues!.fields[0].values = ['tech'];
+        f.numbers!.fields[0].minValue = 10;
+        f.dates!.fields[0].maxValue = new Date('2024-06-30T00:00:00.000Z');
+        expect(serializeFilters(f)).toEqual({
+            checkbox: { active: false },
+            select: { status: ['open'] },
+            multiselect: { tags: ['a', 'b'] },
+            catalogue: { cat: ['tech'] },
+            number: { score: [10, 100] },
+            date: { pub: [d1.toISOString(), '2024-06-30T00:00:00.000Z'] },
+        });
     });
 
-    it('filters by text (case-insensitive JSON match)', () => {
-        const filters: Filters = { textFilter: { type: 'text', value: 'gamma' } };
-        const result = applyFilters(posts as unknown as Record<string, unknown>[], filters, 'posts');
-        expect(result).toHaveLength(1);
-        expect((result[0] as unknown as Post).title).toBe('Gamma');
+    it('treats a date equal to the range bound as inactive, even as another Date object', () => {
+        const f = fullFilters();
+        f.dates!.fields[0].minValue = new Date(d1.getTime());
+        expect(serializeFilters(f)).toBeNull();
     });
 
-    it('passes all models when text filter is empty', () => {
-        const filters: Filters = { textFilter: { type: 'text', value: '' } };
-        const result = applyFilters(posts as unknown as Record<string, unknown>[], filters, 'posts');
-        expect(result).toHaveLength(3);
+    it('leaves out a range with a cleared or invalid bound', () => {
+        const f = fullFilters();
+        f.numbers!.fields[0].minValue = null as unknown as number;
+        f.dates!.fields[0].minValue = new Date('nope');
+        expect(serializeFilters(f)).toBeNull();
+    });
+});
+
+// ---------------------------------------------------------------------------
+// page size
+// ---------------------------------------------------------------------------
+
+describe('readPageSize / persistPageSize', () => {
+    it('defaults to 20', () => {
+        expect(readPageSize('pages')).toBe(20);
     });
 
-    it('null item in models is skipped by text filter', () => {
-        const filters: Filters = { textFilter: { type: 'text', value: 'hello' } };
-        const items = [null as unknown as Record<string, unknown>, { title: 'hello world' } as Record<string, unknown>];
-        const result = applyFilters(items, filters, 'pages');
-        expect(result).toHaveLength(1);
-        expect((result[0] as any).title).toBe('hello world');
+    it('keeps the size per listing in localStorage', () => {
+        persistPageSize('pages', 50);
+        persistPageSize(12, 100);
+        expect(localStorage.getItem('listing.pageSize.pages')).toBe('50');
+        expect(readPageSize('pages')).toBe(50);
+        expect(readPageSize(12)).toBe(100);
+        expect(readPageSize('components')).toBe(20);
     });
 
-    it('filters checkboxes when value is not "all"', () => {
-        const filters: Filters = {
-            textFilter: { type: 'text' },
-            checkboxes: { type: 'checkbox', fields: [{ id: 'active', title: 'Active', value: true as unknown as 'all' }] },
-        };
-        const result = applyFilters(posts as unknown as Record<string, unknown>[], filters, 'posts');
-        expect(result).toHaveLength(2);
+    it('ignores a size that is not offered', () => {
+        localStorage.setItem('listing.pageSize.pages', '30');
+        expect(readPageSize('pages')).toBe(20);
     });
 
-    it('passes all through when checkbox value is "all"', () => {
-        const filters: Filters = {
-            textFilter: { type: 'text' },
-            checkboxes: { type: 'checkbox', fields: [{ id: 'active', title: 'Active', value: 'all' }] },
-        };
-        expect(applyFilters(posts as unknown as Record<string, unknown>[], filters, 'posts')).toHaveLength(3);
-    });
-
-    it('filters by select values', () => {
-        const filters: Filters = {
-            textFilter: { type: 'text' },
-            selects: { type: 'select', fields: [{ id: 'status', title: 'Status', values: ['open'] }] },
-        };
-        const result = applyFilters(posts as unknown as Record<string, unknown>[], filters, 'posts');
-        expect(result).toHaveLength(2);
-    });
-
-    it('filters by multiselect values (any match)', () => {
-        const filters: Filters = {
-            textFilter: { type: 'text' },
-            multiselects: { type: 'multiselect', fields: [{ id: 'tags', title: 'Tags', values: ['a'] }] },
-        };
-        const result = applyFilters(posts as unknown as Record<string, unknown>[], filters, 'posts');
-        expect(result).toHaveLength(1);
-        expect((result[0] as unknown as Post).title).toBe('Alpha');
-    });
-
-    it('filters by number range when range is narrowed', () => {
-        const filters: Filters = {
-            textFilter: { type: 'text' },
-            numbers: {
-                type: 'number',
-                fields: [{ id: 'score', title: 'Score', range: [5, 25], minValue: 10, maxValue: 20 }],
-            },
-        };
-        const result = applyFilters(posts as unknown as Record<string, unknown>[], filters, 'posts');
-        expect(result).toHaveLength(1);
-        expect((result[0] as unknown as Post).title).toBe('Beta');
-    });
-
-    it('multiselect filter excludes post whose field is an empty array', () => {
-        const postsWithEmpty: Post[] = [
-            makePost({ data: { tags: [] } }),         // empty → excluded
-            makePost({ data: { tags: ['red'] } }),    // matches → included
-        ];
-        const filters: Filters = {
-            textFilter: { type: 'text' },
-            multiselects: {
-                type: 'multiselect',
-                fields: [{ id: 'tags', title: 'Tags', multiOptions: ['red', 'blue'], values: ['red'] }],
-            },
-        };
-        const result = applyFilters(postsWithEmpty as unknown as Record<string, unknown>[], filters, 'posts');
-        expect(result).toHaveLength(1);
-    });
-
-    it('ANDs multiple active filters', () => {
-        // text 'gamma' matches only Gamma; checkbox active===true also matches Gamma → intersection = [Gamma]
-        const filters: Filters = {
-            textFilter: { type: 'text', value: 'gamma' },
-            checkboxes: { type: 'checkbox', fields: [{ id: 'active', title: 'Active', value: false as unknown as 'all' }] },
-        };
-        const result = applyFilters(posts as unknown as Record<string, unknown>[], filters, 'posts');
-        // Gamma matches text but active=true, not false → intersection is empty
-        expect(result).toHaveLength(0);
-    });
-
-    it('applies only text filter when family is not "posts"', () => {
-        const pages = [{ title: 'Home', pageUrl: '/' }, { title: 'About', pageUrl: '/about' }];
-        const filters: Filters = {
-            textFilter: { type: 'text', value: 'home' },
-        };
-        const result = applyFilters(pages as unknown as Record<string, unknown>[], filters, 'pages');
-        expect(result).toHaveLength(1);
-    });
-
-    it('filters by date range when range is narrowed', () => {
-        const d1 = new Date('2024-01-01');
-        const d2 = new Date('2024-12-31');
-        const mid = new Date('2024-06-15');
-        const postsWithDates: Post[] = [
-            makePost({ data: { pub: '2024-01-01' } }),
-            makePost({ data: { pub: '2024-06-15' } }),
-            makePost({ data: { pub: '2024-12-31' } }),
-        ];
-        const filters: Filters = {
-            textFilter: { type: 'text' },
-            dates: {
-                type: 'date',
-                fields: [{ id: 'pub', title: 'Published', range: [d1, d2], minValue: mid, maxValue: d2 }],
-            },
-        };
-        const result = applyFilters(postsWithDates as unknown as Record<string, unknown>[], filters, 'posts');
-        expect(result).toHaveLength(2); // mid and d2 pass; d1 is before mid
-    });
-
-    it('excludes posts with missing date values from date filter', () => {
-        const d1 = new Date('2024-01-01');
-        const d2 = new Date('2024-12-31');
-        const postsWithDates: Post[] = [
-            makePost({ data: {} }),                    // no date value
-            makePost({ data: { pub: '2024-06-01' } }),
-        ];
-        const filters: Filters = {
-            textFilter: { type: 'text' },
-            dates: {
-                type: 'date',
-                fields: [{ id: 'pub', title: 'Published', range: [d1, d2], minValue: d1, maxValue: d2 }],
-            },
-        };
-        // Range not narrowed (minValue === range[0]), so filter is inactive — all pass
-        const resultUnnarrowed = applyFilters(postsWithDates as unknown as Record<string, unknown>[], filters, 'posts');
-        expect(resultUnnarrowed).toHaveLength(2);
-
-        // Narrow the range to trigger filtering
-        const narrowed = { ...filters, dates: { type: 'date', fields: [{ ...filters.dates!.fields[0], minValue: new Date('2024-05-01') }] } } as Filters;
-        const resultNarrowed = applyFilters(postsWithDates as unknown as Record<string, unknown>[], narrowed, 'posts');
-        expect(resultNarrowed).toHaveLength(1); // post without date is excluded
-    });
-
-    it('filters by catalogue values', () => {
-        const postsWithCat: Post[] = [
-            makePost({ data: { cat: 'nature' } }),
-            makePost({ data: { cat: 'tech' } }),
-            makePost({ data: { cat: 'nature' } }),
-        ];
-        const filters: Filters = {
-            textFilter: { type: 'text' },
-            catalogues: { type: 'catalogue', fields: [{ id: 'cat', title: 'Category', values: ['tech'] }] },
-        };
-        const result = applyFilters(postsWithCat as unknown as Record<string, unknown>[], filters, 'posts');
-        expect(result).toHaveLength(1);
-        expect((result[0] as unknown as Post).data['cat']).toBe('tech');
+    it('falls back to the default when storage throws', () => {
+        const spy = vi.spyOn(Storage.prototype, 'getItem').mockImplementation(() => {
+            throw new Error('blocked');
+        });
+        expect(readPageSize('pages')).toBe(20);
+        spy.mockRestore();
+        const setSpy = vi.spyOn(Storage.prototype, 'setItem').mockImplementation(() => {
+            throw new Error('blocked');
+        });
+        expect(() => persistPageSize('pages', 50)).not.toThrow();
+        setSpy.mockRestore();
     });
 });
 
@@ -549,5 +458,20 @@ describe('applySort', () => {
         ];
         const sorted = applySort(pages as unknown as Record<string, unknown>[], 'pageUrl') as typeof pages;
         expect(sorted.map((p) => p.pageUrl)).toEqual(['/a', '/m', '/z']);
+    });
+});
+
+describe('listingKey / readSort', () => {
+    it('keys a family by name and posts by their type', () => {
+        expect(listingKey('pages')).toBe('pages');
+        expect(listingKey('pages', 'news')).toBe('pages');
+        expect(listingKey('posts', 'news')).toBe('posts.news');
+        expect(listingKey('posts')).toBe('posts');
+    });
+
+    it('reads the kept sort or falls back to created', () => {
+        expect(readSort('posts.news')).toBe('created');
+        persistSort('posts.news', '-title');
+        expect(readSort('posts.news')).toBe('-title');
     });
 });

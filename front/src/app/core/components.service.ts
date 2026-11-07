@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, tap } from 'rxjs';
-import { ComponentEntity } from '../models/models';
+import { ComponentEntity, ImportResult } from '../models/models';
 
 /** Port of components.service.js */
 @Injectable({ providedIn: 'root' })
@@ -59,8 +59,8 @@ export class ComponentsService {
         return this.http.get('/api/exportComponents', { responseType: 'text' });
     }
 
-    importData(data: { posts: ComponentEntity[] }): Observable<ComponentEntity[]> {
-        return this.http.post<ComponentEntity[]>('/api/importComponents', data).pipe(tap(this.listChanged));
+    importData(data: { posts: ComponentEntity[] }): Observable<ImportResult> {
+        return this.http.post<ImportResult>('/api/importComponents', data).pipe(tap(this.listChanged));
     }
 
     private readonly listChanged = (): void => this._loaded.set(false);

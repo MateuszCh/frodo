@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
 import { FilesService } from './files.service';
+import { UserService } from './user.service';
 import type { FileItem } from '../models/models';
 
 const makeFileItem = (overrides: Partial<FileItem> = {}): FileItem => ({
@@ -25,6 +26,28 @@ describe('FilesService', () => {
     // ---- catalogues signal ---------------------------------------------------
 
     it('catalogues signal starts as an empty array', () => {
+        expect(service.catalogues()).toEqual([]);
+    });
+
+    it('loads the catalogues only once a user is logged in, and drops them on log out', () => {
+        TestBed.tick();
+        http.expectNone('/api/file/catalogues');
+
+        const user = TestBed.inject(UserService);
+        user.setUser('admin', 1, 1);
+        TestBed.tick();
+        http.expectOne('/api/file/catalogues').flush(['nature']);
+        expect(service.catalogues()).toEqual(['nature']);
+
+        user.clear();
+        TestBed.tick();
+        expect(service.catalogues()).toEqual([]);
+    });
+
+    it('keeps an empty list when the catalogues cannot be loaded', () => {
+        TestBed.inject(UserService).setUser('admin', 1, 1);
+        TestBed.tick();
+        http.expectOne('/api/file/catalogues').flush({ error: 'x' }, { status: 500, statusText: 'Error' });
         expect(service.catalogues()).toEqual([]);
     });
 

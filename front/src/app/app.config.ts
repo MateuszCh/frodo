@@ -20,15 +20,11 @@ export const appConfig: ApplicationConfig = {
         provideRouter(routes, withComponentInputBinding()),
         provideHttpClient(withInterceptors([credentialsInterceptor])),
         provideAnimations(),
-        // init.run.js + catalogues.run.js: load the current session user before the
-        // app renders, and preload file catalogues in the background.
+        // init.run.js: load the current session user before the app renders; FilesService
+        // then loads the file catalogues in the background once someone is logged in
         provideAppInitializer(() => {
             const userService = inject(UserService);
-            const filesService = inject(FilesService);
-            filesService
-                .loadCatalogues()
-                .pipe(catchError(() => of([])))
-                .subscribe();
+            inject(FilesService);
             return firstValueFrom(userService.fetchUser().pipe(catchError(() => of(null))));
         }),
     ],

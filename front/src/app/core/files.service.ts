@@ -1,7 +1,8 @@
-import { Injectable, inject, signal } from '@angular/core';
+import { Injectable, effect, inject, signal, untracked } from '@angular/core';
 import { HttpClient, HttpEvent, HttpRequest } from '@angular/common/http';
-import { Observable, tap } from 'rxjs';
+import { Observable, catchError, of, tap } from 'rxjs';
 import { FileItem } from '../models/models';
+import { UserService } from './user.service';
 
 export interface FileMeta {
     title?: string;
@@ -12,13 +13,31 @@ export interface FileMeta {
     position?: number;
 }
 
-/** Port of files.service.js — caches catalogues (preloaded at app init). */
+/** Port of files.service.js — caches catalogues (loaded in the background once logged in). */
 @Injectable({ providedIn: 'root' })
 export class FilesService {
     private http = inject(HttpClient);
 
     private _catalogues = signal<string[]>([]);
     readonly catalogues = this._catalogues.asReadonly();
+
+    constructor() {
+        // the API needs a login: the catalogues load when a user logs in (or the session
+        // is already there at start) and go with a log out
+        const isLogged = inject(UserService).isLogged;
+        effect(() => {
+            const logged = isLogged();
+            untracked(() => {
+                if (logged) {
+                    this.loadCatalogues()
+                        .pipe(catchError(() => of([])))
+                        .subscribe();
+                } else {
+                    this._catalogues.set([]);
+                }
+            });
+        });
+    }
 
     getAllFiles(): Observable<FileItem[]> {
         return this.http.get<FileItem[]>('/api/file');

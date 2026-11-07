@@ -1,7 +1,7 @@
 import { Injectable, inject, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Observable, catchError, shareReplay, tap, throwError } from 'rxjs';
-import { PostType } from '../models/models';
+import { ImportResult, PostType } from '../models/models';
 
 /** Port of postTypes.service.js */
 @Injectable({ providedIn: 'root' })
@@ -67,16 +67,8 @@ export class PostTypesService {
         return this.http.get<PostType>(`/api/postType/${id}`);
     }
 
-    getByIdWithPosts(id: string | number): Observable<PostType> {
-        return this.http.get<PostType>(`/api/postTypePosts/${id}`);
-    }
-
     getByType(type: string): Observable<PostType> {
         return this.http.get<PostType>(`/api/postTypeByType/${type}`);
-    }
-
-    getByTypeWithPosts(type: string): Observable<PostType> {
-        return this.http.get<PostType>(`/api/postTypeByTypePosts/${type}`);
     }
 
     remove(id: string | number): Observable<string> {
@@ -87,7 +79,7 @@ export class PostTypesService {
         return this.http.get('/api/exportPostTypes', { responseType: 'text' });
     }
 
-    importData(data: { posts: PostType[] }): Observable<PostType[]> {
-        return this.http.post<PostType[]>('/api/importPostTypes', data).pipe(tap(this.postsChanged));
+    importData(data: { posts: PostType[] }): Observable<ImportResult> {
+        return this.http.post<ImportResult>('/api/importPostTypes', data).pipe(tap(this.postsChanged));
     }
 }

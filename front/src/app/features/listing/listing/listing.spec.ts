@@ -1,4 +1,4 @@
-import { Component, Directive, NO_ERRORS_SCHEMA, input, output, signal } from '@angular/core';
+import { Component, NO_ERRORS_SCHEMA, input, output, signal } from '@angular/core';
 import { TestBed, ComponentFixture } from '@angular/core/testing';
 import { provideRouter, Router } from '@angular/router';
 import { provideLocationMocks } from '@angular/common/testing';
@@ -8,7 +8,6 @@ import { of, throwError } from 'rxjs';
 
 import { ListingComponent } from './listing';
 import { ListingFiltersComponent } from '../listing-filters/listing-filters';
-import { InfiniteScrollDirective } from '../../../shared/infinite-scroll.directive';
 
 import { LayoutService } from '../../../core/layout.service';
 import { ToolsService } from '../../../core/tools.service';
@@ -17,6 +16,8 @@ import { PostsService } from '../../../core/posts.service';
 import { PostTypesService } from '../../../core/post-types.service';
 import { ComponentsService } from '../../../core/components.service';
 import { FilesService } from '../../../core/files.service';
+import { ListingPage, ListingService } from '../../../core/listing.service';
+import { LoadingService } from '../../../core/loading.service';
 import { makePost, makePostType } from '../../../testing/test-helpers';
 import type { Page, Post, PostType } from '../../../models/models';
 
@@ -38,10 +39,16 @@ class StubListingFilters {
     readonly changed = output<void>();
 }
 
-@Directive({ selector: '[appInfiniteScroll]', standalone: true })
-class StubInfiniteScroll {
-    readonly enabled = input(true);
-    readonly reached = output<void>();
+/** A server page of a listing; `items` need an `_id`. */
+function listingPage(items: object[] = [], extra: Partial<ListingPage> = {}): ListingPage {
+    return {
+        items: items as ListingPage['items'],
+        page: 1,
+        limit: 20,
+        matched: items.length,
+        total: items.length,
+        ...extra,
+    };
 }
 
 // ---------------------------------------------------------------------------
@@ -51,12 +58,14 @@ class StubInfiniteScroll {
 function createMocks() {
     return {
         tools: { confirm: vi.fn().mockReturnValue(of(true)), alert: vi.fn() },
-        layout: { size: signal<string>('size-x') },
-        pages: { remove: vi.fn().mockReturnValue(of('ok')), exportData: vi.fn().mockReturnValue(of('/path')), importData: vi.fn().mockReturnValue(of([])) },
-        posts: { remove: vi.fn().mockReturnValue(of('ok')), exportData: vi.fn().mockReturnValue(of('/path')), importData: vi.fn().mockReturnValue(of({ posts: [] })) },
-        postTypes: { remove: vi.fn().mockReturnValue(of('ok')), exportData: vi.fn().mockReturnValue(of('/path')), importData: vi.fn().mockReturnValue(of([])), refreshMenu: vi.fn() },
-        components: { remove: vi.fn().mockReturnValue(of('ok')), exportData: vi.fn().mockReturnValue(of('/path')), importData: vi.fn().mockReturnValue(of([])) },
+        layout: { size: signal<string>('size-x'), scrollToTop: vi.fn() },
+        pages: { remove: vi.fn().mockReturnValue(of('ok')), exportData: vi.fn().mockReturnValue(of('/path')), importData: vi.fn().mockReturnValue(of({ imported: 0 })) },
+        posts: { remove: vi.fn().mockReturnValue(of('ok')), exportData: vi.fn().mockReturnValue(of('/path')), importData: vi.fn().mockReturnValue(of({ imported: 0 })) },
+        postTypes: { remove: vi.fn().mockReturnValue(of('ok')), exportData: vi.fn().mockReturnValue(of('/path')), importData: vi.fn().mockReturnValue(of({ imported: 0 })), refreshMenu: vi.fn() },
+        components: { remove: vi.fn().mockReturnValue(of('ok')), exportData: vi.fn().mockReturnValue(of('/path')), importData: vi.fn().mockReturnValue(of({ imported: 0 })) },
         files: { catalogues: signal<string[]>([]) },
+        listing: { query: vi.fn().mockReturnValue(of(listingPage())) },
+        loader: { track: vi.fn((source: unknown) => source) },
     };
 }
 
@@ -75,16 +84,23 @@ function setup(mocks = createMocks()) {
             { provide: PostTypesService, useValue: mocks.postTypes },
             { provide: ComponentsService, useValue: mocks.components },
             { provide: FilesService, useValue: mocks.files },
+            { provide: ListingService, useValue: mocks.listing },
+            { provide: LoadingService, useValue: mocks.loader },
         ],
     }).overrideComponent(ListingComponent, {
-        remove: { imports: [ListingFiltersComponent, InfiniteScrollDirective] },
-        add: { imports: [StubListingFilters, StubInfiniteScroll] },
+        remove: { imports: [ListingFiltersComponent] },
+        add: { imports: [StubListingFilters] },
     });
 
     const fixture: ComponentFixture<ListingComponent> = TestBed.createComponent(ListingComponent);
     fixture.detectChanges();
     const comp = fixture.componentInstance as any;
     return { fixture, comp, mocks, router: TestBed.inject(Router) };
+}
+
+/** Shows `items` (as served by the server) in a listing of `family`. */
+function serve(mocks: ReturnType<typeof createMocks>, items: object[], extra: Partial<ListingPage> = {}) {
+    mocks.listing.query.mockReturnValue(of(listingPage(items, extra)));
 }
 
 // ---------------------------------------------------------------------------
@@ -150,104 +166,328 @@ describe('ListingComponent — isPosts / title', () => {
         expect((comp as any).postType()).toBeUndefined();
         expect((comp as any).postTypeId()).toBeUndefined();
     });
-
-    it('baseModels falls back to [] when PostType.posts is null', () => {
-        const { fixture, comp } = setup();
-        const postTypeNullPosts = makePostType({ posts: null as unknown as [] });
-        fixture.componentRef.setInput('family', 'posts');
-        fixture.componentRef.setInput('model', postTypeNullPosts);
-        fixture.detectChanges();
-        expect(comp.visible()).toHaveLength(0);
-    });
 });
 
 // ---------------------------------------------------------------------------
-// effect: baseModels and limit init
+// loading pages from the server
 // ---------------------------------------------------------------------------
 
-describe('ListingComponent — constructor effect', () => {
-    it('sets baseModels from a pages array', () => {
-        const { fixture, comp } = setup();
-        const pages: Page[] = [
-            { _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] },
-            { _id: 'p2', id: 2, title: 'About', pageUrl: '/about', rows: [] },
-        ];
-        fixture.componentRef.setInput('family', 'pages');
-        fixture.componentRef.setInput('model', pages);
-        fixture.detectChanges();
-        expect(comp.baseModels()).toHaveLength(2);
+describe('ListingComponent — server pages', () => {
+    afterEach(() => {
+        sessionStorage.clear();
+        localStorage.removeItem('listing.pageSize.pages');
+        localStorage.removeItem('listing.pageSize.posts.news');
     });
 
-    it('sets baseModels from posts inside a PostType model', () => {
-        const { fixture, comp } = setup();
-        const postType = makePostType({ posts: [makePost(), makePost()] });
+    function pages(n: number): Page[] {
+        return Array.from({ length: n }, (_, i) => ({ _id: `p${i}`, id: i, title: `Page ${i}`, pageUrl: `/${i}`, rows: [] }));
+    }
+
+    it('requests the first page of 20, sorted by the default sort', () => {
+        const mocks = createMocks();
+        const { fixture } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.detectChanges();
+        expect(mocks.listing.query).toHaveBeenLastCalledWith('pages', {
+            postType: undefined,
+            page: 1,
+            limit: 20,
+            sort: 'created',
+            q: undefined,
+            filters: null,
+        });
+    });
+
+    it('shows the served items and counts', () => {
+        const mocks = createMocks();
+        serve(mocks, pages(2), { matched: 42, total: 50 });
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.detectChanges();
+        expect(comp.items()).toHaveLength(2);
+        expect(comp.matchCount()).toBe(42);
+        expect(comp.count()).toBe(50);
+        expect(comp.loaded()).toBe(true);
+    });
+
+    it('shows the page resolved by the route at once, without asking again', () => {
+        const mocks = createMocks();
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('page', '2');
+        fixture.componentRef.setInput('listing', listingPage(pages(3), { page: 2, matched: 23, total: 23 }));
+        fixture.detectChanges();
+        expect(mocks.listing.query).not.toHaveBeenCalled();
+        expect(comp.items()).toHaveLength(3);
+        expect(comp.matchCount()).toBe(23);
+        expect(comp.loaded()).toBe(true);
+
+        // the next page is loaded by the listing
+        serve(mocks, pages(3), { page: 3, matched: 23, total: 23 });
+        fixture.componentRef.setInput('page', '3');
+        fixture.detectChanges();
+        expect(mocks.listing.query).toHaveBeenCalledTimes(1);
+        expect(mocks.listing.query).toHaveBeenLastCalledWith('pages', expect.objectContaining({ page: 3 }));
+    });
+
+    it('asks the server when the sort differs from what the resolver loaded', () => {
+        const mocks = createMocks();
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('listing', listingPage(pages(3)));
+        fixture.detectChanges();
+        comp.sortBy('title');
+        fixture.detectChanges();
+        expect(mocks.listing.query).toHaveBeenCalledTimes(1);
+        expect(mocks.listing.query).toHaveBeenLastCalledWith('pages', expect.objectContaining({ sort: 'title' }));
+    });
+
+    it('requests the page from the URL', () => {
+        const mocks = createMocks();
+        const { fixture } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('page', '3');
+        serve(mocks, [{ _id: 'p1', title: 'A' }], { page: 3, matched: 41, total: 41 });
+        fixture.detectChanges();
+        expect(mocks.listing.query).toHaveBeenCalledTimes(1);
+        expect(mocks.listing.query).toHaveBeenLastCalledWith('pages', expect.objectContaining({ page: 3 }));
+    });
+
+    it('treats a broken page parameter as the first page', () => {
+        const mocks = createMocks();
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('page', 'abc');
+        fixture.detectChanges();
+        expect(comp.currentPage()).toBe(1);
+    });
+
+    it('waits for the post type before requesting posts, then sends its key', () => {
+        const mocks = createMocks();
+        const { fixture } = setup(mocks);
         fixture.componentRef.setInput('family', 'posts');
-        fixture.componentRef.setInput('model', postType);
         fixture.detectChanges();
-        expect(comp.baseModels()).toHaveLength(2);
+        expect(mocks.listing.query).not.toHaveBeenCalled();
+        fixture.componentRef.setInput('model', makePostType({ type: 'articles' }));
+        fixture.detectChanges();
+        expect(mocks.listing.query).toHaveBeenLastCalledWith('posts', expect.objectContaining({ postType: 'articles' }));
     });
 
-    it('resets limit to 20 when model changes', () => {
-        const { fixture, comp } = setup();
+    it('uses the page size kept for the listing', () => {
+        localStorage.setItem('listing.pageSize.posts.news', '50');
+        const mocks = createMocks();
+        const { fixture } = setup(mocks);
+        fixture.componentRef.setInput('family', 'posts');
+        fixture.componentRef.setInput('model', makePostType({ id: 5, type: 'news' }));
+        fixture.detectChanges();
+        expect(mocks.listing.query).toHaveBeenLastCalledWith('posts', expect.objectContaining({ limit: 50 }));
+    });
+
+    it('setPageSize keeps the size, goes back to page 1 and requests again', () => {
+        const mocks = createMocks();
+        const { fixture, comp, router } = setup(mocks);
+        const navigateSpy = vi.spyOn(router, 'navigate');
         fixture.componentRef.setInput('family', 'pages');
-        fixture.componentRef.setInput('model', []);
+        fixture.componentRef.setInput('page', '4');
         fixture.detectChanges();
-        comp.limit.set(50);
-        fixture.componentRef.setInput('model', [{ _id: 'p3', id: 3, title: 'New', pageUrl: '/new', rows: [] }]);
+        comp.setPageSize(100);
         fixture.detectChanges();
-        expect(comp.limit()).toBe(20);
+        expect(localStorage.getItem('listing.pageSize.pages')).toBe('100');
+        expect(navigateSpy).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { page: null }, replaceUrl: true }));
+        expect(mocks.listing.query).toHaveBeenLastCalledWith('pages', expect.objectContaining({ page: 1, limit: 100 }));
     });
-});
 
-// ---------------------------------------------------------------------------
-// visible / matchCount / incrementLimit
-// ---------------------------------------------------------------------------
-
-describe('ListingComponent — visible / incrementLimit', () => {
-    it('visible returns the first 20 items', () => {
-        const { fixture, comp } = setup();
-        const pages: Page[] = Array.from({ length: 25 }, (_, i) => ({
-            _id: `p${i}`, id: i, title: `Page ${i}`, pageUrl: `/${i}`, rows: [],
-        }));
+    it('sortBy goes back to page 1 and requests with the new sort', () => {
+        const mocks = createMocks();
+        const { fixture, comp } = setup(mocks);
         fixture.componentRef.setInput('family', 'pages');
-        fixture.componentRef.setInput('model', pages);
+        fixture.componentRef.setInput('page', '2');
         fixture.detectChanges();
-        expect(comp.visible()).toHaveLength(20);
+        comp.sortBy('-title');
+        fixture.detectChanges();
+        expect(mocks.listing.query).toHaveBeenLastCalledWith('pages', expect.objectContaining({ page: 1, sort: '-title' }));
     });
 
-    it('incrementLimit loads more items', () => {
-        const { fixture, comp } = setup();
-        const pages: Page[] = Array.from({ length: 25 }, (_, i) => ({
-            _id: `p${i}`, id: i, title: `Page ${i}`, pageUrl: `/${i}`, rows: [],
-        }));
+    it('does not navigate when already on page 1', () => {
+        const mocks = createMocks();
+        const { fixture, comp, router } = setup(mocks);
+        const navigateSpy = vi.spyOn(router, 'navigate');
         fixture.componentRef.setInput('family', 'pages');
-        fixture.componentRef.setInput('model', pages);
         fixture.detectChanges();
-        comp.incrementLimit();
-        expect(comp.visible()).toHaveLength(25);
+        comp.sortBy('title');
+        expect(navigateSpy).not.toHaveBeenCalled();
     });
 
-    it('incrementLimit does nothing when all items are already visible', () => {
-        const { fixture, comp } = setup();
-        const pages: Page[] = [{ _id: 'p1', id: 1, title: 'A', pageUrl: '/a', rows: [] }];
+    it('searches on the server after a pause in typing', () => {
+        vi.useFakeTimers();
+        const mocks = createMocks();
+        const { fixture, comp } = setup(mocks);
         fixture.componentRef.setInput('family', 'pages');
-        fixture.componentRef.setInput('model', pages);
         fixture.detectChanges();
-        // limit is 20, only 1 item → baseModels.length <= limit → false branch
-        comp.incrementLimit();
-        expect(comp.visible()).toHaveLength(1);
+        mocks.listing.query.mockClear();
+        comp.onSearch('ho');
+        comp.onSearch('home ');
+        fixture.detectChanges();
+        expect(mocks.listing.query).not.toHaveBeenCalled();
+        expect(comp.search()).toBe('home ');
+        vi.advanceTimersByTime(300);
+        fixture.detectChanges();
+        expect(mocks.listing.query).toHaveBeenCalledTimes(1);
+        expect(mocks.listing.query).toHaveBeenLastCalledWith('pages', expect.objectContaining({ q: 'home' }));
+        vi.useRealTimers();
     });
 
-    it('matchCount equals total items when no filters are active', () => {
-        const { fixture, comp } = setup();
-        const pages: Page[] = [
-            { _id: 'p1', id: 1, title: 'A', pageUrl: '/a', rows: [] },
-            { _id: 'p2', id: 2, title: 'B', pageUrl: '/b', rows: [] },
+    it('sends the active post filters and goes back to page 1 when they change', () => {
+        const mocks = createMocks();
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'posts');
+        fixture.componentRef.setInput('model', makePostType({ fields: [{ type: 'checkbox', id: 'done', title: 'Done' }] }));
+        fixture.componentRef.setInput('page', '3');
+        fixture.detectChanges();
+        comp.filters()!.checkboxes!.fields[0].value = true;
+        comp.onFilterChange();
+        fixture.detectChanges();
+        expect(mocks.listing.query).toHaveBeenLastCalledWith(
+            'posts',
+            expect.objectContaining({ page: 1, filters: { checkbox: { done: true } } }),
+        );
+    });
+
+    it('builds the number filter from the ranges of the first page', () => {
+        const mocks = createMocks();
+        serve(mocks, [], { ranges: { price: [1, 9] } });
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'posts');
+        fixture.componentRef.setInput('model', makePostType({ fields: [{ type: 'number', id: 'price', title: 'Price' }] }));
+        fixture.detectChanges();
+        expect(comp.filters()!.numbers!.fields[0].range).toEqual([1, 9]);
+    });
+
+    it('keeps the chosen filter values when the ranges arrive', () => {
+        const mocks = createMocks();
+        const { fixture, comp } = setup(mocks);
+        const fields = [
+            { type: 'select', id: 'color', title: 'Color', options: ['red'] },
+            { type: 'number', id: 'price', title: 'Price' },
         ];
-        fixture.componentRef.setInput('family', 'pages');
-        fixture.componentRef.setInput('model', pages);
+        fixture.componentRef.setInput('family', 'posts');
+        fixture.componentRef.setInput('model', makePostType({ fields: fields as any }));
         fixture.detectChanges();
-        expect(comp.matchCount()).toBe(2);
+        comp.filters()!.selects!.fields[0].values = ['red'];
+        // the next response is the first one with ranges for this post type
+        (comp as any).rangesFor = undefined;
+        (comp as any).showPage(listingPage([], { ranges: { price: [0, 5] } }));
+        expect(comp.filters()!.selects!.fields[0].values).toEqual(['red']);
+        expect(comp.filters()!.numbers!.fields[0].range).toEqual([0, 5]);
+    });
+
+    it('moves to the page the server served when the requested one is past the end', () => {
+        const mocks = createMocks();
+        serve(mocks, pages(1), { page: 2, matched: 21, total: 21 });
+        const { fixture, comp, router } = setup(mocks);
+        const navigateSpy = vi.spyOn(router, 'navigate');
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('page', '9');
+        fixture.detectChanges();
+        expect(comp.currentPage()).toBe(2);
+        expect(navigateSpy).toHaveBeenCalledWith([], expect.objectContaining({ queryParams: { page: 2 }, replaceUrl: true }));
+    });
+
+    it('runs a move to another page under the app loader, other changes only dim the list', () => {
+        vi.useFakeTimers();
+        const mocks = createMocks();
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('listing', listingPage(pages(20), { matched: 45, total: 45 }));
+        fixture.detectChanges();
+
+        serve(mocks, pages(20), { page: 2, matched: 45, total: 45 });
+        fixture.componentRef.setInput('page', '2');
+        fixture.detectChanges();
+        expect(mocks.loader.track).toHaveBeenCalledTimes(1);
+
+        serve(mocks, pages(20), { page: 1, matched: 45, total: 45 });
+        comp.sortBy('title');
+        fixture.detectChanges();
+        comp.onSearch('abc');
+        vi.advanceTimersByTime(300);
+        fixture.detectChanges();
+        comp.reload();
+        fixture.detectChanges();
+        expect(mocks.listing.query).toHaveBeenCalledTimes(4);
+        expect(mocks.loader.track).toHaveBeenCalledTimes(1);
+        vi.useRealTimers();
+    });
+
+    it('keeps the search, filters and page when the file catalogues arrive late', () => {
+        const mocks = createMocks();
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'posts');
+        fixture.componentRef.setInput('model', makePostType({ type: 'news', fields: [{ type: 'catalogue', id: 'cat', title: 'Cat' }] }));
+        fixture.componentRef.setInput('listing', listingPage(pages(3)));
+        fixture.detectChanges();
+        comp.search.set('abc');
+        comp.filters()!.catalogues!.fields[0].values = ['x'];
+        const filters = comp.filters();
+
+        mocks.files.catalogues.set(['x', 'y']);
+        fixture.detectChanges();
+        expect(comp.search()).toBe('abc');
+        expect(comp.filters()).toBe(filters);
+        expect(mocks.listing.query).not.toHaveBeenCalled();
+    });
+
+    it('scrolls back to the top only after another page is rendered', async () => {
+        const mocks = createMocks();
+        serve(mocks, pages(20), { page: 1, matched: 45, total: 45 });
+        const { fixture } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.detectChanges();
+        await fixture.whenStable();
+        expect(mocks.layout.scrollToTop).not.toHaveBeenCalled();
+
+        serve(mocks, pages(20), { page: 2, matched: 45, total: 45 });
+        fixture.componentRef.setInput('page', '2');
+        fixture.detectChanges();
+        await fixture.whenStable();
+        expect(mocks.layout.scrollToTop).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not scroll when the same page loads again', async () => {
+        const mocks = createMocks();
+        serve(mocks, pages(2));
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.detectChanges();
+        (comp as any).reload();
+        fixture.detectChanges();
+        await fixture.whenStable();
+        expect(mocks.listing.query).toHaveBeenCalledTimes(2);
+        expect(mocks.layout.scrollToTop).not.toHaveBeenCalled();
+    });
+
+    it('alerts when the page cannot be loaded', () => {
+        const mocks = createMocks();
+        mocks.listing.query.mockReturnValue(throwError(() => ({ error: {} })));
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.detectChanges();
+        expect(mocks.tools.alert).toHaveBeenCalledWith('The list could not be loaded');
+        expect(comp.loading()).toBe(false);
+    });
+
+    it('resets search, page size and filters when another post type opens', () => {
+        const mocks = createMocks();
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'posts');
+        fixture.componentRef.setInput('model', makePostType({ id: 1 }));
+        fixture.detectChanges();
+        comp.search.set('x');
+        comp.pageSize.set(100);
+        fixture.componentRef.setInput('model', makePostType({ id: 2 }));
+        fixture.detectChanges();
+        expect(comp.search()).toBe('');
+        expect(comp.pageSize()).toBe(20);
     });
 });
 
@@ -408,20 +648,25 @@ describe('ListingComponent — removeDialog()', () => {
         expect(comp.lastRemoved()).toBe(page);
     });
 
-    it('removes the item from baseModels after the undo timer expires', () => {
+    it('loads the page again after the undo timer expires', () => {
         const mocks = createMocks();
         mocks.tools.confirm.mockReturnValue(of(true));
+        const page: Page = { _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] };
+        serve(mocks, [page]);
         const { fixture, comp } = setup(mocks);
         fixture.componentRef.setInput('family', 'pages');
-        const page: Page = { _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] };
-        fixture.componentRef.setInput('model', [page]);
         fixture.detectChanges();
 
         comp.removeDialog(page);
-        expect(comp.baseModels()).toHaveLength(1); // still present (undo window)
+        expect(comp.items()).toHaveLength(1); // still shown (undo window)
+        mocks.listing.query.mockClear();
+        serve(mocks, []);
         vi.advanceTimersByTime(2000);
-        expect(comp.baseModels()).toHaveLength(0);
+        fixture.detectChanges();
+        expect(mocks.listing.query).toHaveBeenCalledTimes(1);
+        expect(comp.items()).toHaveLength(0);
         expect(comp.removeStatus()).toBeUndefined();
+        expect(comp.lastRemoved()).toBeUndefined();
     });
 });
 
@@ -450,7 +695,7 @@ describe('ListingComponent — sortBy()', () => {
         expect(sessionStorage.getItem('sorting.pages')).toBe('title');
     });
 
-    it('uses the family name as sessionStorage key when postTypeId is undefined', () => {
+    it('keeps the sort of posts under the post type key', () => {
         const { fixture, comp } = setup();
         // postType with no id — postTypeId() will be undefined
         const postTypeNoId = { _id: 'pt1', title: 'T', type: 'articles', pluralTitle: 'A', fields: [], posts: [] };
@@ -458,7 +703,7 @@ describe('ListingComponent — sortBy()', () => {
         fixture.componentRef.setInput('model', postTypeNoId);
         fixture.detectChanges();
         comp.sortBy('title');
-        expect(sessionStorage.getItem('sorting.posts')).toBe('title');
+        expect(sessionStorage.getItem('sorting.posts.articles')).toBe('title');
     });
 });
 
@@ -472,11 +717,9 @@ describe('ListingComponent — resetFilters()', () => {
         fixture.componentRef.setInput('family', 'pages');
         fixture.componentRef.setInput('model', []);
         fixture.detectChanges();
-        const filters = comp.filters();
-        expect(filters).toBeDefined();
-        filters!.textFilter.value = 'search';
+        comp.search.set('search');
         comp.resetFilters();
-        expect(comp.filters()!.textFilter.value).toBeUndefined();
+        expect(comp.search()).toBe('');
     });
 
     it('does not throw when filters is undefined', () => {
@@ -633,19 +876,20 @@ describe('ListingComponent — removeDialog() for multiple families', () => {
         const mocks = createMocks();
         mocks.tools.confirm.mockReturnValue(of(true));
         const { fixture, comp } = setup(mocks);
-        const p1: Page = { _id: 'p1', id: 1, title: 'Page 1', pageUrl: '/1', rows: [] };
-        const p2: Page = { _id: 'p2', id: 2, title: 'Page 2', pageUrl: '/2', rows: [] };
+        const p1 = { _id: 'p1', id: 1, title: 'Page 1' };
+        const p2 = { _id: 'p2', id: 2, title: 'Page 2' };
+        serve(mocks, [p1, p2]);
         fixture.componentRef.setInput('family', 'pages');
-        fixture.componentRef.setInput('model', [p1, p2]);
         fixture.detectChanges();
+        const [r1, r2] = comp.items();
 
         // Remove p1 — starts undo timer
-        comp.removeDialog(p1);
-        expect(comp.baseModels()).toHaveLength(2); // p1 still in undo window
+        comp.removeDialog(r1);
+        expect(comp.items()).toHaveLength(2); // p1 still in undo window
 
         // Remove p2 before undo timer fires — p1 should be flushed immediately
-        comp.removeDialog(p2);
-        expect(comp.baseModels()).toHaveLength(1); // p1 removed, p2 in undo window
+        comp.removeDialog(r2);
+        expect(comp.items()).toHaveLength(1); // p1 removed, p2 in undo window
     });
 
     it('shows alert and clears removeStatus on remove error', () => {
@@ -765,7 +1009,7 @@ describe('ListingComponent — onImportFile()', () => {
 describe('ListingComponent — import() per family', () => {
     it('calls postsService.importData for posts family', () => {
         const mocks = createMocks();
-        mocks.posts.importData.mockReturnValue(of({ posts: [makePost()], fields: [] }));
+        mocks.posts.importData.mockReturnValue(of({ imported: 1 }));
         const { fixture, comp } = setup(mocks);
         const postType = makePostType({ type: 'articles', posts: [] });
         fixture.componentRef.setInput('family', 'posts');
@@ -779,7 +1023,7 @@ describe('ListingComponent — import() per family', () => {
 
     it('calls postTypesService.importData for postTypes family', () => {
         const mocks = createMocks();
-        mocks.postTypes.importData.mockReturnValue(of([]));
+        mocks.postTypes.importData.mockReturnValue(of({ imported: 0 }));
         const { fixture, comp } = setup(mocks);
         fixture.componentRef.setInput('family', 'postTypes');
         fixture.componentRef.setInput('model', []);
@@ -790,7 +1034,7 @@ describe('ListingComponent — import() per family', () => {
 
     it('calls componentsService.importData for components family', () => {
         const mocks = createMocks();
-        mocks.components.importData.mockReturnValue(of([]));
+        mocks.components.importData.mockReturnValue(of({ imported: 0 }));
         const { fixture, comp } = setup(mocks);
         fixture.componentRef.setInput('family', 'components');
         fixture.componentRef.setInput('model', []);
@@ -822,19 +1066,23 @@ describe('ListingComponent — import() per family', () => {
         expect(mocks.tools.alert).toHaveBeenCalledWith('There was an error importing');
     });
 
-    it('shows success alert and updates baseModels after pages import', () => {
+    it('shows success alert and loads the page again after pages import', () => {
         const imported: Page[] = [
             { _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] },
             { _id: 'p2', id: 2, title: 'About', pageUrl: '/about', rows: [] },
         ];
         const mocks = createMocks();
-        mocks.pages.importData.mockReturnValue(of(imported));
+        mocks.pages.importData.mockReturnValue(of({ imported: 2 }));
         const { fixture, comp } = setup(mocks);
         fixture.componentRef.setInput('family', 'pages');
         fixture.componentRef.setInput('model', []);
         fixture.detectChanges();
+        mocks.listing.query.mockClear();
+        serve(mocks, imported);
         (comp as any).import(imported);
-        expect(comp.baseModels()).toHaveLength(2);
+        fixture.detectChanges();
+        expect(mocks.listing.query).toHaveBeenCalledTimes(1);
+        expect(comp.items()).toHaveLength(2);
         expect(comp.count()).toBe(2);
         expect(mocks.tools.alert).toHaveBeenCalledWith(expect.stringContaining('2'));
     });
