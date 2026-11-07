@@ -99,11 +99,23 @@
                                  aria-hidden="true">
                                 <use href="icons.svg#i-search" />
                             </svg>
-                            <input class="input"
+                            <input #searchInput
+                                   class="input"
                                    type="search"
                                    [placeholder]="t('files.search')"
                                    [ngModel]="searchText()"
                                    (ngModelChange)="searchText.set($event)" />
+                            @if (searchText()) {
+                            <button type="button"
+                                    class="control__clear"
+                                    [attr.aria-label]="t('common.clearSearch')"
+                                    (click)="searchText.set(''); searchInput.focus()">
+                                <svg class="icon"
+                                     aria-hidden="true">
+                                    <use href="icons.svg#i-x" />
+                                </svg>
+                            </button>
+                            }
                         </label>
                         <button mat-stroked-button
                                 type="button"

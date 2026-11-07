@@ -110,7 +110,51 @@
 
     .input {
         padding-left: 40px;
+        padding-right: 40px;
         border-radius: var(--radius-full);
+
+        // the browser's own clear button (WebKit/Blink) is replaced by .control__clear
+        &::-webkit-search-cancel-button {
+            display: none;
+            -webkit-appearance: none;
+        }
+    }
+}
+
+// clear button at the end of a search field
+.control__clear {
+    position: absolute;
+    top: 50%;
+    right: var(--space-2);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: var(--radius-full);
+    background: transparent;
+    color: var(--color-text-subtle);
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition:
+        background-color var(--duration-instant) var(--ease-standard),
+        color var(--duration-instant) var(--ease-standard);
+
+    &:hover {
+        background: var(--color-fill-hover);
+        color: var(--color-text);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-focus-ring);
+        outline-offset: 1px;
+    }
+
+    .icon {
+        width: 16px;
+        height: 16px;
     }
 }
 

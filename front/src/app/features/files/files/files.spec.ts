@@ -1030,6 +1030,23 @@ describe('files.html — event handlers', () => {
         expect(comp.searchCatalogues()).toEqual(['gallery']);
     });
 
+    it('the clear button empties the search and puts the cursor back in the field', () => {
+        const { fixture, comp } = setup([makeFile()]);
+        const el: HTMLElement = fixture.nativeElement;
+        expect(el.querySelector('.files-filters .control__clear')).toBeNull();
+
+        comp.searchText.set('abc');
+        fixture.detectChanges();
+        const clear = el.querySelector('.files-filters .control__clear') as HTMLButtonElement;
+        expect(clear.getAttribute('aria-label')).toBe('Clear search');
+        clear.click();
+        fixture.detectChanges();
+
+        expect(comp.searchText()).toBe('');
+        expect(document.activeElement).toBe(el.querySelector('.files-filters input[type="search"]'));
+        expect(el.querySelector('.files-filters .control__clear')).toBeNull();
+    });
+
     it('sort button sits between the search input and the catalogue filter', () => {
         const mocks = createMocks();
         mocks.files.catalogues = signal<string[]>(['gallery']);

@@ -386,6 +386,16 @@ export class ListingComponent {
         }, SEARCH_DEBOUNCE_MS);
     }
 
+    /** The clear button: the search goes at once, without waiting for a pause. */
+    clearSearch(): void {
+        clearTimeout(this.searchTimer);
+        this.search.set('');
+        if (this.query()) {
+            this.toFirstPage();
+            this.query.set('');
+        }
+    }
+
     onFilterChange(): void {
         this.toFirstPage();
         this.filterTick.update((n) => n + 1);

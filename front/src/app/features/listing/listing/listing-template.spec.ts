@@ -687,6 +687,30 @@ describe('listing.html — list toolbar', () => {
         vi.useRealTimers();
     });
 
+    it('the clear button drops the search at once and refocuses the field', () => {
+        vi.useFakeTimers();
+        const { fixture, comp, mocks } = setup();
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', [{ _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] }]);
+        fixture.detectChanges();
+        const el: HTMLElement = fixture.nativeElement;
+        expect(el.querySelector('.list-toolbar .control__clear')).toBeNull();
+
+        comp.onSearch('abc');
+        vi.advanceTimersByTime(300);
+        fixture.detectChanges();
+        const clear = el.querySelector('.list-toolbar .control__clear') as HTMLButtonElement;
+        expect(clear.getAttribute('aria-label')).toBe('Clear search');
+        clear.click();
+        fixture.detectChanges();
+
+        expect(comp.search()).toBe('');
+        expect(mocks.listing.query).toHaveBeenLastCalledWith('pages', expect.objectContaining({ q: undefined }));
+        expect(document.activeElement).toBe(el.querySelector('.list-toolbar input[type="search"]'));
+        expect(el.querySelector('.list-toolbar .control__clear')).toBeNull();
+        vi.useRealTimers();
+    });
+
     it('shows the name of the current sort on the sort button', () => {
         const { fixture, comp } = setup();
         fixture.componentRef.setInput('family', 'pages');
