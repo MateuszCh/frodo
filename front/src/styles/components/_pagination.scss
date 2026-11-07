@@ -8,9 +8,11 @@ app-pagination {
     container-type: inline-size;
 }
 
+// one row: three columns, the outer two equal, so the page links sit in the middle of the
+// card whatever the widths of the range and the page size
 .pagination {
-    display: flex;
-    flex-wrap: wrap;
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
     align-items: center;
     gap: var(--space-3);
     padding: var(--space-3) var(--space-3) var(--space-3) var(--space-5);
@@ -20,15 +22,17 @@ app-pagination {
 }
 
 .pagination__range {
+    grid-column: 1;
+    justify-self: start;
     margin: 0;
     font-variant-numeric: tabular-nums;
 }
 
 .pagination__pages {
+    grid-column: 2;
     display: flex;
     align-items: center;
     gap: var(--space-1);
-    margin-inline: auto;
 }
 
 .pagination__link,
@@ -85,7 +89,8 @@ app-pagination {
 }
 
 .pagination__size {
-    margin-left: auto;
+    grid-column: 3;
+    justify-self: end;
 }
 
 // native select with a chevron, so it reads as a list to open
@@ -120,7 +125,17 @@ app-pagination {
     }
 }
 
+// two rows: range and page size first, the page links below
 @container (max-width: 879px) {
+    .pagination {
+        display: flex;
+        flex-wrap: wrap;
+    }
+
+    .pagination__size {
+        margin-left: auto;
+    }
+
     .pagination__pages {
         order: 3;
         flex-basis: 100%;
