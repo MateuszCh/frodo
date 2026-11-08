@@ -149,6 +149,12 @@ app-analytics-live {
     > .field {
         min-width: min(280px, 100%);
     }
+
+    // no hint or error here: without the empty space MDC keeps under the field for them,
+    // the field ends where its outline does and lines up with "Pokaż"
+    .mat-mdc-form-field-subscript-wrapper {
+        display: none;
+    }
 }
 
 .analytics__tables {
