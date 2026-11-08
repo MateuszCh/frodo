@@ -55,8 +55,14 @@ export class AnalyticsService {
             .pipe(tap((stats) => (this.last = { key, at: Date.now(), stats })));
     }
 
+    /**
+     * The last answer of `live()`: a subpage of the tab opened next shows it at once
+     * instead of an empty line until its own request returns.
+     */
+    lastLive: VisitLive | null = null;
+
     /** Who is on the site now: the visitors of the last five minutes. */
     live(): Observable<VisitLive> {
-        return this.http.get<VisitLive>('/api/analytics/live');
+        return this.http.get<VisitLive>('/api/analytics/live').pipe(tap((live) => (this.lastLive = live)));
     }
 }

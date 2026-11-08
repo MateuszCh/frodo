@@ -540,6 +540,24 @@ describe('AnalyticsComponent', () => {
         expect(live.classList).toContain('live--on');
     });
 
+    it('shows the last count at once on the next subpage, before its own answer', async () => {
+        const { fixture } = await render(makeStats());
+        const http = TestBed.inject(HttpTestingController);
+        http.expectOne('/api/analytics/live').flush({ minutes: 5, visitors: 3, pages: [] });
+        fixture.destroy();
+
+        // a subpage is a new component: its request is still pending
+        const next = TestBed.createComponent(AnalyticsComponent);
+        next.componentRef.setInput('stats', makeStats());
+        next.componentRef.setInput('section', 'pages');
+        next.detectChanges();
+        const pending = http.expectOne('/api/analytics/live');
+        expect(next.nativeElement.querySelector('.live')?.textContent?.trim()).toBe('3 people on the site now');
+        pending.flush({ minutes: 5, visitors: 1, pages: [] });
+        next.detectChanges();
+        expect(next.nativeElement.querySelector('.live')?.textContent?.trim()).toBe('1 person on the site now');
+    });
+
     it('lists the addresses that do not exist, the outbound links and the downloads', async () => {
         const { root } = await render(makeStats(), {}, 'pages');
         const card = (title: string) =>

@@ -12,8 +12,10 @@ const REFRESH_MS = 30 * 1000;
 
 /**
  * "3 people on the site now": the visitors of the last five minutes, refreshed every half
- * minute while the Analytics tab is open; the tooltip lists the pages they are on. Shows
- * nothing until the first answer, and nothing when it cannot be loaded.
+ * minute while the Analytics tab is open; the tooltip lists the pages they are on. Each
+ * subpage of the tab creates it anew, so it starts from the last count the service got, and
+ * its line keeps its height while there is none (before the first answer, after an error):
+ * switching subpages does not move the page.
  */
 @Component({
     selector: 'app-analytics-live',
@@ -38,7 +40,7 @@ export class AnalyticsLiveComponent {
     protected readonly t = this.i18n.t;
     private readonly service = inject(AnalyticsService);
 
-    protected readonly live = signal<VisitLive | null>(null);
+    protected readonly live = signal<VisitLive | null>(this.service.lastLive);
 
     /** "Visitors of the last 5 minutes." and the pages they are on, one per line. */
     protected readonly hint = computed(() => {
