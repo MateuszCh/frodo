@@ -12,6 +12,8 @@ export interface ListingRow {
     title: string;
     type?: string;
     created?: number;
+    /** pages only: hidden from the public site */
+    draft?: boolean;
 }
 
 export interface ListingQuery {

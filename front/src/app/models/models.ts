@@ -85,6 +85,8 @@ export interface Page {
     // the backend schema is `rows: [{}]` (schemaless); each row holds one
     // component instance directly
     rows: PageComponent[];
+    /** hidden from the public site, which answers 404 for it */
+    draft?: boolean;
     created?: number;
     updated?: number;
     url?: string;

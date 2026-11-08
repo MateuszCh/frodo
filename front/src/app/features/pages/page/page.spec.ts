@@ -404,3 +404,33 @@ describe('PageComponent — collapsing', () => {
         expect(blockBodies(root)).toEqual([false]);
     });
 });
+
+describe('PageComponent — draft', () => {
+    const draftBox = (root: HTMLElement) => root.querySelector<HTMLInputElement>('mat-checkbox[name="draft"] input')!;
+
+    it('shows the draft state of the page in the editor bar', async () => {
+        const { root } = await setup(makePage({ draft: true }));
+
+        expect(root.querySelector('.editor-bar__actions mat-checkbox')?.textContent).toContain('Draft');
+        expect(draftBox(root).checked).toBe(true);
+    });
+
+    it('saves a page marked as a draft, and one published again', async () => {
+        const { fixture, root, save } = await setup(makePage());
+        expect(draftBox(root).checked).toBe(false);
+
+        draftBox(root).click();
+        fixture.detectChanges();
+        expect(save().draft).toBe(true);
+
+        draftBox(root).click();
+        fixture.detectChanges();
+        expect(save().draft).toBe(false);
+    });
+
+    it('starts a new page as published', async () => {
+        const { root } = await setup();
+
+        expect(draftBox(root).checked).toBe(false);
+    });
+});

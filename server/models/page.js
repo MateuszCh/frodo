@@ -31,6 +31,11 @@ const PageSchema = new Schema(
         rows: {
             type: [{}],
         },
+        // a draft is not shown on the public site (geosilesia answers 404 for it)
+        draft: {
+            type: Boolean,
+            default: false,
+        },
         id: {
             type: Number,
         },

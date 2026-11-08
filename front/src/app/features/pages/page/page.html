@@ -10,6 +10,11 @@
                 [class.is-placeholder]="!model().title">{{ model().title || t('common.untitled') }}</h1>
         </div>
         <div class="editor-bar__actions">
+            <!-- outside the cards: the state shows however the sections are collapsed -->
+            <mat-checkbox class="editor-bar__toggle"
+                          name="draft"
+                          [title]="t('page.draftHint')"
+                          [(ngModel)]="model().draft">{{ t('page.draft') }}</mat-checkbox>
             @if (edit()) {
             <button mat-button
                     type="button"

@@ -103,6 +103,11 @@ the key and keeps only the type's fields in `typeData` on create, edit and impor
 that pages use cannot be removed or renamed. Page saves and settings saves run through
 `withPageTypeLock`, which serialises them only within one process — the CMS runs as one.
 
+A page with **`draft: true`** (the "Draft" checkbox in the editor bar, a badge in the listing)
+is hidden from the public site: geosilesia leaves it out of every read of `pages` and answers
+404 for its address. Frodo only stores the flag; an import keeps it, so exported drafts stay
+drafts.
+
 A **component** field type nests a component: its value has the shape of a page row,
 `{ type, title, data }` (`shared/component-value.ts`). Nested control names are joined with
 `.` (`list.0.item.heading`), which field ids cannot clash with.

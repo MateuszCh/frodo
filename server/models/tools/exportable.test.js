@@ -44,6 +44,7 @@ const stored = {
         type: 'region',
         typeData: { area: 12 },
         rows: [{ type: 'text', title: 'Wstęp', data: { text: 'Cześć' } }],
+        draft: true,
         id: 12,
         created: 1793211857980,
         updated: 1793211857990,

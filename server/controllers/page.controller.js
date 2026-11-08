@@ -30,6 +30,7 @@ module.exports = {
                     pageProps.created = Date.now();
                     pageProps.type = typeProps.type;
                     pageProps.typeData = typeProps.typeData;
+                    pageProps.draft = pageProps.draft === true;
                     return Page.create(pageProps).then((page) => res.send(page));
                 });
             }),
@@ -63,6 +64,7 @@ module.exports = {
                 page.type = typeProps.type;
                 page.typeData = typeProps.typeData;
                 page.rows = pageProps.rows;
+                page.draft = pageProps.draft === true;
 
                 return page.save().then((saved) => res.send(saved));
             }),

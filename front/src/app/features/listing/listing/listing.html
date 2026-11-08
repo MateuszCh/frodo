@@ -216,6 +216,10 @@
                     [class.is-busy]="busy">
                     <a class="list__link"
                        [routerLink]="editLink(model)">{{ model.title }}</a>
+                    @if (model.draft) {
+                    <span class="badge badge--neutral"
+                          [title]="t('page.draftHint')">{{ t('page.draft') }}</span>
+                    }
                     <button mat-icon-button
                             type="button"
                             [attr.aria-label]="t('listing.deleteItem', { title: model.title })"

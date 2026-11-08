@@ -12,6 +12,7 @@ import { Router } from '@angular/router';
 import { FormsModule, NgForm } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { MatButtonModule } from '@angular/material/button';
+import { MatCheckboxModule } from '@angular/material/checkbox';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
@@ -35,6 +36,7 @@ const BLOCKS_KEY = 'rows:page/components';
         FormsModule,
         DragDropModule,
         MatButtonModule,
+        MatCheckboxModule,
         MatFormFieldModule,
         MatInputModule,
         MatSelectModule,
@@ -206,6 +208,6 @@ export class PageComponent implements OnInit {
     }
 
     private blankModel(): Page {
-        return { title: '', pageUrl: '', type: null, typeData: {}, rows: [] };
+        return { title: '', pageUrl: '', type: null, typeData: {}, rows: [], draft: false };
     }
 }

@@ -152,6 +152,19 @@ describe('listing.html — pages with items', () => {
         expect(fixture.nativeElement.querySelector('button[aria-label="Delete About"]')).not.toBeNull();
     });
 
+    it('marks a draft page with a badge', () => {
+        const { fixture } = setup();
+        const pages: Page[] = [
+            { _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] },
+            { _id: 'p2', id: 2, title: 'Soon', pageUrl: '/soon', rows: [], draft: true },
+        ];
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.componentRef.setInput('model', pages);
+        fixture.detectChanges();
+        const rows: HTMLElement[] = Array.from(fixture.nativeElement.querySelectorAll('.list__row'));
+        expect(rows.map((row) => row.querySelector('.badge')?.textContent?.trim() ?? null)).toEqual([null, 'Draft']);
+    });
+
     it('shows the "no matching" message when all items are filtered out', () => {
         const { fixture, comp } = setup();
         const pages: Page[] = [{ _id: 'p1', id: 1, title: 'Home', pageUrl: '/', rows: [] }];

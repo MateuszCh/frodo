@@ -16,7 +16,7 @@ const Page = require('../models/page'),
 const MODELS = { pages: Page, components: Component, postTypes: PostType, posts: Post };
 
 // a listing row needs only what it shows and links to, never rows, fields or post data
-const LIST_PROJECTION = { _id: 1, id: 1, title: 1, type: 1, created: 1 };
+const LIST_PROJECTION = { _id: 1, id: 1, title: 1, type: 1, created: 1, draft: 1 };
 
 function page(Model, match, sort, pageNumber, limit) {
     return Model.aggregate([
