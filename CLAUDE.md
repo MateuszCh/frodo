@@ -56,9 +56,11 @@ npm run deploy    # deploy.sh: git pull --ff-only, root npm install --omit=dev, 
 - Needs `deployDomain` in the server's `config.json` (the domain as `devil www list` shows it);
   without it the script stops before installing anything. `node` on the server must be a
   version Angular 22 accepts (the Dockerfile uses 24.16).
-- Front dependencies: `npm ci` once `front/package-lock.json` is in the repository, `npm install`
-  while it is gitignored. Geosilesia keeps its lockfile in git: unpinned, `@angular/build` 22.2
-  pulled `sass-embedded`, which hung the build on the server.
+- Front dependencies: `npm ci` from `front/package-lock.json`, which is in the repository (the
+  root `package-lock.json` stays ignored). Unpinned, the server once got Angular Material 22.2
+  while 22.0 was tested, and its radio button markup broke the segmented switches; geosilesia
+  had `@angular/build` 22.2 pull `sass-embedded`, which hung its build. Change front
+  dependencies with `npm install <pkg>` in `front/` and commit the updated lockfile.
 - The build goes to `tmp/front-build` and replaces `front/public` only once it has succeeded, so a
   failed build leaves the running CMS as it was. The restart always comes after the build;
   sessions live in MongoDB, so nobody is logged out.

@@ -653,7 +653,9 @@ div.mat-mdc-menu-panel.mat-mdc-menu-panel {
     border-radius: var(--radius-xs);
 }
 
-.mat-mdc-checkbox .mdc-form-field > label {
+// the text: a <label> up to Material 22.1, a span inside the label from 22.2
+.mat-mdc-checkbox .mdc-form-field > label,
+.mat-mdc-checkbox .mdc-form-field > .mat-internal-form-field-label {
     padding-left: calc(var(--space-3) - 1px);
 }
 

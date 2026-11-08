@@ -21,8 +21,9 @@ fi
 
 npm install --omit=dev
 
-# npm ci installs exactly what the lockfile pins. Here front/package-lock.json is gitignored
-# (geosilesia keeps it in the repository), and without it npm install may pick newer versions.
+# npm ci installs exactly what front/package-lock.json pins, the versions built and tested
+# locally. Without the lockfile (a clone from before it was added) npm install may pick newer
+# versions, as it once did with Angular Material 22.2.
 if git ls-files --error-unmatch front/package-lock.json >/dev/null 2>&1; then
     (cd front && npm ci)
 else

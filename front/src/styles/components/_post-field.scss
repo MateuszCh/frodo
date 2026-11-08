@@ -131,7 +131,9 @@ $focus-halo: 4px;
         padding: var(--space-3) var(--space-4);
     }
 
-    .mdc-form-field > label {
+    // the text: a <label> up to Material 22.1, a span inside the label from 22.2
+    .mdc-form-field > label,
+    .mdc-form-field > .mat-internal-form-field-label {
         flex: 1;
         min-width: 0;
         cursor: pointer;

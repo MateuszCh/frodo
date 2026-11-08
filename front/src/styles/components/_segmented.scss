@@ -19,13 +19,39 @@
     width: 100%;
 }
 
-// MDC: mat-radio-button internals
+// MDC: mat-radio-button internals. The segment is the form field, which holds the hidden
+// radio and the text: a div with a <label> inside up to Material 22.1, the <label> itself
+// with a span.mat-internal-form-field-label inside from 22.2 (the server installs whatever
+// ^22 resolves to, so both shapes must work).
 .segmented__option.mat-mdc-radio-button {
     position: relative;
     min-width: 0;
 
     .mdc-form-field {
-        display: block;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        height: calc(var(--control-h) - 8px);
+        padding: 0 var(--space-4);
+        border-radius: var(--radius-full);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-medium);
+        color: var(--color-text-muted);
+        white-space: nowrap;
+        cursor: pointer;
+        transition:
+            background-color var(--duration-instant) var(--ease-standard),
+            color var(--duration-instant) var(--ease-standard);
+    }
+
+    // the text: none of Material's own spacing next to the (hidden) circle
+    .mdc-form-field > label,
+    .mdc-form-field > .mat-internal-form-field-label {
+        margin: 0;
+        padding: 0;
+        font: inherit;
+        color: inherit;
+        cursor: inherit;
     }
 
     .mdc-radio {
@@ -48,34 +74,18 @@
         cursor: pointer;
     }
 
-    label {
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        height: calc(var(--control-h) - 8px);
-        padding: 0 var(--space-4);
-        border-radius: var(--radius-full);
-        font-size: var(--text-sm);
-        font-weight: var(--weight-medium);
-        color: var(--color-text-muted);
-        white-space: nowrap;
-        transition:
-            background-color var(--duration-instant) var(--ease-standard),
-            color var(--duration-instant) var(--ease-standard);
-    }
-
-    &:hover label {
+    &:hover .mdc-form-field {
         background: var(--color-fill-hover);
         color: var(--color-text);
     }
 
-    &.mat-mdc-radio-checked label {
+    &.mat-mdc-radio-checked .mdc-form-field {
         background: var(--color-accent-subtle);
         color: var(--color-accent-subtle-text);
         font-weight: var(--weight-semibold);
     }
 
-    &:has(.mdc-radio__native-control:focus-visible) label {
+    &:has(.mdc-radio__native-control:focus-visible) .mdc-form-field {
         outline: 2px solid var(--color-focus-ring);
         outline-offset: 1px;
     }
