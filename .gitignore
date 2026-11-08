@@ -4,9 +4,7 @@ front/public/
 node_modules/
 uploads/*
 node_modules/
-package-lock.json
-# the front's is kept: deploy.sh installs exactly it with npm ci
-!front/package-lock.json
+# both lockfiles (root and front/) are in the repo: deploy.sh installs exactly them with npm ci
 config.json
 tmp/
 exports/

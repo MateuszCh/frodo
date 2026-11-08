@@ -51,16 +51,17 @@ docker compose up -d    # Production build and run
 Run by the user on the server, in the clone the domain runs from — never by Claude: it
 restarts the production CMS. The same flow as in geosilesia:
 ```bash
-npm run deploy    # deploy.sh: git pull --ff-only, root npm install --omit=dev, front deps, ng build, devil www restart <deployDomain>
+npm run deploy    # deploy.sh: git pull --ff-only, root npm ci --omit=dev, front npm ci, ng build, devil www restart <deployDomain>
 ```
 - Needs `deployDomain` in the server's `config.json` (the domain as `devil www list` shows it);
   without it the script stops before installing anything. `node` on the server must be a
-  version Angular 22 accepts (the Dockerfile uses 24.16).
-- Front dependencies: `npm ci` from `front/package-lock.json`, which is in the repository (the
-  root `package-lock.json` stays ignored). Unpinned, the server once got Angular Material 22.2
-  while 22.0 was tested, and its radio button markup broke the segmented switches; geosilesia
-  had `@angular/build` 22.2 pull `sass-embedded`, which hung its build. Change front
-  dependencies with `npm install <pkg>` in `front/` and commit the updated lockfile.
+  version Angular 22 accepts (`engines` in `package.json`; the Dockerfile uses 24.16).
+- Dependencies: `npm ci` from both lockfiles, `package-lock.json` (server, `--omit=dev`) and
+  `front/package-lock.json`, which are in the repository. Unpinned, the server once got Angular
+  Material 22.2 while 22.0 was tested, and its radio button markup broke the segmented
+  switches; geosilesia had `@angular/build` 22.2 pull `sass-embedded`, which hung its build,
+  and kept an Express 4.16 without `express.text`, which stopped its app. Change dependencies
+  with `npm install <pkg>` (in the root or in `front/`) and commit the updated lockfile.
 - The build goes to `tmp/front-build` and replaces `front/public` only once it has succeeded, so a
   failed build leaves the running CMS as it was. The restart always comes after the build;
   sessions live in MongoDB, so nobody is logged out.

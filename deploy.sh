@@ -19,11 +19,16 @@ if [ -z "$domain" ]; then
     exit 1
 fi
 
-npm install --omit=dev
-
-# npm ci installs exactly what front/package-lock.json pins, the versions built and tested
-# locally. Without the lockfile (a clone from before it was added) npm install may pick newer
+# npm ci installs exactly what the lockfiles pin, the versions built and tested locally.
+# Without them (a clone from before they were added) npm install may keep or pick other
 # versions, as it once did with Angular Material 22.2.
+if git ls-files --error-unmatch package-lock.json >/dev/null 2>&1; then
+    npm ci --omit=dev
+else
+    echo 'deploy: package-lock.json is not in the repository, npm install may keep other versions' >&2
+    npm install --omit=dev
+fi
+
 if git ls-files --error-unmatch front/package-lock.json >/dev/null 2>&1; then
     (cd front && npm ci)
 else

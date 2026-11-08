@@ -3,11 +3,11 @@ FROM node:24.16-alpine AS deps
 
 WORKDIR /app
 
-COPY package.json ./
-RUN npm install
+COPY package.json package-lock.json ./
+RUN npm ci
 
-COPY front/package.json ./front/
-RUN cd front && npm install
+COPY front/package.json front/package-lock.json ./front/
+RUN cd front && npm ci
 
 FROM deps AS prod
 
