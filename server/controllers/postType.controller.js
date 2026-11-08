@@ -2,7 +2,7 @@ const PostType = require('../models/postType'),
     Component = require('../models/component'),
     mongoose = require('mongoose'),
     Counter = require('../models/counter'),
-    { writeExport } = require('../exports'),
+    { writeExport, parseExportIds, exportFilter } = require('../exports'),
     format = require('../models/tools/format'),
     { usesPostType, postTypeUsage, postTypeInUseError } = require('../post-type-usage');
 
@@ -158,8 +158,12 @@ module.exports = {
         let Model;
         const isComponent = path.indexOf('Components') >= 0;
         isComponent ? (Model = Component) : (Model = PostType);
+        const { ids, error } = parseExportIds(req.body);
+        if (error) {
+            return res.status(422).send({ error });
+        }
 
-        Model.find({})
+        Model.find(exportFilter({}, ids))
             .then((postTypes) => {
                 const formattedPostTypes = JSON.stringify(
                     postTypes.map((postType) => postType.toExport()),

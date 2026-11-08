@@ -56,13 +56,21 @@ describe('PostsService', () => {
         expect(result).toBe('ok');
     });
 
-    it('exportData() sends GET /api/exportPosts/:postType with responseType text', () => {
+    it('exportData() sends POST /api/exportPosts/:postType with responseType text', () => {
         let result: string | undefined;
         service.exportData('articles').subscribe((r) => (result = r));
-        const req = http.expectOne({ method: 'GET', url: '/api/exportPosts/articles' });
+        const req = http.expectOne({ method: 'POST', url: '/api/exportPosts/articles' });
         expect(req.request.responseType).toBe('text');
+        expect(req.request.body).toEqual({});
         req.flush('/export/articles.json');
         expect(result).toBe('/export/articles.json');
+    });
+
+    it('exportData(ids) asks for the chosen items only', () => {
+        service.exportData('articles', ['a1', 'b2']).subscribe();
+        const req = http.expectOne({ method: 'POST', url: '/api/exportPosts/articles' });
+        expect(req.request.body).toEqual({ ids: ['a1', 'b2'] });
+        req.flush('/export/x.json');
     });
 
     it('importData() sends POST /api/importPosts with the body', () => {

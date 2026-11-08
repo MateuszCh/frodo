@@ -75,8 +75,9 @@ export class PostTypesService {
         return this.http.delete('/api/postType/' + id, { responseType: 'text' }).pipe(tap(this.postsChanged));
     }
 
-    exportData(): Observable<string> {
-        return this.http.get('/api/exportPostTypes', { responseType: 'text' });
+    /** All post types, or only those with the given `_id`s. */
+    exportData(ids?: string[]): Observable<string> {
+        return this.http.post('/api/exportPostTypes', ids ? { ids } : {}, { responseType: 'text' });
     }
 
     importData(data: { posts: PostType[] }): Observable<ImportResult> {

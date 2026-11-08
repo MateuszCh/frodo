@@ -1,6 +1,6 @@
 import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { ActiveFilters } from '../features/listing/listing-filter';
 
 export type ListingFamily = 'posts' | 'pages' | 'components' | 'postTypes';
@@ -59,5 +59,16 @@ export class ListingService {
             params = params.set('filters', JSON.stringify(query.filters));
         }
         return this.http.get<ListingPage>(`/api/listing/${family}`, { params });
+    }
+
+    /** Every row of a listing in the given sort, unpaged: for choosing what to export. */
+    all(family: ListingFamily, query: { postType?: string; sort: string }): Observable<ListingRow[]> {
+        let params = new HttpParams().set('sort', query.sort);
+        if (query.postType) {
+            params = params.set('postType', query.postType);
+        }
+        return this.http
+            .get<{ items: ListingRow[] }>(`/api/listing/${family}/all`, { params })
+            .pipe(map((body) => body.items));
     }
 }

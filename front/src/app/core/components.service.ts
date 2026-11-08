@@ -55,8 +55,9 @@ export class ComponentsService {
         return this.http.delete('/api/component/' + id, { responseType: 'text' }).pipe(tap(this.listChanged));
     }
 
-    exportData(): Observable<string> {
-        return this.http.get('/api/exportComponents', { responseType: 'text' });
+    /** All components, or only those with the given `_id`s. */
+    exportData(ids?: string[]): Observable<string> {
+        return this.http.post('/api/exportComponents', ids ? { ids } : {}, { responseType: 'text' });
     }
 
     importData(data: { posts: ComponentEntity[] }): Observable<ImportResult> {

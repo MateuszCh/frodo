@@ -16,6 +16,7 @@ import { Router, RouterLink } from '@angular/router';
 import { EMPTY, Observable, catchError, finalize, switchMap } from 'rxjs';
 import { MatButtonModule } from '@angular/material/button';
 import { MatMenuModule } from '@angular/material/menu';
+import { MatDialog } from '@angular/material/dialog';
 
 import { ComponentEntity, ImportResult, Page, Post, PostType } from '../../../models/models';
 import { PagesService } from '../../../core/pages.service';
@@ -36,6 +37,7 @@ import {
 } from '../../../core/listing.service';
 import { PaginationComponent } from '../../../shared/pagination/pagination';
 import { ListingFiltersComponent } from '../listing-filters/listing-filters';
+import { ExportDialogComponent, ExportDialogData } from '../export-dialog/export-dialog';
 import {
     FilterRanges,
     Filters,
@@ -101,6 +103,7 @@ export class ListingComponent {
     private destroyRef = inject(DestroyRef);
     private injector = inject(Injector);
     private loader = inject(LoadingService);
+    private dialog = inject(MatDialog);
 
     protected readonly isDesktop = computed(() =>
         ['size-l', 'size-x', 'size-xl'].includes(this.layout.size()),
@@ -533,9 +536,40 @@ export class ListingComponent {
         });
     }
 
+    /**
+     * Opens the export dialog with every item of the listing, in its sort, all of them checked,
+     * and exports the ones chosen. All of them chosen: the whole collection, as before.
+     */
     export(): void {
         this.exportStatus.set(true);
-        this.apiExport().subscribe({
+        this.listingService
+            .all(this.family() as ListingFamily, { postType: this.postType(), sort: this.sortCurrent() })
+            .subscribe({
+                next: (items) => {
+                    this.exportStatus.set(false);
+                    this.dialog
+                        .open<ExportDialogComponent, ExportDialogData, string[]>(ExportDialogComponent, {
+                            data: { title: this.title(), items },
+                            width: '560px',
+                            maxWidth: '95vw',
+                        })
+                        .afterClosed()
+                        .subscribe((ids) => {
+                            if (ids?.length) {
+                                this.runExport(ids.length === items.length ? undefined : ids);
+                            }
+                        });
+                },
+                error: (error) => {
+                    this.exportStatus.set(false);
+                    this.tools.alert(this.server(error?.error?.error) || this.t('common.errorLoading'));
+                },
+            });
+    }
+
+    private runExport(ids?: string[]): void {
+        this.exportStatus.set(true);
+        this.apiExport(ids).subscribe({
             next: (path) => {
                 this.exportStatus.set(false);
                 const a = document.createElement('a');
@@ -565,16 +599,16 @@ export class ListingComponent {
         }
     }
 
-    private apiExport(): Observable<string> {
+    private apiExport(ids?: string[]): Observable<string> {
         switch (this.family()) {
             case 'pages':
-                return this.pagesService.exportData();
+                return this.pagesService.exportData(ids);
             case 'posts':
-                return this.postsService.exportData(this.postType()!);
+                return this.postsService.exportData(this.postType()!, ids);
             case 'postTypes':
-                return this.postTypesService.exportData();
+                return this.postTypesService.exportData(ids);
             default:
-                return this.componentsService.exportData();
+                return this.componentsService.exportData(ids);
         }
     }
 

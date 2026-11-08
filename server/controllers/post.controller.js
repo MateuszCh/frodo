@@ -1,7 +1,7 @@
 const Post = require('../models/post'),
     Counter = require('../models/counter'),
     fs = require('fs'),
-    { writeExport } = require('../exports'),
+    { writeExport, parseExportIds, exportFilter } = require('../exports'),
     PostType = require('../models/postType');
 
 module.exports = {
@@ -64,7 +64,12 @@ module.exports = {
     },
     exportPosts(req, res, next) {
         const postType = req.params.postType;
-        Post.find({ type: postType })
+        const { ids, error } = parseExportIds(req.body);
+        if (error) {
+            return res.status(422).send({ error });
+        }
+        // the type stays in the filter: ids of another type's posts are never exported
+        Post.find(exportFilter({ type: postType }, ids))
             .then((posts) => {
                 const formattedPosts = JSON.stringify(
                     posts.map((post) => post.toExport()),

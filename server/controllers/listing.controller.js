@@ -41,6 +41,24 @@ function page(Model, match, sort, pageNumber, limit) {
         }));
 }
 
+/**
+ * The family's model and the match of its whole listing (posts: one post type), or the
+ * status and error to answer with.
+ */
+async function listingBase(family, postTypeKey) {
+    if (!FAMILIES.includes(family)) {
+        return { status: 404, error: `There is no ${family} listing` };
+    }
+    if (family !== 'posts') {
+        return { Model: MODELS[family], fields: [], base: {} };
+    }
+    const postType = await PostType.findOne({ type: String(postTypeKey ?? '') });
+    if (!postType) {
+        return { status: 404, error: `There is no post type with type ${postTypeKey}` };
+    }
+    return { Model: Post, fields: postType.fields ?? [], base: { type: postType.type } };
+}
+
 module.exports = {
     /**
      * One page of a listing: GET /api/listing/:family?page&limit&sort&q&filters
@@ -49,22 +67,11 @@ module.exports = {
     async getPage(req, res, next) {
         try {
             const family = req.params.family;
-            if (!FAMILIES.includes(family)) {
-                return res.status(404).send({ error: `There is no ${family} listing` });
+            const { Model, fields, base, status, error } = await listingBase(family, req.query.postType);
+            if (error) {
+                return res.status(status).send({ error });
             }
-            const Model = MODELS[family];
             const { page: requested, limit } = parsePaging(req.query);
-
-            let fields = [];
-            let base = {};
-            if (family === 'posts') {
-                const postType = await PostType.findOne({ type: String(req.query.postType ?? '') });
-                if (!postType) {
-                    return res.status(404).send({ error: `There is no post type with type ${req.query.postType}` });
-                }
-                fields = postType.fields ?? [];
-                base = { type: postType.type };
-            }
 
             const conditions = [base];
             const text = buildTextMatch(req.query.q, family);
@@ -100,6 +107,28 @@ module.exports = {
                 body.ranges = ranges;
             }
             return res.send(body);
+        } catch (err) {
+            return next(err);
+        }
+    },
+
+    /**
+     * Every row of a listing, unpaged and in the given sort: GET /api/listing/:family/all?sort
+     * (posts also need postType). Only what a row shows, for choosing the items to export.
+     */
+    async getAll(req, res, next) {
+        try {
+            const family = req.params.family;
+            const { Model, fields, base, status, error } = await listingBase(family, req.query.postType);
+            if (error) {
+                return res.status(status).send({ error });
+            }
+            const items = await Model.aggregate([
+                { $match: base },
+                { $sort: buildSort(req.query.sort, family, fields) },
+                { $project: LIST_PROJECTION },
+            ]).allowDiskUse(true);
+            return res.send({ items });
         } catch (err) {
             return next(err);
         }

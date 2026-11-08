@@ -9,7 +9,7 @@ module.exports = (app) => {
 
     app.delete('/api/page/:id', PageController.delete);
 
-    app.get('/api/exportPages', PageController.exportPages);
+    app.post('/api/exportPages', PageController.exportPages);
 
     app.post('/api/importPages', PageController.importPages);
 };

@@ -64,13 +64,21 @@ describe('ComponentsService', () => {
         expect(result).toBe('ok');
     });
 
-    it('exportData() sends GET /api/exportComponents with responseType text', () => {
+    it('exportData() sends POST /api/exportComponents with responseType text', () => {
         let result: string | undefined;
         service.exportData().subscribe((r) => (result = r));
-        const req = http.expectOne({ method: 'GET', url: '/api/exportComponents' });
+        const req = http.expectOne({ method: 'POST', url: '/api/exportComponents' });
         expect(req.request.responseType).toBe('text');
+        expect(req.request.body).toEqual({});
         req.flush('/export/components.json');
         expect(result).toBe('/export/components.json');
+    });
+
+    it('exportData(ids) asks for the chosen items only', () => {
+        service.exportData(['a1', 'b2']).subscribe();
+        const req = http.expectOne({ method: 'POST', url: '/api/exportComponents' });
+        expect(req.request.body).toEqual({ ids: ['a1', 'b2'] });
+        req.flush('/export/x.json');
     });
 
     it('setList() keeps the components for "component" fields', () => {

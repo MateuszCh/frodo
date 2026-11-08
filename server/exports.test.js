@@ -3,7 +3,7 @@ const assert = require('node:assert/strict');
 const express = require('express');
 const fs = require('fs');
 const path = require('path');
-const { EXPORTS_DIR, exportFilename, writeExport, exportsRouter } = require('./exports');
+const { EXPORTS_DIR, exportFilename, writeExport, parseExportIds, exportFilter, exportsRouter } = require('./exports');
 
 describe('exportFilename', () => {
     it('keeps a plain name', () => {
@@ -14,6 +14,37 @@ describe('exportFilename', () => {
     it('keeps a name from a URL inside the export folder', () => {
         assert.equal(exportFilename('../../config'), '______config.json');
         assert.equal(exportFilename('a b/c\\d'), 'a_b_c_d.json');
+    });
+});
+
+describe('parseExportIds', () => {
+    const a = '5f1d7c2b9a1e4b0012345678';
+    const b = '5F1D7C2B9A1E4B0012345679';
+
+    it('exports everything without ids', () => {
+        assert.deepEqual(parseExportIds(undefined), { ids: null });
+        assert.deepEqual(parseExportIds({}), { ids: null });
+        assert.deepEqual(parseExportIds({ ids: null }), { ids: null });
+    });
+
+    it('takes a list of ObjectId strings, once each', () => {
+        assert.deepEqual(parseExportIds({ ids: [a, b, a] }), { ids: [a, b] });
+    });
+
+    it('refuses an empty list, a non-list and ids that are no ObjectIds', () => {
+        for (const ids of [[], a, 7, { $ne: null }, [a, 'x'], [a, { $gt: '' }], [12]]) {
+            assert.ok(parseExportIds({ ids }).error, JSON.stringify(ids));
+        }
+    });
+});
+
+describe('exportFilter', () => {
+    it('narrows the filter to the chosen ids, keeping its conditions', () => {
+        assert.deepEqual(exportFilter({ type: 'news' }, ['x']), { type: 'news', _id: { $in: ['x'] } });
+    });
+
+    it('leaves the filter as it is without ids', () => {
+        assert.deepEqual(exportFilter({ type: 'news' }, null), { type: 'news' });
     });
 });
 

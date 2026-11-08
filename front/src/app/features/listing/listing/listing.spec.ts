@@ -5,6 +5,7 @@ import { provideLocationMocks } from '@angular/common/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { MatIconTestingModule } from '@angular/material/icon/testing';
 import { of, throwError } from 'rxjs';
+import { MatDialog } from '@angular/material/dialog';
 
 import { ListingComponent } from './listing';
 import { ListingFiltersComponent } from '../listing-filters/listing-filters';
@@ -55,6 +56,14 @@ function listingPage(items: object[] = [], extra: Partial<ListingPage> = {}): Li
 // Setup helpers
 // ---------------------------------------------------------------------------
 
+const EXPORT_ROWS = [
+    { _id: 'a1', title: 'First' },
+    { _id: 'b2', title: 'Second' },
+    { _id: 'c3', title: 'Third' },
+];
+const chosen: { ids?: string[] } = {};
+beforeEach(() => (chosen.ids = EXPORT_ROWS.map((row) => row._id)));
+
 function createMocks() {
     return {
         tools: { confirm: vi.fn().mockReturnValue(of(true)), alert: vi.fn() },
@@ -64,7 +73,12 @@ function createMocks() {
         postTypes: { remove: vi.fn().mockReturnValue(of('ok')), exportData: vi.fn().mockReturnValue(of('/path')), importData: vi.fn().mockReturnValue(of({ imported: 0 })), refreshMenu: vi.fn() },
         components: { remove: vi.fn().mockReturnValue(of('ok')), exportData: vi.fn().mockReturnValue(of('/path')), importData: vi.fn().mockReturnValue(of({ imported: 0 })) },
         files: { catalogues: signal<string[]>([]) },
-        listing: { query: vi.fn().mockReturnValue(of(listingPage())) },
+        listing: {
+            query: vi.fn().mockReturnValue(of(listingPage())),
+            all: vi.fn().mockReturnValue(of(EXPORT_ROWS)),
+        },
+        // the export dialog: closes with what `chosen` holds (undefined: Cancel)
+        dialog: { open: vi.fn((..._args: unknown[]) => ({ afterClosed: () => of(chosen.ids) })) },
         loader: { track: vi.fn((source: unknown) => source) },
     };
 }
@@ -86,6 +100,7 @@ function setup(mocks = createMocks()) {
             { provide: FilesService, useValue: mocks.files },
             { provide: ListingService, useValue: mocks.listing },
             { provide: LoadingService, useValue: mocks.loader },
+            { provide: MatDialog, useValue: mocks.dialog },
         ],
     }).overrideComponent(ListingComponent, {
         remove: { imports: [ListingFiltersComponent] },
@@ -759,48 +774,79 @@ describe('ListingComponent — export()', () => {
     });
     afterEach(() => vi.restoreAllMocks());
 
-    it('calls pagesService.exportData() for pages family', () => {
+    it('opens the dialog with every row of the listing, in its sort', () => {
+        const mocks = createMocks();
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.detectChanges();
+        comp.export();
+        expect(mocks.listing.all).toHaveBeenCalledWith('pages', { postType: undefined, sort: comp.sortCurrent() });
+        expect(mocks.dialog.open).toHaveBeenCalledWith(
+            expect.anything(),
+            expect.objectContaining({ data: { title: 'pages', items: EXPORT_ROWS } }),
+        );
+    });
+
+    it('exports the whole collection when every item is chosen', () => {
         const mocks = createMocks();
         mocks.pages.exportData.mockReturnValue(of('/export/pages.json'));
         const { fixture, comp } = setup(mocks);
         fixture.componentRef.setInput('family', 'pages');
-        fixture.componentRef.setInput('model', []);
         fixture.detectChanges();
         comp.export();
-        expect(mocks.pages.exportData).toHaveBeenCalled();
+        expect(mocks.pages.exportData).toHaveBeenCalledWith(undefined);
     });
 
-    it('calls postsService.exportData() for posts family', () => {
+    it('exports only the chosen items', () => {
+        chosen.ids = ['a1', 'c3'];
         const mocks = createMocks();
-        mocks.posts.exportData.mockReturnValue(of('/export/posts.json'));
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.detectChanges();
+        comp.export();
+        expect(mocks.pages.exportData).toHaveBeenCalledWith(['a1', 'c3']);
+    });
+
+    it('exports nothing on Cancel', () => {
+        chosen.ids = undefined;
+        const mocks = createMocks();
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.detectChanges();
+        comp.export();
+        expect(mocks.pages.exportData).not.toHaveBeenCalled();
+        expect(comp.exportStatus()).toBe(false);
+    });
+
+    it('exports the chosen posts of the listing\'s post type', () => {
+        chosen.ids = ['b2'];
+        const mocks = createMocks();
         const { fixture, comp } = setup(mocks);
         fixture.componentRef.setInput('family', 'posts');
         fixture.componentRef.setInput('model', makePostType({ type: 'articles' }));
         fixture.detectChanges();
         comp.export();
-        expect(mocks.posts.exportData).toHaveBeenCalledWith('articles');
+        expect(mocks.listing.all).toHaveBeenCalledWith('posts', expect.objectContaining({ postType: 'articles' }));
+        expect(mocks.posts.exportData).toHaveBeenCalledWith('articles', ['b2']);
     });
 
     it('calls postTypesService.exportData() for postTypes family', () => {
+        chosen.ids = ['a1'];
         const mocks = createMocks();
-        mocks.postTypes.exportData.mockReturnValue(of('/export/post-types.json'));
         const { fixture, comp } = setup(mocks);
         fixture.componentRef.setInput('family', 'postTypes');
-        fixture.componentRef.setInput('model', []);
         fixture.detectChanges();
         comp.export();
-        expect(mocks.postTypes.exportData).toHaveBeenCalled();
+        expect(mocks.postTypes.exportData).toHaveBeenCalledWith(['a1']);
     });
 
     it('calls componentsService.exportData() for components family', () => {
         const mocks = createMocks();
-        mocks.components.exportData.mockReturnValue(of('/export/components.json'));
         const { fixture, comp } = setup(mocks);
         fixture.componentRef.setInput('family', 'components');
-        fixture.componentRef.setInput('model', []);
         fixture.detectChanges();
         comp.export();
-        expect(mocks.components.exportData).toHaveBeenCalled();
+        expect(mocks.components.exportData).toHaveBeenCalledWith(undefined);
     });
 
     it('sets exportStatus to false after success', () => {
@@ -808,7 +854,6 @@ describe('ListingComponent — export()', () => {
         mocks.pages.exportData.mockReturnValue(of('/path'));
         const { fixture, comp } = setup(mocks);
         fixture.componentRef.setInput('family', 'pages');
-        fixture.componentRef.setInput('model', []);
         fixture.detectChanges();
         comp.export();
         expect(comp.exportStatus()).toBe(false);
@@ -819,9 +864,20 @@ describe('ListingComponent — export()', () => {
         mocks.pages.exportData.mockReturnValue(throwError(() => new Error('fail')));
         const { fixture, comp } = setup(mocks);
         fixture.componentRef.setInput('family', 'pages');
-        fixture.componentRef.setInput('model', []);
         fixture.detectChanges();
         comp.export();
+        expect(mocks.tools.alert).toHaveBeenCalledWith('There was an error exporting');
+        expect(comp.exportStatus()).toBe(false);
+    });
+
+    it('shows alert when the rows cannot be loaded, without opening the dialog', () => {
+        const mocks = createMocks();
+        mocks.listing.all.mockReturnValue(throwError(() => new Error('fail')));
+        const { fixture, comp } = setup(mocks);
+        fixture.componentRef.setInput('family', 'pages');
+        fixture.detectChanges();
+        comp.export();
+        expect(mocks.dialog.open).not.toHaveBeenCalled();
         expect(mocks.tools.alert).toHaveBeenCalled();
         expect(comp.exportStatus()).toBe(false);
     });

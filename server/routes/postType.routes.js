@@ -15,7 +15,7 @@ module.exports = (app) => {
 
     app.delete('/api/postType/:id', PostTypeController.delete);
 
-    app.get('/api/exportPostTypes', PostTypeController.exportPostTypes);
+    app.post('/api/exportPostTypes', PostTypeController.exportPostTypes);
 
     app.post('/api/importPostTypes', PostTypeController.importPostTypes);
 };

@@ -124,6 +124,12 @@ export const pl = {
         many: 'Zaimportowano {count} pozycji',
         other: 'Zaimportowano {count} pozycji',
     },
+    'listing.export.title': 'Eksport: {name}',
+    'listing.export.search': 'Szukaj',
+    'listing.export.selectAll': 'Zaznacz wszystkie',
+    'listing.export.deselectAll': 'Odznacz wszystkie',
+    'listing.export.nothingFound': 'Nic nie znaleziono.',
+    'listing.export.confirm': 'Eksportuj ({count})',
 
     // pagination
     'pagination.label': 'Strony listy',
@@ -675,6 +681,12 @@ export const en: Record<MessageKey, Message> = {
         one: '{count} {title} was successfully imported',
         other: '{count} {title} were successfully imported',
     },
+    'listing.export.title': 'Export: {name}',
+    'listing.export.search': 'Search',
+    'listing.export.selectAll': 'Select all',
+    'listing.export.deselectAll': 'Deselect all',
+    'listing.export.nothingFound': 'Nothing found.',
+    'listing.export.confirm': 'Export ({count})',
 
     'pagination.label': 'List pages',
     'pagination.previous': 'Previous page',

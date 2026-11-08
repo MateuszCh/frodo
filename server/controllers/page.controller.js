@@ -2,7 +2,7 @@ const Page = require('../models/page'),
     Counter = require('../models/counter'),
     Settings = require('../models/settings'),
     { pageTypeProps, withPageTypeLock } = require('../page-types'),
-    { writeExport } = require('../exports'),
+    { writeExport, parseExportIds, exportFilter } = require('../exports'),
     mongoose = require('mongoose');
 
 function urlTakenError(pageUrl) {
@@ -89,7 +89,11 @@ module.exports = {
             .catch(next);
     },
     exportPages(req, res, next) {
-        Page.find({})
+        const { ids, error } = parseExportIds(req.body);
+        if (error) {
+            return res.status(422).send({ error });
+        }
+        Page.find(exportFilter({}, ids))
             .then((pages) => {
                 const formattedPages = JSON.stringify(
                     pages.map((page) => page.toExport()),

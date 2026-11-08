@@ -24,8 +24,9 @@ export class PagesService {
         return this.http.delete('/api/page/' + id, { responseType: 'text' });
     }
 
-    exportData(): Observable<string> {
-        return this.http.get('/api/exportPages', { responseType: 'text' });
+    /** All pages, or only those with the given `_id`s. */
+    exportData(ids?: string[]): Observable<string> {
+        return this.http.post('/api/exportPages', ids ? { ids } : {}, { responseType: 'text' });
     }
 
     importData(data: { posts: Page[] }): Observable<ImportResult> {

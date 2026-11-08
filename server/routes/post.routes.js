@@ -5,7 +5,7 @@ module.exports = (app) => {
 
     app.post('/api/importPosts', PostController.importPosts);
 
-    app.get('/api/exportPosts/:postType', PostController.exportPosts);
+    app.post('/api/exportPosts/:postType', PostController.exportPosts);
 
     app.put('/api/post/edit', PostController.edit);
 

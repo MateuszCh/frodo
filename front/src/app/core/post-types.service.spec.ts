@@ -94,11 +94,19 @@ describe('PostTypesService', () => {
         expect(result).toBe('ok');
     });
 
-    it('exportData() sends GET /api/exportPostTypes with responseType text', () => {
+    it('exportData() sends POST /api/exportPostTypes with responseType text', () => {
         service.exportData().subscribe();
-        const req = http.expectOne({ method: 'GET', url: '/api/exportPostTypes' });
+        const req = http.expectOne({ method: 'POST', url: '/api/exportPostTypes' });
         expect(req.request.responseType).toBe('text');
+        expect(req.request.body).toEqual({});
         req.flush('/export/post-types.json');
+    });
+
+    it('exportData(ids) asks for the chosen items only', () => {
+        service.exportData(['a1', 'b2']).subscribe();
+        const req = http.expectOne({ method: 'POST', url: '/api/exportPostTypes' });
+        expect(req.request.body).toEqual({ ids: ['a1', 'b2'] });
+        req.flush('/export/x.json');
     });
 
     it('importData() sends POST /api/importPostTypes', () => {

@@ -23,6 +23,32 @@ function writeExport(name, content, callback) {
     });
 }
 
+const OBJECT_ID = /^[0-9a-f]{24}$/i;
+
+/**
+ * The items an export asks for: `{ ids }` in the body, ObjectId strings of the chosen items.
+ * Gives `{ ids: null }` without `ids` (everything, as before), `{ ids }` for a valid list and
+ * `{ error }` for anything else, an empty list included: there would be nothing to export.
+ */
+function parseExportIds(body) {
+    const ids = body?.ids;
+    if (ids === undefined || ids === null) {
+        return { ids: null };
+    }
+    if (!Array.isArray(ids) || !ids.length) {
+        return { error: 'Choose at least one item to export' };
+    }
+    if (!ids.every((id) => typeof id === 'string' && OBJECT_ID.test(id))) {
+        return { error: 'Invalid ids to export' };
+    }
+    return { ids: [...new Set(ids)] };
+}
+
+/** `filter` narrowed to the chosen items, or as it is when everything is exported. */
+function exportFilter(filter, ids) {
+    return ids ? { ...filter, _id: { $in: ids } } : filter;
+}
+
 function requireUser(req, res, next) {
     if (req.user) {
         next();
@@ -40,4 +66,12 @@ function exportsRouter() {
     return router;
 }
 
-module.exports = { EXPORTS_DIR, exportFilename, writeExport, requireUser, exportsRouter };
+module.exports = {
+    EXPORTS_DIR,
+    exportFilename,
+    writeExport,
+    parseExportIds,
+    exportFilter,
+    requireUser,
+    exportsRouter,
+};
