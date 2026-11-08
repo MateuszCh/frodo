@@ -1,21 +1,34 @@
 // Visit statistics read from the `visits` collection, which the public site (geosilesia)
-// writes in its visits.js – Frodo only reads it. One document per counted hit:
+// writes in its visits.js – Frodo only reads it. One document per counted hit (a view):
 //   { ts, day: "YYYY-MM-DD" (Polish time), path, visitor, source: "ssr" | "nav",
-//     referrer, device, lang, entry }
-// (`lang`, the browser's first language code, only in hits recorded since geosilesia keeps it.)
-// - "ssr": a full page load. The only basis for entries (visits that start after 30 minutes
-//   without a hit), unique visitors per day and landing pages.
-// - "nav": a page opened inside the app, without reloading.
-// The visitor id is built with a salt that changes every day, so unique visitors exist per
-// day only: their total over a period is the sum of daily uniques, not different people.
+//     referrer, device, lang }
+// (older hits also carry `entry`, no longer used; `lang` only in hits since geosilesia keeps it.)
+// - "ssr": a full page load; only these carry the external referrer.
+// Hits since geosilesia keeps them also carry the browser and system family.
+// - "nav": a page opened inside the site, without reloading.
+// Three numbers, as GA4 and Plausible count them: visitors (anyone with a hit that day),
+// visits (one visitor's hits without a 30-minute gap, split here: summarizeVisits) and
+// views (all hits). The visitor id is built with a salt that changes every day, so
+// visitors exist per day only: their total over a period is the sum of daily visitors,
+// not different people.
 
 const COLLECTION = 'visits';
-const PRESETS = [7, 30, 90];
-const DEFAULT_DAYS = 30;
+/** What a page view alone does not say: 404s, visible time, link clicks (geosilesia's visits.js). */
+const EVENTS = 'visit_events';
+/** Visits by the different pages they opened, and by their length in seconds. */
+const DEPTHS = ['1', '2', '3-5', '6+'];
+const LENGTHS = ['0-10', '10-30', '30-180', '180+'];
+/** "Now on the site": visitors with a page view in the last minutes. */
+const LIVE_MS = 5 * 60 * 1000;
+/** The preset periods: today, the last 7, 30 or 90 days, the year to date. */
+const PRESETS = ['today', '7', '30', '90', 'ytd'];
+const DEFAULT_PRESET = '30';
 const MAX_DAYS = 366;
 const DEFAULT_TOP = 10;
 const MAX_TOP = 50;
 const DAY_MS = 24 * 60 * 60 * 1000;
+// A visit ends after 30 minutes without any hit – the GA/Plausible definition.
+const VISIT_GAP_MS = 30 * 60 * 1000;
 
 // the same day boundaries as geosilesia's visits.js
 const warsawDay = new Intl.DateTimeFormat('en-CA', {
@@ -28,6 +41,13 @@ const warsawDay = new Intl.DateTimeFormat('en-CA', {
 /** "2026-11-07" in Polish time – the day a hit belongs to. */
 function dayOf(date) {
     return warsawDay.format(date);
+}
+
+const warsawHour = new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Warsaw', hour: '2-digit', hourCycle: 'h23' });
+
+/** The hour (0–23) of a moment in Polish time. */
+function hourOf(date) {
+    return Number(warsawHour.format(date));
 }
 
 /** A "YYYY-MM-DD" day as a UTC midnight timestamp, or NaN when it is no real date. */
@@ -43,9 +63,10 @@ function addDays(day, count) {
 }
 
 /**
- * The period of a report from the query: `days` (7, 30 or 90, counted back from today), or
- * `from` and `to` (whole days, both included, `to` cut to today). Without either: the last
- * 30 days. Returns `{ from, to }` or `{ error }`.
+ * The period of a report from the query: `period` (a preset: `today`, `7`, `30` or `90`
+ * days counted back from today, `ytd` from 1 January), or `from` and `to` (whole days, both
+ * included, `to` cut to today). Without either: the last 30 days. Returns `{ from, to }` or
+ * `{ error }`.
  */
 function parseRange(query = {}, now = new Date()) {
     const today = dayOf(now);
@@ -67,9 +88,10 @@ function parseRange(query = {}, now = new Date()) {
         }
         return { from: query.from, to };
     }
-    const days = Number(query.days);
-    const length = PRESETS.includes(days) ? days : DEFAULT_DAYS;
-    return { from: addDays(today, -(length - 1)), to: today };
+    const preset = PRESETS.includes(query.period) ? query.period : DEFAULT_PRESET;
+    if (preset === 'today') return { from: today, to: today };
+    if (preset === 'ytd') return { from: `${today.slice(0, 4)}-01-01`, to: today };
+    return { from: addDays(today, -(Number(preset) - 1)), to: today };
 }
 
 /** How many rows a top list shows: `top` from 1 to 50, 10 by default. */
@@ -89,117 +111,62 @@ function normalizePath(pageUrl) {
     return collapsed.length > 1 ? collapsed.replace(/\/+$/, '') : collapsed;
 }
 
-const EMPTY_DAY = { entries: 0, unique: 0, loads: 0, nav: 0 };
+const EMPTY_DAY = { visitors: 0, visits: 0, views: 0 };
 
-/** Every day of the period in order, with zeros for the days without hits. */
-function fillDays(rows, from, to) {
+/**
+ * Every day of the period in order, with zeros for the days without hits. `visits` maps a
+ * day to the visits that started on it (summarizeVisits).
+ */
+function fillDays(rows, from, to, visits = new Map()) {
     const byDay = new Map(rows.map((row) => [row.day, row]));
     const days = [];
     for (let day = from; day <= to; day = addDays(day, 1)) {
         const row = byDay.get(day);
         days.push({
             day,
-            entries: row?.entries ?? 0,
-            unique: row?.unique ?? 0,
-            loads: row?.loads ?? 0,
-            nav: row?.nav ?? 0,
+            visitors: row?.visitors ?? 0,
+            visits: visits.get(day) ?? 0,
+            views: row?.views ?? 0,
         });
     }
     return days;
 }
 
-/** Sums of the period; `unique` is the sum of daily uniques. */
+/** Sums of the period; `visitors` is the sum of daily visitors. */
 function summarize(days) {
     return days.reduce(
         (sum, day) => ({
-            entries: sum.entries + day.entries,
-            unique: sum.unique + day.unique,
-            loads: sum.loads + day.loads,
-            nav: sum.nav + day.nav,
+            visitors: sum.visitors + day.visitors,
+            visits: sum.visits + day.visits,
+            views: sum.views + day.views,
         }),
         { ...EMPTY_DAY },
     );
 }
 
-/** Entries, full loads, in-app transitions and unique visitors per day (as geosilesia's scripts/stats.js). */
+/** Visitors (anyone with a hit) and views (all hits) per day. */
 function perDayPipeline({ from, to }) {
     return [
         { $match: { day: { $gte: from, $lte: to } } },
-        {
-            $group: {
-                _id: '$day',
-                entries: { $sum: { $cond: [{ $and: [{ $eq: ['$source', 'ssr'] }, '$entry'] }, 1, 0] } },
-                loads: { $sum: { $cond: [{ $eq: ['$source', 'ssr'] }, 1, 0] } },
-                nav: { $sum: { $cond: [{ $eq: ['$source', 'nav'] }, 1, 0] } },
-                visitors: { $addToSet: { $cond: [{ $eq: ['$source', 'ssr'] }, '$visitor', null] } },
-            },
-        },
-        {
-            $project: {
-                _id: 0,
-                day: '$_id',
-                entries: 1,
-                loads: 1,
-                nav: 1,
-                unique: { $size: { $setDifference: ['$visitors', [null]] } },
-            },
-        },
-    ];
-}
-
-/** The most frequent values of `field` among the hits that match. */
-function topPipeline({ from, to }, match, field, limit) {
-    return [
-        { $match: { day: { $gte: from, $lte: to }, ...match } },
-        { $group: { _id: `$${field}`, count: { $sum: 1 } } },
-        { $sort: { count: -1, _id: 1 } },
-        { $limit: limit },
-        { $project: { _id: 0, key: '$_id', count: 1 } },
+        { $group: { _id: '$day', visitors: { $addToSet: '$visitor' }, views: { $sum: 1 } } },
+        { $project: { _id: 0, day: '$_id', visitors: { $size: '$visitors' }, views: 1 } },
     ];
 }
 
 /**
- * Every page opened in the period with all its counts: entries (visits that started on
- * it), unique visitors (summed per day, as the site's total: one visitor and one day
- * count once, whether the page came from a full load or from inside the site), full
- * loads, in-site transitions and views (loads and transitions together).
+ * Every page opened in the period with its views and visitors (summed per day, as the
+ * site's total: one visitor and one day count once). The visits that started on it come
+ * from summarizeVisits.
  */
 function pagesPipeline({ from, to }) {
     return [
         { $match: { day: { $gte: from, $lte: to } } },
-        {
-            $group: {
-                _id: { path: '$path', day: '$day', visitor: '$visitor' },
-                entries: { $sum: { $cond: [{ $and: [{ $eq: ['$source', 'ssr'] }, '$entry'] }, 1, 0] } },
-                loads: { $sum: { $cond: [{ $eq: ['$source', 'ssr'] }, 1, 0] } },
-                nav: { $sum: { $cond: [{ $eq: ['$source', 'nav'] }, 1, 0] } },
-            },
-        },
-        {
-            $group: {
-                _id: '$_id.path',
-                entries: { $sum: '$entries' },
-                unique: { $sum: 1 },
-                loads: { $sum: '$loads' },
-                nav: { $sum: '$nav' },
-            },
-        },
-        {
-            $project: {
-                _id: 0,
-                key: '$_id',
-                entries: 1,
-                unique: 1,
-                loads: 1,
-                nav: 1,
-                views: { $add: ['$loads', '$nav'] },
-            },
-        },
+        { $group: { _id: { path: '$path', day: '$day', visitor: '$visitor' }, views: { $sum: 1 } } },
+        { $group: { _id: '$_id.path', visitors: { $sum: 1 }, views: { $sum: '$views' } } },
+        { $project: { _id: 0, key: '$_id', visitors: 1, views: 1 } },
         { $sort: { views: -1, key: 1 } },
     ];
 }
-
-const ENTRY_MATCH = { source: 'ssr', entry: true };
 
 /** The period just before this one, of the same length: what the totals are compared with. */
 function previousRange({ from, to }) {
@@ -218,70 +185,251 @@ function hoursPipeline({ from, to }) {
     ];
 }
 
-/** Every hit from `from` on, in the order each visitor made them: the input of summarizeVisits. */
-function hitsPipeline({ from, to }) {
+/** Visitors (anyone with a hit) and views per hour of one day, in Polish time. */
+function hourlyPipeline(day) {
     return [
-        { $match: { day: { $gte: from, $lte: to } } },
-        { $project: { _id: 0, day: 1, visitor: 1, ts: 1, path: 1, source: 1, entry: 1 } },
-        { $sort: { visitor: 1, ts: 1 } },
+        { $match: { day } },
+        {
+            $group: {
+                _id: { $hour: { date: '$ts', timezone: 'Europe/Warsaw' } },
+                visitors: { $addToSet: '$visitor' },
+                views: { $sum: 1 },
+            },
+        },
+        { $project: { _id: 0, hour: '$_id', visitors: { $size: '$visitors' }, views: 1 } },
     ];
 }
 
 /**
- * Splits hits into visits and sums them up. `hits` come sorted by visitor, then time (a
- * visitor id lives one day, so one visitor's hits are one day's). An entry (a full load
- * after 30 minutes without a hit) starts a visit, and every later hit of the visitor
- * belongs to it until the next entry; hits before a visitor's first entry (a visit that
- * crossed midnight) belong to none.
- * - `visits`, `single`: visits, and those that stayed on one page (reloading it included);
- * - `landing`: the same per page the visit started on;
+ * The hours of one day from 0 to `last`, with zeros for the hours without hits; `visits`
+ * maps an hour to the visits that started in it (summarizeVisits). An hour's visitors are
+ * the different visitors of that hour, so they add up to more than the day's.
+ */
+function fillHours(rows, visits, last = 23) {
+    const byHour = new Map(rows.map((row) => [row.hour, row]));
+    return Array.from({ length: last + 1 }, (_, hour) => ({
+        hour,
+        visitors: byHour.get(hour)?.visitors ?? 0,
+        visits: visits.get(hour) ?? 0,
+        views: byHour.get(hour)?.views ?? 0,
+    }));
+}
+
+/** Every hit from `from` on, in the order each visitor made them: the input of summarizeVisits. */
+function hitsPipeline({ from, to }) {
+    return [
+        { $match: { day: { $gte: from, $lte: to } } },
+        {
+            $project: {
+                _id: 0,
+                day: 1,
+                visitor: 1,
+                ts: 1,
+                path: 1,
+                source: 1,
+                referrer: 1,
+                device: 1,
+                lang: 1,
+                browser: 1,
+                os: 1,
+            },
+        },
+        { $sort: { visitor: 1, ts: 1 } },
+    ];
+}
+
+/** The depth bucket of a visit that opened `pages` different pages. */
+function depthOf(pages) {
+    return pages <= 2 ? String(pages) : pages <= 5 ? '3-5' : '6+';
+}
+
+/** The length bucket of a visit of `ms` milliseconds. */
+function lengthOf(ms) {
+    const seconds = ms / 1000;
+    return seconds < 10 ? '0-10' : seconds < 30 ? '10-30' : seconds < 180 ? '30-180' : '180+';
+}
+
+/** A Map of buckets as `[{ key, count }]`, in the buckets' own order. */
+function bucketsOf(map) {
+    return [...map].map(([key, value]) => ({ key, count: value }));
+}
+
+/**
+ * Visible time per page (engagement events): its milliseconds and how many visitors of a
+ * day sent any, so the average is per page view of a visitor, whatever the beacons.
+ */
+function engagementPipeline({ from, to }) {
+    return [
+        { $match: { day: { $gte: from, $lte: to }, type: 'engagement' } },
+        { $group: { _id: { path: '$path', day: '$day', visitor: '$visitor' }, ms: { $sum: '$ms' } } },
+        { $group: { _id: '$_id.path', ms: { $sum: '$ms' }, count: { $sum: 1 } } },
+        { $project: { _id: 0, key: '$_id', ms: 1, count: 1 } },
+    ];
+}
+
+/** The most clicked targets of one kind of click event ("outbound", "download"). */
+function clicksPipeline({ from, to }, type, limit) {
+    return [
+        { $match: { day: { $gte: from, $lte: to }, type } },
+        { $group: { _id: '$target', count: { $sum: 1 } } },
+        { $sort: { count: -1, _id: 1 } },
+        { $limit: limit },
+        { $project: { _id: 0, key: '$_id', count: 1 } },
+    ];
+}
+
+/** Addresses that do not exist, most opened first, each with where the visitors came from. */
+function notFoundPipeline({ from, to }, limit) {
+    return [
+        { $match: { day: { $gte: from, $lte: to }, type: 'notFound' } },
+        { $group: { _id: { path: '$path', from: '$from' }, count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        {
+            $group: {
+                _id: '$_id.path',
+                count: { $sum: '$count' },
+                sources: { $push: { key: '$_id.from', count: '$count' } },
+            },
+        },
+        { $sort: { count: -1, _id: 1 } },
+        { $limit: limit },
+        { $project: { _id: 0, key: '$_id', count: 1, sources: { $slice: ['$sources', 3] } } },
+    ];
+}
+
+/** Visitors with a page view since `since`, and the pages they are on. */
+function livePipeline(since, limit) {
+    return [
+        { $match: { ts: { $gte: since } } },
+        { $sort: { ts: 1 } },
+        // each visitor on the last page they opened
+        { $group: { _id: '$visitor', path: { $last: '$path' } } },
+        {
+            $facet: {
+                visitors: [{ $count: 'count' }],
+                pages: [
+                    { $group: { _id: '$path', count: { $sum: 1 } } },
+                    { $sort: { count: -1, _id: 1 } },
+                    { $limit: limit },
+                    { $project: { _id: 0, key: '$_id', count: 1 } },
+                ],
+            },
+        },
+    ];
+}
+
+/** The average visible time in whole seconds of the engagement rows, null without any. */
+function engagementSeconds(rows) {
+    const count = rows.reduce((sum, row) => sum + row.count, 0);
+    return count ? Math.round(rows.reduce((sum, row) => sum + row.ms, 0) / count / 1000) : null;
+}
+
+/** Adds one to the count of `key` in a Map. */
+function count(map, key, by = 1) {
+    map.set(key, (map.get(key) ?? 0) + by);
+}
+
+/**
+ * Splits hits into visits and sums them up, the way GA4 and Plausible count sessions: a
+ * visit is one visitor's hits with no gap of 30 minutes or more, started by the first hit
+ * or the first after such a gap, a full load or a page opened inside the site alike.
+ * `hits` come sorted by visitor, then time; a visitor id lives one day, so one visitor's
+ * hits are one day's. (The `entry` flag geosilesia used to write is not used: it was kept
+ * per process, so it overcounted.)
+ * - `visits`, `perDay`, `perHour`: visits, overall, by the day and by the hour (Polish
+ *   time) they started in;
+ * - `single`: visits that stayed on one page (reloading it included);
+ * - `durationMs`: the time from the first to the last hit, summed over the visits;
+ * - `landing`: visits and single-page visits per page the visit started on;
+ * - `exits`: visits per page they ended on;
+ * - `depth`, `lengths`: visits by the different pages they opened (1, 2, 3-5, 6+) and by
+ *   their length in seconds (0-10, 10-30, 30-180, 180+; a visit of one view is 0 s);
+ * - `browsers`, `systems`: visits by the first hit's browser and system;
+ * - `referrers`, `devices`, `languages`: visits by the first hit's external referrer (a
+ *   full load only carries one; null is direct or unknown), device and browser language;
  * - `transitions`: moves from one page to another inside visits, as "from\nto" -> count.
  */
 function summarizeVisits(hits) {
-    const summary = { visits: 0, single: 0, landing: new Map(), transitions: new Map() };
-    let visitor = null;
+    const summary = {
+        visits: 0,
+        single: 0,
+        durationMs: 0,
+        perDay: new Map(),
+        perHour: new Map(),
+        exits: new Map(),
+        depth: new Map(DEPTHS.map((key) => [key, 0])),
+        lengths: new Map(LENGTHS.map((key) => [key, 0])),
+        browsers: new Map(),
+        systems: new Map(),
+        landing: new Map(),
+        referrers: new Map(),
+        devices: new Map(),
+        languages: new Map(),
+        transitions: new Map(),
+    };
     let visit = null;
     const close = () => {
         if (!visit) return;
         const single = visit.pages.size === 1;
         summary.visits += 1;
         if (single) summary.single += 1;
+        summary.durationMs += visit.end - visit.start;
+        count(summary.exits, visit.last);
+        count(summary.depth, depthOf(visit.pages.size));
+        count(summary.lengths, lengthOf(visit.end - visit.start));
+        count(summary.perDay, visit.day);
+        count(summary.perHour, hourOf(visit.start));
         const landing = summary.landing.get(visit.landing) ?? { visits: 0, single: 0 };
         landing.visits += 1;
         if (single) landing.single += 1;
         summary.landing.set(visit.landing, landing);
         visit = null;
     };
+    let previous = null;
     for (const hit of hits) {
-        if (hit.visitor !== visitor) {
+        const ts = new Date(hit.ts).getTime();
+        const starts = !previous || hit.visitor !== previous.visitor || ts - previous.ts >= VISIT_GAP_MS;
+        previous = { visitor: hit.visitor, ts };
+        if (starts) {
             close();
-            visitor = hit.visitor;
+            visit = { day: hit.day, landing: hit.path, last: hit.path, pages: new Set([hit.path]), start: ts, end: ts };
+            count(summary.referrers, hit.source === 'ssr' ? (hit.referrer ?? null) : null);
+            count(summary.devices, hit.device ?? null);
+            count(summary.languages, hit.lang ?? null);
+            count(summary.browsers, hit.browser ?? null);
+            count(summary.systems, hit.os ?? null);
+            continue;
         }
-        if (hit.source === 'ssr' && hit.entry) {
-            close();
-            visit = { landing: hit.path, last: hit.path, pages: new Set([hit.path]) };
-        } else if (visit) {
-            if (hit.path !== visit.last) {
-                const key = `${visit.last}\n${hit.path}`;
-                summary.transitions.set(key, (summary.transitions.get(key) ?? 0) + 1);
-            }
-            visit.last = hit.path;
-            visit.pages.add(hit.path);
+        if (hit.path !== visit.last) {
+            count(summary.transitions, `${visit.last}\n${hit.path}`);
         }
+        visit.last = hit.path;
+        visit.pages.add(hit.path);
+        visit.end = ts;
     }
     close();
     return summary;
 }
 
+/** The largest counts of a Map as `{ key, count }`, most first, then by key. */
+function topOf(map, limit) {
+    return [...map]
+        .map(([key, count]) => ({ key, count }))
+        .sort((a, b) => b.count - a.count || String(a.key).localeCompare(String(b.key)))
+        .slice(0, limit);
+}
+
 /** The most frequent moves between pages, as { from, to, count }. */
 function topTransitions(transitions, limit) {
-    return [...transitions]
-        .map(([key, count]) => {
-            const [from, to] = key.split('\n');
-            return { from, to, count };
-        })
-        .sort((a, b) => b.count - a.count || a.from.localeCompare(b.from) || a.to.localeCompare(b.to))
-        .slice(0, limit);
+    return topOf(transitions, limit).map(({ key, count }) => {
+        const [from, to] = key.split('\n');
+        return { from, to, count };
+    });
+}
+
+/** The average visit in whole seconds. */
+function averageDuration(summary) {
+    return summary.visits ? Math.round(summary.durationMs / summary.visits / 1000) : 0;
 }
 
 /** The CMS pages by their path, as `{ id, title }`. */
@@ -302,10 +450,12 @@ function withPages(rows, pages) {
 
 module.exports = {
     COLLECTION,
-    ENTRY_MATCH,
+    EVENTS,
+    LIVE_MS,
     PRESETS,
     MAX_DAYS,
     dayOf,
+    hourOf,
     addDays,
     parseRange,
     parseTop,
@@ -314,12 +464,21 @@ module.exports = {
     summarize,
     perDayPipeline,
     pagesPipeline,
-    topPipeline,
     hoursPipeline,
+    hourlyPipeline,
+    fillHours,
     hitsPipeline,
     previousRange,
     summarizeVisits,
+    topOf,
     topTransitions,
+    averageDuration,
+    bucketsOf,
+    engagementPipeline,
+    clicksPipeline,
+    notFoundPipeline,
+    livePipeline,
+    engagementSeconds,
     pagesByPath,
     withPages,
 };

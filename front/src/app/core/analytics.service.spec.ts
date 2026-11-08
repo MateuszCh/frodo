@@ -12,14 +12,21 @@ describe('visitRangeOf', () => {
 
     it('takes a period of its own from two days, or else the preset chosen last', () => {
         expect(visitRangeOf({ from: '2026-10-01', to: '2026-10-31' })).toEqual({ from: '2026-10-01', to: '2026-10-31' });
-        expect(visitRangeOf({})).toEqual({ days: 30 });
-        localStorage.setItem('frodo.analytics', JSON.stringify({ days: 7 }));
-        expect(visitRangeOf({})).toEqual({ days: 7 });
-        localStorage.setItem('frodo.analytics', JSON.stringify({ days: 12 }));
-        expect(visitRangeOf({})).toEqual({ days: 30 });
+        expect(visitRangeOf({})).toEqual({ period: '30' });
+        localStorage.setItem('frodo.analytics', JSON.stringify({ period: 'ytd' }));
+        expect(visitRangeOf({})).toEqual({ period: 'ytd' });
+        localStorage.setItem('frodo.analytics', JSON.stringify({ period: '12' }));
+        expect(visitRangeOf({})).toEqual({ period: '30' });
         // a period needs both days in the YYYY-MM-DD format
-        expect(visitRangeOf({ from: '2026-10-01' })).toEqual({ days: 30 });
-        expect(visitRangeOf({ from: '1.10.2026', to: '2026-10-31' })).toEqual({ days: 30 });
+        expect(visitRangeOf({ from: '2026-10-01' })).toEqual({ period: '30' });
+        expect(visitRangeOf({ from: '1.10.2026', to: '2026-10-31' })).toEqual({ period: '30' });
+    });
+
+    it('keeps a preset remembered as a number of days', () => {
+        localStorage.setItem('frodo.analytics', JSON.stringify({ days: 7 }));
+        expect(visitRangeOf({})).toEqual({ period: '7' });
+        localStorage.setItem('frodo.analytics', JSON.stringify({ days: 12 }));
+        expect(visitRangeOf({})).toEqual({ period: '30' });
     });
 });
 
@@ -39,8 +46,8 @@ describe('AnalyticsService', () => {
     });
 
     it('visits() sends the preset or the period as the query', () => {
-        service.visits({ days: 7 }).subscribe();
-        http.expectOne({ method: 'GET', url: '/api/analytics/visits?days=7' }).flush({});
+        service.visits({ period: '7' }).subscribe();
+        http.expectOne({ method: 'GET', url: '/api/analytics/visits?period=7' }).flush({});
         service.visits({ from: '2026-10-01', to: '2026-10-31' }).subscribe();
         http.expectOne('/api/analytics/visits?from=2026-10-01&to=2026-10-31').flush({});
     });
@@ -49,20 +56,20 @@ describe('AnalyticsService', () => {
         vi.useFakeTimers();
         try {
             let result: unknown;
-            service.visits({ days: 7 }).subscribe();
-            http.expectOne('/api/analytics/visits?days=7').flush({ from: 'a' });
-            service.visits({ days: 7 }).subscribe((r) => (result = r));
-            http.expectNone('/api/analytics/visits?days=7');
+            service.visits({ period: '7' }).subscribe();
+            http.expectOne('/api/analytics/visits?period=7').flush({ from: 'a' });
+            service.visits({ period: '7' }).subscribe((r) => (result = r));
+            http.expectNone('/api/analytics/visits?period=7');
             expect(result).toEqual({ from: 'a' });
 
             // another period, a minute later, or asked not to reuse: loaded again
-            service.visits({ days: 30 }).subscribe();
-            http.expectOne('/api/analytics/visits?days=30').flush({});
-            service.visits({ days: 30 }, { reuse: false }).subscribe();
-            http.expectOne('/api/analytics/visits?days=30').flush({});
+            service.visits({ period: '30' }).subscribe();
+            http.expectOne('/api/analytics/visits?period=30').flush({});
+            service.visits({ period: '30' }, { reuse: false }).subscribe();
+            http.expectOne('/api/analytics/visits?period=30').flush({});
             vi.advanceTimersByTime(61 * 1000);
-            service.visits({ days: 30 }).subscribe();
-            http.expectOne('/api/analytics/visits?days=30').flush({});
+            service.visits({ period: '30' }).subscribe();
+            http.expectOne('/api/analytics/visits?period=30').flush({});
         } finally {
             vi.useRealTimers();
         }
@@ -87,9 +94,9 @@ describe('AnalyticsService', () => {
 
     it('analyticsResolver gives null when the statistics cannot be loaded, so the page still opens', () => {
         // the preset is not in the URL, only in localStorage
-        localStorage.setItem('frodo.analytics', JSON.stringify({ days: 7 }));
-        const result = resolve({ days: '90' });
-        http.expectOne('/api/analytics/visits?days=7').flush({ error: 'x' }, { status: 422, statusText: 'Unprocessable' });
+        localStorage.setItem('frodo.analytics', JSON.stringify({ period: 'today' }));
+        const result = resolve({ period: '90' });
+        http.expectOne('/api/analytics/visits?period=today').flush({ error: 'x' }, { status: 422, statusText: 'Unprocessable' });
         expect(result()).toBeNull();
     });
 });

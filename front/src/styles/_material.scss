@@ -258,6 +258,18 @@ html {
         )
     );
 
+    // the metric hints of the Analytics tab: dark on light, light on dark
+    @include mat.tooltip-overrides(
+        (
+            container-color: var(--color-text),
+            supporting-text-color: var(--color-surface),
+            container-shape: var(--radius-md),
+            supporting-text-size: var(--text-xs),
+            supporting-text-line-height: var(--leading-xs),
+            supporting-text-weight: var(--weight-regular),
+        )
+    );
+
     @include mat.tabs-overrides(
         (
             container-height: 44px,

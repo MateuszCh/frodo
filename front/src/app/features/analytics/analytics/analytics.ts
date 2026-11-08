@@ -9,17 +9,18 @@ import { MatDatepickerModule } from '@angular/material/datepicker';
 import { MatTabsModule } from '@angular/material/tabs';
 
 import { VisitStats } from '../../../models/models';
-import { VISIT_PRESETS, visitRangeOf } from '../../../core/analytics.service';
+import { VISIT_PRESETS, VisitPreset, visitRangeOf } from '../../../core/analytics.service';
 import { readAnalyticsPrefs, saveAnalyticsPrefs } from '../../../core/analytics-prefs';
 import { provideAppDateAdapter } from '../../../core/i18n/date-adapter';
 import { I18nService } from '../../../core/i18n/i18n.service';
 import { AnalyticsOverviewComponent } from '../analytics-overview/analytics-overview';
 import { AnalyticsPagesComponent } from '../analytics-pages/analytics-pages';
 import { AnalyticsVisitorsComponent } from '../analytics-visitors/analytics-visitors';
+import { AnalyticsLiveComponent } from '../analytics-live/analytics-live';
 import { dateOfDay, dayOfDate, periodLabel } from '../visit-format';
 
-/** The period switch: a preset length in days, or a period of one's own. */
-type Period = `${(typeof VISIT_PRESETS)[number]}` | 'custom';
+/** The period switch: a preset, or a period of one's own. */
+type Period = VisitPreset | 'custom';
 
 /** The subpages of the tab, each its own route (app.routes.ts, `data.section`). */
 export const ANALYTICS_SECTIONS = ['overview', 'pages', 'visitors'] as const;
@@ -53,6 +54,7 @@ const SECTION_LINKS: Record<AnalyticsSection, string> = {
         AnalyticsOverviewComponent,
         AnalyticsPagesComponent,
         AnalyticsVisitorsComponent,
+        AnalyticsLiveComponent,
     ],
     templateUrl: './analytics.html',
 })
@@ -77,18 +79,26 @@ export class AnalyticsComponent {
         })),
     );
 
-    protected readonly presets = VISIT_PRESETS;
+    protected readonly presets = computed(() =>
+        VISIT_PRESETS.map((preset) => ({
+            value: preset,
+            label:
+                preset === 'today' || preset === 'ytd'
+                    ? this.t(`analytics.preset.${preset}`)
+                    : this.t('analytics.presetDays', { count: Number(preset) }),
+        })),
+    );
     /** the remembered preset, read again when the chosen one is shown */
-    private readonly presetDays = signal(readAnalyticsPrefs().days);
+    private readonly preset = signal(readAnalyticsPrefs().period);
     protected readonly range = computed(() => {
         const range = visitRangeOf({ from: this.from(), to: this.to() });
-        return 'days' in range ? { days: this.presetDays() } : range;
+        return 'period' in range ? { period: this.preset() } : range;
     });
 
     /** The switch follows the period; picking "custom" only opens the dates, until they are shown. */
     protected readonly period = linkedSignal<Period>(() => {
         const range = this.range();
-        return 'days' in range ? (String(range.days) as Period) : 'custom';
+        return 'period' in range ? range.period : 'custom';
     });
     protected readonly customStart = linkedSignal<Date | null>(() => this.dateOf('from'));
     protected readonly customEnd = linkedSignal<Date | null>(() => this.dateOf('to'));
@@ -101,7 +111,7 @@ export class AnalyticsComponent {
 
     protected readonly isEmpty = computed(() => {
         const totals = this.stats()?.totals;
-        return !totals || totals.loads + totals.nav === 0;
+        return !totals || totals.views === 0;
     });
 
     protected readonly canShowCustom = computed(() => {
@@ -114,8 +124,8 @@ export class AnalyticsComponent {
         this.period.set(period);
         if (period !== 'custom') {
             // a preset is remembered for the next visit; a period of one's own is not
-            saveAnalyticsPrefs({ days: Number(period) });
-            this.presetDays.set(Number(period));
+            saveAnalyticsPrefs({ period });
+            this.preset.set(period);
             // no query: the resolver reads the preset from localStorage; the same URL is
             // reloaded when the previous period was a preset too
             this.router.navigate([], { queryParams: {}, onSameUrlNavigation: 'reload' });

@@ -2,10 +2,11 @@ import { Injectable, inject } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { ParamMap } from '@angular/router';
 import { Observable, of, tap } from 'rxjs';
-import { VisitRange, VisitStats } from '../models/models';
+import { VisitLive, VisitRange, VisitStats } from '../models/models';
 import { readAnalyticsPrefs } from './analytics-prefs';
 
 export { VISIT_PRESETS } from './analytics-prefs';
+export type { VisitPreset } from './analytics-prefs';
 
 const DAY = /^\d{4}-\d{2}-\d{2}$/;
 /** How long loaded statistics serve the other subpages. */
@@ -21,7 +22,7 @@ export function visitRangeOf(query: { from?: string | null; to?: string | null }
     if (from && to && DAY.test(from) && DAY.test(to)) {
         return { from, to };
     }
-    return { days: readAnalyticsPrefs().days };
+    return { period: readAnalyticsPrefs().period };
 }
 
 export function visitRangeFromParams(params: ParamMap): VisitRange {
@@ -42,8 +43,8 @@ export class AnalyticsService {
      */
     visits(range: VisitRange, { reuse = true }: { reuse?: boolean } = {}): Observable<VisitStats> {
         const params =
-            'days' in range
-                ? new HttpParams().set('days', range.days)
+            'period' in range
+                ? new HttpParams().set('period', range.period)
                 : new HttpParams().set('from', range.from).set('to', range.to);
         const key = params.toString();
         if (reuse && this.last?.key === key && Date.now() - this.last.at < REUSE_MS) {
@@ -52,5 +53,10 @@ export class AnalyticsService {
         return this.http
             .get<VisitStats>('/api/analytics/visits', { params })
             .pipe(tap((stats) => (this.last = { key, at: Date.now(), stats })));
+    }
+
+    /** Who is on the site now: the visitors of the last five minutes. */
+    live(): Observable<VisitLive> {
+        return this.http.get<VisitLive>('/api/analytics/live');
     }
 }

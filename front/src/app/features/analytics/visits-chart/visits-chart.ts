@@ -1,9 +1,14 @@
-import { Component, computed, inject, input, signal } from '@angular/core';
+import { Component, computed, inject, input, model, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { MatRadioModule } from '@angular/material/radio';
-import { VisitDay } from '../../../models/models';
+import { MatTooltipModule } from '@angular/material/tooltip';
+import { VisitDay, VisitHourRow } from '../../../models/models';
 import { I18nService } from '../../../core/i18n/i18n.service';
-import { fullDay, niceScale, shortDay } from '../visit-format';
+import { hourLabel, hourRange, niceScale } from '../visit-format';
+import { GroupUnit, groupDays } from '../visit-groups';
+
+/** The hours of a day are labelled every third, from midnight. */
+const HOUR_LABEL_EVERY = 3;
 import {
     ChartKind,
     VISIT_METRICS,
@@ -14,9 +19,20 @@ import {
 
 const METRICS = VISIT_METRICS;
 
-/** The value of a metric on a day; views are all pages seen: full loads and in-site transitions. */
-export function metricValue(day: VisitDay, metric: VisitMetric): number {
-    return metric === 'views' ? day.loads + day.nav : day[metric];
+type Counts = Pick<VisitDay, VisitMetric>;
+
+/** A day, or an hour of a one-day period: its counts with its labels. */
+interface ChartPoint extends Counts {
+    key: string;
+    /** under the chart */
+    short: string;
+    /** in the tooltip */
+    full: string;
+}
+
+/** The value of a metric on a day or in an hour. */
+export function metricValue(point: Counts, metric: VisitMetric): number {
+    return point[metric];
 }
 
 /** Width of one day in the line SVG's own units; the SVG stretches to the card. */
@@ -35,13 +51,39 @@ const MAX_LABELS = 8;
  */
 @Component({
     selector: 'app-visits-chart',
-    imports: [FormsModule, MatRadioModule],
+    imports: [FormsModule, MatRadioModule, MatTooltipModule],
     templateUrl: './visits-chart.html',
 })
 export class VisitsChartComponent {
     private readonly i18n = inject(I18nService);
     protected readonly t = this.i18n.t;
     readonly days = input.required<VisitDay[]>();
+    /** a period of one day: its hours, drawn instead of the single day */
+    readonly hourly = input<VisitHourRow[] | null>(null);
+    /** days, weeks or months; the overview picks it, the switch here changes it */
+    readonly unit = model<GroupUnit>('day');
+    /** the units the period offers; the switch shows when there is more than one */
+    readonly units = input<GroupUnit[]>(['day']);
+
+    protected readonly unitOptions = computed(() =>
+        this.units().map((value) => ({ value, label: this.t(`analytics.unit.${value}`) })),
+    );
+
+    protected readonly points = computed<ChartPoint[]>(() => {
+        const hourly = this.hourly();
+        if (hourly) {
+            return hourly.map((hour) => ({
+                ...hour,
+                key: `h${hour.hour}`,
+                short: hourLabel(hour.hour),
+                full: hourRange(hour.hour),
+            }));
+        }
+        return groupDays(this.days(), this.unit(), this.i18n.locale()).map((group) => ({
+            ...group,
+            full: group.partial ? this.t('analytics.partial', { label: group.full, days: group.partial }) : group.full,
+        }));
+    });
 
     // the choices of the last visit (analytics-prefs.ts); every change is remembered
     private readonly prefs = readAnalyticsPrefs();
@@ -53,8 +95,14 @@ export class VisitsChartComponent {
     /** the day under the pointer */
     protected readonly hovered = signal<number | null>(null);
 
+    /** each with what it means: a tooltip on hover, the description of the option for screen readers */
     protected readonly metrics = computed(() =>
-        METRICS.map((value) => ({ value, label: this.t(`analytics.metric.${value}`) })),
+        METRICS.map((value) => ({
+            value,
+            label: this.t(`analytics.metric.${value}`),
+            hint: this.t(`analytics.metricHint.${value}`),
+            hintId: `chart-metric-hint-${value}`,
+        })),
     );
     protected readonly kinds = computed(() => [
         { value: 'bar' as ChartKind, label: this.t('analytics.kind.bar') },
@@ -66,13 +114,13 @@ export class VisitsChartComponent {
         this.kind() === 'bar' ? [this.metric()] : METRICS.filter((m) => this.lines().includes(m)),
     );
 
-    protected readonly width = computed(() => Math.max(this.days().length, 1) * BAND);
+    protected readonly width = computed(() => Math.max(this.points().length, 1) * BAND);
     /** the share of the plot's width one day takes, in percent */
-    protected readonly slot = computed(() => 100 / Math.max(this.days().length, 1));
+    protected readonly slot = computed(() => 100 / Math.max(this.points().length, 1));
 
     private readonly scale = computed(() => {
         const shown = this.shown();
-        return niceScale(Math.max(0, ...this.days().flatMap((day) => shown.map((m) => metricValue(day, m)))));
+        return niceScale(Math.max(0, ...this.points().flatMap((point) => shown.map((m) => metricValue(point, m)))));
     });
 
     protected readonly ticks = computed(() => {
@@ -85,20 +133,20 @@ export class VisitsChartComponent {
         const { top } = this.scale();
         const metric = this.metric();
         const slot = this.slot();
-        return this.days().map((day, i) => ({
-            day: day.day,
+        return this.points().map((point, i) => ({
+            key: point.key,
             left: (i + 0.5) * slot,
-            height: (metricValue(day, metric) / top) * 100,
+            height: (metricValue(point, metric) / top) * 100,
         }));
     });
     protected readonly barWidth = computed(() => `min(24px, ${this.slot() * BAR_SHARE}%)`);
 
     protected readonly series = computed(() => {
         const { top } = this.scale();
-        const days = this.days();
+        const days = this.points();
         const shown = this.shown();
         return shown.map((metric) => {
-            const points = days.map((day, i) => `${(i + 0.5) * BAND},${100 - (metricValue(day, metric) / top) * 100}`);
+            const points = days.map((point, i) => `${(i + 0.5) * BAND},${100 - (metricValue(point, metric) / top) * 100}`);
             const first = BAND / 2;
             const last = (days.length - 0.5) * BAND;
             return {
@@ -113,17 +161,17 @@ export class VisitsChartComponent {
     /** The hovered day: a marker on each line and the values in a tooltip. */
     protected readonly tip = computed(() => {
         const i = this.hovered();
-        const day = i === null ? undefined : this.days()[i];
-        if (i === null || !day) return null;
+        const point = i === null ? undefined : this.points()[i];
+        if (i === null || !point) return null;
         const { top } = this.scale();
         const locale = this.i18n.locale();
         const left = (i + 0.5) * this.slot();
         return {
             left,
             align: left < 20 ? 'start' : left > 80 ? 'end' : 'center',
-            label: fullDay(day.day, locale),
+            label: point.full,
             rows: this.shown().map((metric) => {
-                const value = metricValue(day, metric);
+                const value = metricValue(point, metric);
                 return {
                     metric,
                     label: this.t(`analytics.metric.${metric}`),
@@ -134,17 +182,23 @@ export class VisitsChartComponent {
         };
     });
 
-    /** Every n-th day, so that at most eight labels fit under the chart (four on a phone). */
+    /**
+     * Every n-th day or week, so that at most eight labels fit under the chart (four on a
+     * phone); the hours of a day every third (00:00, 03:00…); every month (half on a phone).
+     */
     protected readonly labels = computed(() => {
-        const days = this.days();
-        const every = Math.ceil(days.length / MAX_LABELS);
-        const locale = this.i18n.locale();
-        return days
-            .map((day, i) => ({ i, day: day.day }))
+        const points = this.points();
+        const every = this.hourly()
+            ? HOUR_LABEL_EVERY
+            : this.unit() === 'month'
+              ? 1
+              : Math.ceil(points.length / MAX_LABELS);
+        return points
+            .map((point, i) => ({ i, label: point.short }))
             .filter(({ i }) => i % every === 0)
-            .map(({ i, day }, n) => ({
-                left: ((i + 0.5) / days.length) * 100,
-                label: shortDay(day, locale),
+            .map(({ i, label }, n) => ({
+                left: ((i + 0.5) / points.length) * 100,
+                label,
                 // a phone shows every other label only
                 minor: n % 2 === 1,
             }));
@@ -152,14 +206,40 @@ export class VisitsChartComponent {
 
     protected readonly summary = computed(() => {
         const locale = this.i18n.locale();
+        const points = this.points();
+        if (this.hourly()) {
+            // the visitors of the hours do not add up: the busiest hour says more
+            return this.shown()
+                .map((metric) => {
+                    const max = Math.max(0, ...points.map((point) => metricValue(point, metric)));
+                    const busiest = points.find((point) => metricValue(point, metric) === max);
+                    return this.t('analytics.chartSummaryHours', {
+                        metric: this.t(`analytics.metric.${metric}`),
+                        hour: busiest && max ? busiest.full : '–',
+                        max: max.toLocaleString(locale),
+                    });
+                })
+                .join('; ');
+        }
+        if (this.unit() !== 'day') {
+            return this.shown()
+                .map((metric) =>
+                    this.t('analytics.chartSummaryGroups', {
+                        metric: this.t(`analytics.metric.${metric}`),
+                        unit: this.t(`analytics.unit.${this.unit()}`).toLocaleLowerCase(locale),
+                        total: points.reduce((sum, point) => sum + metricValue(point, metric), 0).toLocaleString(locale),
+                    }),
+                )
+                .join('; ');
+        }
         return this.shown()
             .map((metric) =>
                 this.t('analytics.chartSummary', {
                     metric: this.t(`analytics.metric.${metric}`),
-                    total: this.days()
-                        .reduce((sum, day) => sum + metricValue(day, metric), 0)
+                    total: points
+                        .reduce((sum, point) => sum + metricValue(point, metric), 0)
                         .toLocaleString(locale),
-                    count: this.days().length,
+                    count: points.length,
                 }),
             )
             .join('; ');
@@ -174,6 +254,11 @@ export class VisitsChartComponent {
         }
         this.kind.set(kind);
         this.remember();
+    }
+
+    protected setUnit(unit: GroupUnit): void {
+        this.unit.set(unit);
+        saveAnalyticsPrefs({ chartUnit: unit });
     }
 
     protected setMetric(metric: VisitMetric): void {

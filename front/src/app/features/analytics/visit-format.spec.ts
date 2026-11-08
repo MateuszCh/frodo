@@ -1,10 +1,17 @@
-import { dateOfDay, dayOfDate, niceScale, periodLabel, shortDay } from './visit-format';
+import { dateOfDay, dayOfDate, formatDuration, niceScale, periodLabel, shortDay } from './visit-format';
 
 describe('visit-format', () => {
     it('turns days into local dates and back', () => {
         const date = dateOfDay('2026-03-29');
         expect([date.getFullYear(), date.getMonth(), date.getDate(), date.getHours()]).toEqual([2026, 2, 29, 0]);
         expect(dayOfDate(new Date(2026, 0, 5, 23, 59))).toBe('2026-01-05');
+    });
+
+    it('formats a visit length in minutes and seconds', () => {
+        expect(formatDuration(85, 'en-US')).toBe('1m 25s');
+        expect(formatDuration(42, 'pl')).toBe('42 s');
+        expect(formatDuration(120, 'pl')).toBe('2 min');
+        expect(formatDuration(0, 'pl')).toBe('0 s');
     });
 
     it('formats days as calendar days in both languages', () => {

@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { provideNoopAnimations } from '@angular/platform-browser/animations';
 import { VisitsChartComponent } from './visits-chart';
-import type { VisitDay } from '../../../models/models';
+import type { VisitDay, VisitHourRow } from '../../../models/models';
 
 beforeEach(() => {
     localStorage.setItem('frodo.lang', 'en');
@@ -16,12 +16,16 @@ afterEach(() => {
 const PREFS = 'frodo.analytics';
 const stored = () => JSON.parse(localStorage.getItem(PREFS) ?? '{}');
 
-const day = (d: string, entries: number, unique = 0, nav = 0): VisitDay => ({ day: d, entries, unique, loads: entries, nav });
+const day = (d: string, visitors: number, visits = 0, views = 0): VisitDay => ({ day: d, visitors, visits, views });
+// two days: 10 and 4 visitors, 8 and 0 visits, 18 and 4 views
+const A = day('2026-11-01', 10, 8, 18);
+const B = day('2026-11-02', 4, 0, 4);
 
-async function render(days: VisitDay[]) {
+async function render(days: VisitDay[], hourly: VisitHourRow[] | null = null) {
     TestBed.configureTestingModule({ imports: [VisitsChartComponent], providers: [provideNoopAnimations()] });
     const fixture = TestBed.createComponent(VisitsChartComponent);
     fixture.componentRef.setInput('days', days);
+    fixture.componentRef.setInput('hourly', hourly);
     fixture.detectChanges();
     await fixture.whenStable();
     fixture.detectChanges();
@@ -44,7 +48,7 @@ async function render(days: VisitDay[]) {
 }
 
 describe('VisitsChartComponent', () => {
-    it('draws a bar per day with visits against a round scale, with a summary for screen readers', async () => {
+    it('draws a bar per day with visitors against a round scale, with a summary for screen readers', async () => {
         const { root, heights, label } = await render([day('2026-11-01', 10), day('2026-11-02', 0), day('2026-11-03', 37)]);
         expect(heights()).toEqual([25, 92.5]);
         expect([...root.querySelectorAll('.chart__tick')].map((t) => t.textContent?.trim())).toEqual([
@@ -54,30 +58,25 @@ describe('VisitsChartComponent', () => {
             '30',
             '40',
         ]);
-        expect(label()).toBe('Entries over 3 days: 47');
-        expect(root.querySelector('.chart__bar')!.classList).toContain('series-entries');
+        expect(label()).toBe('Visitors over 3 days: 47');
+        expect(root.querySelector('.chart__bar')!.classList).toContain('series-visitors');
     });
 
-    it('switches the bars between the metrics, page views being loads and transitions together', async () => {
-        const { root, heights, label, radios, settle } = await render([
-            day('2026-11-01', 10, 2, 8),
-            day('2026-11-02', 4, 4, 0),
-        ]);
+    it('switches the bars between visitors, visits and page views', async () => {
+        const { root, heights, label, radios, settle } = await render([A, B]);
         const metrics = () => radios('.chart-toolbar__metrics');
         expect([...root.querySelectorAll('.chart-toolbar__metrics .segmented__option')].map((o) => o.textContent?.trim())).toEqual([
-            'Entries',
-            'Unique',
-            'Page loads',
-            'Transitions',
+            'Visitors',
+            'Visits',
             'Page views',
         ]);
 
-        metrics()[3].click();
+        metrics()[1].click();
         await settle();
         expect(heights()).toEqual([100]);
-        expect(label()).toBe('Transitions over 2 days: 8');
+        expect(label()).toBe('Visits over 2 days: 8');
 
-        metrics()[4].click();
+        metrics()[2].click();
         await settle();
         // 18 and 4 views against a scale of 0–20
         expect(heights()).toEqual([90, 20]);
@@ -85,55 +84,50 @@ describe('VisitsChartComponent', () => {
     });
 
     it('draws lines of several metrics, starting from the metric of the bars', async () => {
-        const { root, radios, chips, lines, label, settle, pickKind } = await render([
-            day('2026-11-01', 10, 2, 8),
-            day('2026-11-02', 4, 4, 0),
-        ]);
+        const { root, radios, chips, lines, label, settle, pickKind } = await render([A, B]);
         radios('.chart-toolbar__metrics')[1].click();
         await settle();
         await pickKind(1);
 
         expect(root.querySelector('.chart__bar')).toBeNull();
-        expect(lines()).toEqual(['chart__line series-unique']);
+        expect(lines()).toEqual(['chart__line series-visits']);
         // one line gets a fill under it
         expect(root.querySelectorAll('.chart__fill').length).toBe(1);
-        expect(chips().map((c) => c.getAttribute('aria-pressed'))).toEqual(['false', 'true', 'false', 'false', 'false']);
+        expect(chips().map((c) => c.getAttribute('aria-pressed'))).toEqual(['false', 'true', 'false']);
 
         chips()[0].click();
-        chips()[4].click();
+        chips()[2].click();
         await settle();
         // in the fixed order of the metrics, without fills
-        expect(lines()).toEqual(['chart__line series-entries', 'chart__line series-unique', 'chart__line series-views']);
+        expect(lines()).toEqual(['chart__line series-visitors', 'chart__line series-visits', 'chart__line series-views']);
         expect(root.querySelectorAll('.chart__fill').length).toBe(0);
-        expect(label()).toBe(
-            'Entries over 2 days: 14; Unique over 2 days: 6; Page views over 2 days: 22',
-        );
+        expect(label()).toBe('Visitors over 2 days: 14; Visits over 2 days: 8; Page views over 2 days: 22');
         // the scale fits the highest line: 18 views
         expect(root.querySelector('.chart__line.series-views')!.getAttribute('points')).toBe('5,10 15,80');
     });
 
     it('keeps the last line, and goes back to bars of the first one', async () => {
-        const { root, chips, lines, heights, settle, pickKind } = await render([day('2026-11-01', 10, 2, 8)]);
+        const { root, chips, lines, heights, settle, pickKind } = await render([A]);
         await pickKind(1);
         chips()[0].click();
         await settle();
-        expect(lines()).toEqual(['chart__line series-entries']);
+        expect(lines()).toEqual(['chart__line series-visitors']);
 
-        chips()[3].click();
+        chips()[2].click();
         await settle();
         chips()[0].click();
         await settle();
-        expect(lines()).toEqual(['chart__line series-nav']);
+        expect(lines()).toEqual(['chart__line series-views']);
 
         await pickKind(0);
-        expect(root.querySelector('.chart__bar')!.classList).toContain('series-nav');
-        expect(heights()).toEqual([100]);
+        expect(root.querySelector('.chart__bar')!.classList).toContain('series-views');
+        expect(heights()).toEqual([90]);
     });
 
     it('shows the values of the hovered day', async () => {
-        const { root, settle, pickKind, chips } = await render([day('2026-11-01', 10, 2, 8), day('2026-11-02', 4, 4, 0)]);
+        const { root, settle, pickKind, chips } = await render([A, B]);
         await pickKind(1);
-        chips()[3].click();
+        chips()[2].click();
         await settle();
         root.querySelectorAll('.chart__hit')[1].dispatchEvent(new Event('mouseenter'));
         await settle();
@@ -145,8 +139,8 @@ describe('VisitsChartComponent', () => {
                 r.querySelector('.chart-tip__value')?.textContent,
             ]),
         ).toEqual([
-            ['Entries', '4'],
-            ['Transitions', '0'],
+            ['Visitors', '4'],
+            ['Page views', '4'],
         ]);
         expect(root.querySelectorAll('.chart__marker').length).toBe(2);
 
@@ -156,32 +150,59 @@ describe('VisitsChartComponent', () => {
     });
 
     it('remembers the kind, the metric of the bars and the lines', async () => {
-        const { radios, chips, settle, pickKind } = await render([day('2026-11-01', 10, 2, 8)]);
+        const { radios, chips, settle, pickKind } = await render([A]);
         radios('.chart-toolbar__metrics')[2].click();
         await settle();
-        expect(stored()).toMatchObject({ chartKind: 'bar', chartMetric: 'loads' });
+        expect(stored()).toMatchObject({ chartKind: 'bar', chartMetric: 'views' });
 
         await pickKind(1);
-        chips()[4].click();
+        chips()[0].click();
         await settle();
-        expect(stored()).toMatchObject({ chartKind: 'line', chartLines: ['loads', 'views'] });
+        expect(stored()).toMatchObject({ chartKind: 'line', chartLines: ['views', 'visitors'] });
     });
 
     it('starts with the remembered choices', async () => {
-        localStorage.setItem(PREFS, JSON.stringify({ chartKind: 'line', chartMetric: 'nav', chartLines: ['views', 'entries'] }));
-        const { root, lines, pickKind } = await render([day('2026-11-01', 10, 2, 8)]);
+        localStorage.setItem(PREFS, JSON.stringify({ chartKind: 'line', chartMetric: 'visits', chartLines: ['views', 'visitors'] }));
+        const { root, lines, pickKind } = await render([A]);
         expect(root.querySelector('.chart__bar')).toBeNull();
-        expect(lines()).toEqual(['chart__line series-entries', 'chart__line series-views']);
+        expect(lines()).toEqual(['chart__line series-visitors', 'chart__line series-views']);
         await pickKind(0);
         // bars of the first line
-        expect(root.querySelector('.chart__bar')!.classList).toContain('series-entries');
+        expect(root.querySelector('.chart__bar')!.classList).toContain('series-visitors');
     });
 
-    it('ignores remembered values it does not know', async () => {
-        localStorage.setItem(PREFS, JSON.stringify({ chartKind: 'pie', chartMetric: 'clicks', chartLines: [] }));
-        const { root, label } = await render([day('2026-11-01', 10, 2, 8)]);
-        expect(root.querySelector('.chart__bar')!.classList).toContain('series-entries');
-        expect(label()).toBe('Entries over 1 day: 10');
+    it('ignores remembered values it does not know, the metrics of before included', async () => {
+        localStorage.setItem(PREFS, JSON.stringify({ chartKind: 'pie', chartMetric: 'entries', chartLines: ['loads', 'nav'] }));
+        const { root, label } = await render([A]);
+        expect(root.querySelector('.chart__bar')!.classList).toContain('series-visitors');
+        expect(label()).toBe('Visitors over 1 day: 10');
+    });
+
+    it('draws the hours of a one-day period instead of its single day', async () => {
+        // up to 14:00, today: 3 visitors at 09:00, 1 at 13:00
+        const hourly = Array.from({ length: 15 }, (_, hour) => ({
+            hour,
+            visitors: hour === 9 ? 3 : hour === 13 ? 1 : 0,
+            visits: hour === 9 ? 3 : hour === 13 ? 1 : 0,
+            views: hour === 9 ? 7 : hour === 13 ? 2 : 0,
+        }));
+        const { root, heights, label, settle } = await render([day('2026-11-08', 4, 4, 9)], hourly);
+        expect(root.querySelectorAll('.chart__hit').length).toBe(15);
+        // 3 and 1 visitors against a scale of 0–4
+        expect(heights()).toEqual([75, 25]);
+        expect([...root.querySelectorAll('.chart__label')].map((l) => l.textContent)).toEqual([
+            '00:00',
+            '03:00',
+            '06:00',
+            '09:00',
+            '12:00',
+        ]);
+        expect(label()).toBe('Visitors by hour; most at 09:00–10:00: 3');
+
+        root.querySelectorAll('.chart__hit')[13].dispatchEvent(new Event('mouseenter'));
+        await settle();
+        expect(root.querySelector('.chart-tip__day')?.textContent).toBe('13:00–14:00');
+        expect(root.querySelector('.chart-tip__value')?.textContent).toBe('1');
     });
 
     it('labels at most eight days under a long period', async () => {

@@ -2,7 +2,8 @@
 <p class="heatmap__peak">{{ peak() }}</p>
 }
 <div class="heatmap__scroll">
-    <table class="heatmap">
+    <table class="heatmap"
+           (mouseleave)="hovered.set(null)">
         <caption class="visually-hidden">{{ t('analytics.heatmapCaption') }}</caption>
         <thead>
             <tr>
@@ -20,12 +21,14 @@
             <tr>
                 <th scope="row"
                     class="heatmap__day"
+                    [class.heatmap__day--active]="hovered()?.weekday === row.weekday"
                     [attr.title]="row.name">{{ row.label }}</th>
                 @for (cell of row.cells; track cell.hour) {
                 <td class="heatmap__cell"
                     [class.heatmap__cell--empty]="!cell.count"
+                    [class.heatmap__cell--active]="isHovered(row.weekday, cell.hour)"
                     [style.--level]="cell.level + '%'"
-                    [attr.title]="cell.title">
+                    (mouseenter)="hover(row.weekday, cell.hour, $event)">
                     <span class="visually-hidden">{{ cell.text }}</span>
                 </td>
                 }
@@ -34,6 +37,24 @@
         </tbody>
     </table>
 </div>
+@if (tip(); as tip) {
+<div class="chart-tip heatmap__tip"
+     aria-hidden="true"
+     [class]="'heatmap__tip--' + tip.align"
+     [style.left.px]="tip.x"
+     [style.top.px]="tip.y">
+    <p class="chart-tip__day">{{ tip.label }}</p>
+    <p class="chart-tip__row series-views">
+        <span class="chart-tip__key"></span>
+        <span class="chart-tip__label">{{ t('analytics.metric.views') }}</span>
+        <span class="chart-tip__value">{{ tip.views }}</span>
+    </p>
+    <p class="chart-tip__row">
+        <span class="chart-tip__label">{{ t('analytics.column.share') }}</span>
+        <span class="chart-tip__value">{{ tip.share }}</span>
+    </p>
+</div>
+}
 <div class="heatmap__legend"
      aria-hidden="true">
     <span>{{ t('analytics.heatmapLess') }}</span>

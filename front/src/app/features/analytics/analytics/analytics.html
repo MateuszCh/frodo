@@ -7,6 +7,7 @@
                 @if (periodText()) {
                 <p class="analytics__period">{{ periodText() }}</p>
                 }
+                <app-analytics-live></app-analytics-live>
             </div>
         </div>
     </header>
@@ -27,17 +28,19 @@
     <section class="card analytics__controls"
              [attr.aria-label]="t('analytics.period')">
         <div class="card__body">
-            <mat-radio-group class="segmented"
-                             [attr.aria-label]="t('analytics.period')"
-                             [ngModel]="period()"
-                             (ngModelChange)="choosePeriod($event)">
-                @for (preset of presets; track preset) {
-                <mat-radio-button class="segmented__option"
-                                  [value]="'' + preset">{{ t('analytics.presetDays', { count: preset }) }}</mat-radio-button>
-                }
-                <mat-radio-button class="segmented__option"
-                                  value="custom">{{ t('analytics.custom') }}</mat-radio-button>
-            </mat-radio-group>
+            <div class="analytics__periods">
+                <mat-radio-group class="segmented"
+                                 [attr.aria-label]="t('analytics.period')"
+                                 [ngModel]="period()"
+                                 (ngModelChange)="choosePeriod($event)">
+                    @for (preset of presets(); track preset.value) {
+                    <mat-radio-button class="segmented__option"
+                                      [value]="preset.value">{{ preset.label }}</mat-radio-button>
+                    }
+                    <mat-radio-button class="segmented__option"
+                                      value="custom">{{ t('analytics.custom') }}</mat-radio-button>
+                </mat-radio-group>
+            </div>
 
             @if (period() === 'custom') {
             <form class="analytics__custom"

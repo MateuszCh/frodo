@@ -37,12 +37,99 @@ app-analytics-visitors {
     color: var(--color-text-muted);
 }
 
+// "3 people on the site now", under the period; the dot pulses while someone is there
+.live {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: var(--leading-sm);
+    color: var(--color-text-muted);
+    cursor: default;
+
+    &:focus-visible {
+        outline: 2px solid var(--color-focus-ring);
+        outline-offset: 2px;
+        border-radius: var(--radius-sm);
+    }
+}
+
+.live--on {
+    color: var(--color-text);
+    font-weight: var(--weight-medium);
+}
+
+.live__dot {
+    position: relative;
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--color-border-strong);
+
+    .live--on > & {
+        background: var(--color-success);
+    }
+
+    .live--on > &::after {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: inherit;
+        background: var(--color-success);
+        animation: live-pulse 2s var(--ease-standard) infinite;
+    }
+}
+
+@keyframes live-pulse {
+    from {
+        transform: scale(1);
+        opacity: 0.6;
+    }
+
+    to {
+        transform: scale(2.6);
+        opacity: 0;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .live__dot::after {
+        animation: none;
+    }
+}
+
+// the pages in the live tooltip, one per line
+.live-tooltip .mdc-tooltip__surface {
+    white-space: pre-line;
+}
+
 .analytics__controls > .card__body {
     display: flex;
     flex-wrap: wrap;
     align-items: flex-end;
     gap: var(--space-4);
     padding-top: var(--space-5);
+}
+
+// six periods do not fit a phone: the switch scrolls instead of squeezing its labels,
+// and each option is as wide as its own label ("Od początku roku" is long)
+.analytics__periods {
+    display: flex;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    > .segmented {
+        flex: none;
+        max-width: none;
+        grid-auto-columns: auto;
+    }
 }
 
 .analytics__custom {
@@ -62,28 +149,16 @@ app-analytics-visitors {
     align-items: start;
 }
 
-// two columns: sources and languages on the left, the taller devices card on the right;
-// wide screens: all three in a row
+// two columns, wide screens all three cards in a row
 @media (min-width: 600px) {
     .analytics__tables {
         grid-template-columns: repeat(2, minmax(0, 1fr));
-        grid-auto-flow: dense;
-    }
-
-    .analytics__table--devices {
-        grid-column: 2;
-        grid-row: span 2;
     }
 }
 
 @media (min-width: 1200px) {
     .analytics__tables {
         grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-
-    .analytics__table--devices {
-        grid-column: auto;
-        grid-row: auto;
     }
 }
 
@@ -128,14 +203,16 @@ app-analytics-visitors {
     }
 }
 
-.kpi__label {
+.kpi__label,
+.engagement__label {
     font-size: var(--text-sm);
     line-height: var(--leading-sm);
     font-weight: var(--weight-medium);
     color: var(--color-text-muted);
 }
 
-.kpi__value {
+.kpi__value,
+.engagement__value {
     font-size: var(--text-2xl);
     line-height: var(--leading-2xl);
     font-weight: var(--weight-semibold);
@@ -164,7 +241,8 @@ app-analytics-visitors {
     transform: rotate(180deg);
 }
 
-.kpi__hint {
+.kpi__hint,
+.engagement__hint {
     font-size: var(--text-xs);
     line-height: var(--leading-xs);
     color: var(--color-text-subtle);
@@ -184,8 +262,8 @@ app-analytics-visitors {
 
 // ---- chart ------------------------------------------------------------------
 
-// Series colours: one per metric, the same in bars, lines, the tooltip and the device
-// donut (validated as a categorical set on both surfaces: CVD and normal-vision distance
+// Series colours: one per metric, the same in bars, lines, the tooltip and the rings of
+// the visitors (validated as a categorical set on both surfaces: CVD and normal-vision distance
 // pass; three light steps sit under 3:1, so the legend, tooltip and daily table carry the
 // values). Text never wears them.
 :root {
@@ -214,27 +292,37 @@ app-analytics-visitors {
     --series-5: #d55181;
 }
 
-.series-entries,
+.series-visitors,
 .series-desktop {
     --series: var(--series-1);
 }
 
-.series-unique,
+// entries of a page are the visits that started on it: the visits' colour
+.series-visits,
+.series-entries,
 .series-mobile {
     --series: var(--series-2);
 }
 
-.series-loads,
+.series-views,
 .series-tablet {
     --series: var(--series-3);
 }
 
-.series-nav {
+.series-exits {
     --series: var(--series-4);
 }
 
-.series-views {
-    --series: var(--series-5);
+// the rings of sources and languages: the colours in the order of the list
+@for $i from 1 through 5 {
+    .series-slot-#{$i} {
+        --series: var(--series-#{$i});
+    }
+}
+
+// what does not get a colour of its own: a neutral grey, never a sixth hue
+.series-other {
+    --series: var(--color-border-strong);
 }
 
 // a grid item of the card body: without this the row of line toggles widens the card
@@ -249,7 +337,8 @@ app-visits-chart {
     align-items: center;
     justify-content: space-between;
     gap: var(--space-3);
-    margin-bottom: var(--space-4);
+    // the top label of the axis sits half above the plot: room for it under the switches
+    margin-bottom: var(--space-6);
 }
 
 // five metrics do not fit a phone: the switch scrolls instead of squeezing its labels
@@ -272,6 +361,17 @@ app-visits-chart {
 
 .chart-toolbar__kind {
     flex: none;
+}
+
+// how the chart is drawn: its unit on long periods, then bars or lines
+.chart-toolbar__views {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+
+    > .segmented {
+        flex: none;
+    }
 }
 
 // the lines' metrics: toggles that are also the legend
@@ -507,7 +607,11 @@ app-visits-chart {
     }
 }
 
-// ---- device donut ------------------------------------------------------------
+// ---- rings (visitors) --------------------------------------------------------
+
+app-visits-donut {
+    display: block;
+}
 
 .donut {
     position: relative;
@@ -531,6 +635,19 @@ app-visits-chart {
 .donut__segment {
     fill: none;
     stroke: var(--series);
+    pointer-events: none;
+    transition: opacity var(--duration-instant) var(--ease-standard);
+}
+
+.donut__segment--dim {
+    opacity: 0.35;
+}
+
+// an invisible, wider copy of each arc that takes the pointer
+.donut__hit {
+    fill: none;
+    stroke: transparent;
+    pointer-events: stroke;
 }
 
 .donut__center {
@@ -539,6 +656,8 @@ app-visits-chart {
     display: grid;
     place-content: center;
     text-align: center;
+    // it covers the whole ring: the arcs under it take the pointer
+    pointer-events: none;
 }
 
 .donut__value {
@@ -554,14 +673,39 @@ app-visits-chart {
     color: var(--color-text-muted);
 }
 
-// the legend of the donut: a dot in the device's colour before its name
+// beside the middle of the hovered arc: above it in the upper half, below in the lower
+.donut__tip {
+    min-width: 140px;
+}
+
+.donut__tip--above {
+    transform: translate(-50%, calc(-100% - 8px));
+}
+
+.donut__tip--below {
+    transform: translate(-50%, 8px);
+}
+
+.donut__tip-name {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+// the legend of the ring: a dot in the arc's colour before the name
 .stats-table__key {
     display: inline-block;
+    flex: none;
     width: 8px;
     height: 8px;
-    margin-right: var(--space-2);
     border-radius: var(--radius-full);
     background: var(--series);
+}
+
+// a long name wraps beside its dot instead of dropping under it
+.stats-table__label {
+    flex: 1 1 0;
+    min-width: 0;
 }
 
 // ---- tables ------------------------------------------------------------------
@@ -674,6 +818,11 @@ app-visits-chart {
     width: 4.5rem;
 }
 
+// the row of the hovered arc (in the ring or the table itself)
+.stats-table__row--active > th:first-child {
+    font-weight: var(--weight-semibold);
+}
+
 .stats-table__name {
     display: flex;
     flex-wrap: wrap;
@@ -712,7 +861,7 @@ app-visits-chart {
     overflow: hidden;
 }
 
-// devices take their ring colour; the other tables the accent
+// the rows of the visitors take their arc's colour; the pages the accent
 .share__bar {
     display: block;
     height: 100%;
@@ -799,6 +948,35 @@ app-visits-chart {
     background: var(--color-surface-sunken);
 }
 
+// the hovered cell: a ring in the text colour, its weekday in full ink
+.heatmap__cell--active {
+    outline: 2px solid var(--color-text);
+    outline-offset: -1px;
+}
+
+.heatmap__day--active {
+    color: var(--color-text);
+}
+
+// the tooltip sits outside the scrolling table, so the scroll box never clips it
+app-visits-heatmap {
+    display: block;
+    position: relative;
+}
+
+// above the hovered cell, centred on it, leaning inwards near the edges
+.heatmap__tip--center {
+    transform: translate(-50%, calc(-100% - 6px));
+}
+
+.heatmap__tip--start {
+    transform: translate(-16px, calc(-100% - 6px));
+}
+
+.heatmap__tip--end {
+    transform: translate(calc(-100% + 16px), calc(-100% - 6px));
+}
+
 .heatmap__legend {
     display: flex;
     align-items: center;
@@ -815,4 +993,85 @@ app-visits-chart {
     height: 8px;
     border-radius: var(--radius-full);
     background: linear-gradient(to right, var(--color-surface-sunken), var(--series-1));
+}
+
+// the hint is a sentence or two: wider than Material's default
+.metric-tooltip {
+    --mat-tooltip-container-shape: var(--radius-md);
+    max-width: 260px;
+}
+
+.metric-tooltip .mdc-tooltip__surface {
+    // MDC: room around the text of the tooltip
+    padding: var(--space-2) var(--space-3);
+    max-width: 260px;
+    text-align: left;
+}
+
+// ---- engagement (overview) ----------------------------------------------------
+
+.engagement {
+    display: grid;
+    gap: var(--space-6);
+}
+
+.engagement__stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-4);
+    margin: 0;
+
+    dd {
+        margin: 0;
+    }
+}
+
+.engagement__stat {
+    display: grid;
+    align-content: start;
+    gap: var(--space-1);
+}
+
+.engagement__title {
+    margin: 0;
+    font-size: var(--text-sm);
+    line-height: var(--leading-sm);
+    font-weight: var(--weight-semibold);
+}
+
+.engagement__desc {
+    margin: var(--space-0-5) 0 var(--space-2);
+    font-size: var(--text-xs);
+    line-height: var(--leading-xs);
+    color: var(--color-text-subtle);
+}
+
+@media (min-width: 900px) {
+    .engagement {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        column-gap: var(--space-8);
+    }
+
+    .engagement__stats {
+        grid-column: 1 / -1;
+    }
+}
+
+// two cards side by side on wide screens (outbound links, downloads)
+.analytics__pair {
+    display: grid;
+    gap: var(--space-5);
+    align-items: start;
+}
+
+@media (min-width: 900px) {
+    .analytics__pair {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+// an address as the name of a row (404s, downloads): the path in full ink
+.stats-table__path--main {
+    color: var(--color-text);
+    font-size: var(--text-sm);
 }

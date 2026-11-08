@@ -65,3 +65,24 @@ export function formatNumber(value: number, locale: string, digits = 0): string 
 export function sharePercent(count: number, total: number): number {
     return total ? Math.round((count / total) * 1000) / 10 : 0;
 }
+
+/** "1 min 25 s" ("1m 25s"): a duration in whole seconds, in the interface language. */
+export function formatDuration(seconds: number, locale: string): string {
+    const unit = (value: number, name: 'minute' | 'second') =>
+        new Intl.NumberFormat(locale, { style: 'unit', unit: name, unitDisplay: 'narrow' }).format(value);
+    const total = Math.max(0, Math.round(seconds));
+    const minutes = Math.floor(total / 60);
+    const rest = total % 60;
+    if (!minutes) return unit(rest, 'second');
+    return rest ? `${unit(minutes, 'minute')} ${unit(rest, 'second')}` : unit(minutes, 'minute');
+}
+
+/** "09:00": the start of an hour. */
+export function hourLabel(hour: number): string {
+    return `${String(hour).padStart(2, '0')}:00`;
+}
+
+/** "09:00–10:00": an hour of the day. */
+export function hourRange(hour: number): string {
+    return `${hourLabel(hour)}–${hourLabel(hour + 1)}`;
+}

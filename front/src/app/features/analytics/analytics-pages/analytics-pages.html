@@ -17,10 +17,18 @@
                              (ngModelChange)="setPageMetric($event)">
                 @for (m of pageMetrics(); track m.value) {
                 <mat-radio-button class="segmented__option"
-                                  [value]="m.value">{{ m.label }}</mat-radio-button>
+                                  [value]="m.value"
+                                  [aria-describedby]="m.hintId"
+                                  [matTooltip]="m.hint"
+                                  matTooltipPosition="above"
+                                  matTooltipClass="metric-tooltip">{{ m.label }}</mat-radio-button>
                 }
             </mat-radio-group>
         </div>
+        @for (m of pageMetrics(); track m.value) {
+        <span class="visually-hidden"
+              [id]="m.hintId">{{ m.hint }}</span>
+        }
 
         @if (!list.rows.length) {
         <p class="analytics__none">{{ t('analytics.none') }}</p>
@@ -30,7 +38,7 @@
                 <col />
                 <col class="stats-table__num" />
                 <col class="stats-table__num" />
-                @if (list.showSingle) {
+                @if (list.showSingle || list.showTime) {
                 <col class="stats-table__num stats-table__num--wide" />
                 }
             </colgroup>
@@ -42,6 +50,10 @@
                     @if (list.showSingle) {
                     <th scope="col"
                         [attr.title]="t('analytics.column.singleHint')">{{ t('analytics.column.single') }}</th>
+                    }
+                    @if (list.showTime) {
+                    <th scope="col"
+                        [attr.title]="t('analytics.column.timeHint')">{{ t('analytics.column.time') }}</th>
                     }
                 </tr>
             </thead>
@@ -67,6 +79,9 @@
                     <td class="stats-table__share">{{ number(item.share, 1) }}%</td>
                     @if (list.showSingle) {
                     <td class="stats-table__share">{{ item.single === null ? '–' : number(item.single, 0) + '%' }}</td>
+                    }
+                    @if (list.showTime) {
+                    <td class="stats-table__share">{{ item.time }}</td>
                     }
                 </tr>
                 }
@@ -143,3 +158,99 @@
         }
     </div>
 </section>
+
+<section class="card">
+    <header class="card__header">
+        <div class="card__heading">
+            <h2 class="card__title">{{ t('analytics.notFound') }}</h2>
+            <p class="card__desc">{{ t('analytics.notFoundDesc') }}</p>
+        </div>
+    </header>
+    <div class="card__body">
+        @if (!notFoundList().length) {
+        <p class="analytics__none">{{ t('analytics.none') }}</p>
+        } @else {
+        <table class="stats-table stats-table--top">
+            <colgroup>
+                <col />
+                <col class="stats-table__num" />
+            </colgroup>
+            <thead class="visually-hidden">
+                <tr>
+                    <th scope="col">{{ t('analytics.column.page') }}</th>
+                    <th scope="col">{{ t('analytics.column.count') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (row of notFoundList(); track row.key) {
+                <tr>
+                    <th scope="row">
+                        <span class="stats-table__name">
+                            <span class="stats-table__path stats-table__path--main">{{ row.key }}</span>
+                            <span class="stats-table__path">{{ row.sources }}</span>
+                        </span>
+                        <span class="share"
+                              aria-hidden="true"><span class="share__bar"
+                                  [style.width.%]="row.bar"></span></span>
+                    </th>
+                    <td>{{ number(row.count) }}</td>
+                </tr>
+                }
+            </tbody>
+        </table>
+        }
+    </div>
+</section>
+
+<div class="analytics__pair">
+    @for (list of clickLists(); track list.key) {
+    <section class="card">
+        <header class="card__header">
+            <div class="card__heading">
+                <h2 class="card__title">{{ list.title }}</h2>
+                <p class="card__desc">{{ list.desc }}</p>
+            </div>
+        </header>
+        <div class="card__body">
+            @if (!list.rows.length) {
+            <p class="analytics__none">{{ t('analytics.none') }}</p>
+            } @else {
+            <table class="stats-table stats-table--top">
+                <colgroup>
+                    <col />
+                    <col class="stats-table__num" />
+                </colgroup>
+                <thead class="visually-hidden">
+                    <tr>
+                        <th scope="col">{{ list.title }}</th>
+                        <th scope="col">{{ t('analytics.clicks') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (row of list.rows; track row.key) {
+                    <tr>
+                        <th scope="row">
+                            <span class="stats-table__name">
+                                @if (list.link) {
+                                <a class="stats-table__link"
+                                   [href]="'https://' + row.key"
+                                   target="_blank"
+                                   rel="noopener noreferrer">{{ row.key }}</a>
+                                } @else {
+                                <span class="stats-table__path stats-table__path--main">{{ row.key }}</span>
+                                }
+                            </span>
+                            <span class="share"
+                                  aria-hidden="true"><span class="share__bar"
+                                      [style.width.%]="row.bar"></span></span>
+                        </th>
+                        <td>{{ number(row.count) }}</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+            }
+        </div>
+    </section>
+    }
+</div>

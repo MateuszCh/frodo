@@ -7,7 +7,11 @@
                          (ngModelChange)="setMetric($event)">
             @for (m of metrics(); track m.value) {
             <mat-radio-button class="segmented__option"
-                              [value]="m.value">{{ m.label }}</mat-radio-button>
+                              [value]="m.value"
+                              [aria-describedby]="m.hintId"
+                              [matTooltip]="m.hint"
+                              matTooltipPosition="above"
+                              matTooltipClass="metric-tooltip">{{ m.label }}</mat-radio-button>
             }
         </mat-radio-group>
         } @else {
@@ -21,6 +25,10 @@
                     [class]="'series-' + m.value"
                     [class.metric-chip--on]="on"
                     [attr.aria-pressed]="on"
+                    [attr.aria-describedby]="m.hintId"
+                    [matTooltip]="m.hint"
+                    matTooltipPosition="above"
+                    matTooltipClass="metric-tooltip"
                     (click)="toggleLine(m.value)">
                 <span class="metric-chip__key"
                       aria-hidden="true"></span>
@@ -30,6 +38,18 @@
         </div>
         }
     </div>
+    <div class="chart-toolbar__views">
+    @if (unitOptions().length > 1 && !hourly()) {
+    <mat-radio-group class="segmented chart-toolbar__unit"
+                     [attr.aria-label]="t('analytics.unitLabel')"
+                     [ngModel]="unit()"
+                     (ngModelChange)="setUnit($event)">
+        @for (u of unitOptions(); track u.value) {
+        <mat-radio-button class="segmented__option"
+                          [value]="u.value">{{ u.label }}</mat-radio-button>
+        }
+    </mat-radio-group>
+    }
     <mat-radio-group class="segmented chart-toolbar__kind"
                      [attr.aria-label]="t('analytics.kindLabel')"
                      [ngModel]="kind()"
@@ -39,6 +59,7 @@
                           [value]="k.value">{{ k.label }}</mat-radio-button>
         }
     </mat-radio-group>
+    </div>
 </div>
 
 <div class="chart">
@@ -60,7 +81,7 @@
             }
 
             @if (kind() === 'bar') {
-            @for (bar of bars(); track bar.day; let i = $index) {
+            @for (bar of bars(); track bar.key; let i = $index) {
             @if (bar.height > 0) {
             <div class="chart__bar"
                  [class]="'series-' + metric()"
@@ -115,7 +136,7 @@
             </div>
             }
 
-            @for (bar of bars(); track bar.day; let i = $index) {
+            @for (bar of bars(); track bar.key; let i = $index) {
             <div class="chart__hit"
                  [style.left.%]="i * slot()"
                  [style.width.%]="slot()"
@@ -132,3 +153,9 @@
         </div>
     </div>
 </div>
+
+<!-- what each metric means: a tooltip on hover of the option, its description for screen readers -->
+@for (m of metrics(); track m.value) {
+<span class="visually-hidden"
+      [id]="m.hintId">{{ m.hint }}</span>
+}

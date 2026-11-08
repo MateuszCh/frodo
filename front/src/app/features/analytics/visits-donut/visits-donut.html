@@ -1,0 +1,62 @@
+@let active = hovered();
+<div class="donut">
+    <svg class="donut__svg"
+         viewBox="0 0 100 100"
+         aria-hidden="true"
+         (mouseleave)="hovered.set(null)">
+        <circle class="donut__track"
+                cx="50"
+                cy="50"
+                r="40"
+                stroke-width="14" />
+        @for (segment of segments(); track segment.slice.key) {
+        <circle class="donut__segment"
+                [class]="segment.slice.series"
+                [class.donut__segment--dim]="active !== null && active !== segment.slice.key"
+                cx="50"
+                cy="50"
+                r="40"
+                stroke-width="14"
+                [attr.stroke-dasharray]="segment.dash"
+                [attr.stroke-dashoffset]="segment.offset" />
+        }
+        <!-- wider than the arcs, so a thin slice is easy to point at -->
+        @for (segment of segments(); track segment.slice.key) {
+        <circle class="donut__hit"
+                cx="50"
+                cy="50"
+                r="40"
+                stroke-width="24"
+                [attr.stroke-dasharray]="segment.dash"
+                [attr.stroke-dashoffset]="segment.offset"
+                (mouseenter)="hovered.set(segment.slice.key)" />
+        }
+    </svg>
+    <p class="donut__center"
+       aria-hidden="true">
+        <span class="donut__value">{{ totalText() }}</span>
+        <span class="donut__label">{{ t('analytics.donutLabel', { count: total() }) }}</span>
+    </p>
+
+    @if (tip(); as tip) {
+    <div class="chart-tip donut__tip"
+         aria-hidden="true"
+         [class]="'donut__tip--' + tip.place"
+         [style.left.%]="tip.left"
+         [style.top.%]="tip.top">
+        <p class="chart-tip__day donut__tip-name"
+           [class]="tip.slice.series">
+            <span class="chart-tip__key"></span>
+            {{ tip.slice.label }}
+        </p>
+        <p class="chart-tip__row">
+            <span class="chart-tip__label">{{ t('analytics.metric.visits') }}</span>
+            <span class="chart-tip__value">{{ tip.count }}</span>
+        </p>
+        <p class="chart-tip__row">
+            <span class="chart-tip__label">{{ t('analytics.column.share') }}</span>
+            <span class="chart-tip__value">{{ tip.share }}</span>
+        </p>
+    </div>
+    }
+</div>

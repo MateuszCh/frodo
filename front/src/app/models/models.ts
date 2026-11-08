@@ -135,20 +135,31 @@ export interface User {
     loaded?: number;
 }
 
-/** The period of the visit statistics: a preset length in days, or two whole days. */
-export type VisitRange = { days: number } | { from: string; to: string };
+/** A preset (analytics-prefs.ts: today, 7, 30, 90 days, year to date) or two whole days. */
+export type VisitRange = { period: 'today' | '7' | '30' | '90' | 'ytd' } | { from: string; to: string };
 
 export interface VisitDay {
     /** "YYYY-MM-DD", Polish time */
     day: string;
-    /** visits that started with a full page load (after 30 minutes without a hit) */
-    entries: number;
-    /** different visitors of the day (full page loads only) */
-    unique: number;
-    /** full page loads: loads, reloads, new tabs */
-    loads: number;
-    /** pages opened inside the app, without reloading */
-    nav: number;
+    /** different visitors of the day */
+    visitors: number;
+    /** visits that started on the day: one visitor's views without a 30-minute gap */
+    visits: number;
+    /** pages opened: full loads, reloads and moves inside the site */
+    views: number;
+}
+
+/** One hour (0–23, Polish time) of a one-day period; its visitors are those of the hour. */
+export interface VisitHourRow extends Omit<VisitDay, 'day'> {
+    hour: number;
+}
+
+/** Sums of a period; `visitors` is the sum of daily visitors, not different people. */
+export interface VisitTotals extends Omit<VisitDay, 'day'> {
+    /** the average visit in seconds, from its first view to its last */
+    duration: number;
+    /** the average visible time of a page in seconds; null before the site sent any */
+    engagement: number | null;
 }
 
 export interface VisitTopRow {
@@ -162,15 +173,17 @@ export interface VisitPageRow {
     key: string;
     /** the CMS page the path belongs to, when there is one */
     page?: { id: number; title: string };
-    entries: number;
-    /** visitors of the page, counted once a day */
-    unique: number;
-    loads: number;
-    nav: number;
-    /** loads and transitions together */
     views: number;
-    /** visits that started on the page and stayed on it */
+    /** visitors of the page, counted once a day */
+    visitors: number;
+    /** visits that started on the page */
+    entries: number;
+    /** of those, the visits that stayed on it */
     single: number;
+    /** visits that ended on the page */
+    exits: number;
+    /** the average visible time of the page in seconds; null before the site sent any */
+    engagement: number | null;
 }
 
 /** Visits, and those that stayed on one page. */
@@ -203,14 +216,15 @@ export interface VisitStats {
     from: string;
     to: string;
     days: VisitDay[];
-    /** sums of the period; `unique` is the sum of daily uniques, not different people */
-    totals: Omit<VisitDay, 'day'>;
+    totals: VisitTotals;
+    /** a period of one day only: its hours, up to the current one today */
+    hourly?: VisitHourRow[];
     singlePage: VisitSinglePage;
     /** the period of the same length just before, to compare with */
     previous: {
         from: string;
         to: string;
-        totals: Omit<VisitDay, 'day'>;
+        totals: VisitTotals;
         singlePage: VisitSinglePage;
     };
     /** every page opened in the period, with all its counts */
@@ -220,6 +234,39 @@ export interface VisitStats {
     hours: VisitHour[];
     referrers: VisitTopRow[];
     devices: VisitTopRow[];
-    /** the browsers' first language codes of the entries; null: not known */
+    /** the browsers' first language codes of the visits; null: not known */
     languages: VisitTopRow[];
+    /** browser families ("chrome") and system families ("ios") of the visits */
+    browsers: VisitTopRow[];
+    systems: VisitTopRow[];
+    /** visits by the different pages they opened ("1", "2", "3-5", "6+") */
+    depth: VisitBucket[];
+    /** visits by their length in seconds ("0-10", "10-30", "30-180", "180+") */
+    lengths: VisitBucket[];
+    /** addresses that do not exist, with where the visitors came from */
+    notFound: VisitNotFound[];
+    /** clicked links to other sites ("host/path") and to documents ("/uploads/x.pdf") */
+    outbound: VisitTopRow[];
+    downloads: VisitTopRow[];
+}
+
+export interface VisitBucket {
+    key: string;
+    count: number;
+}
+
+export interface VisitNotFound {
+    /** the address, as a normalised path */
+    key: string;
+    count: number;
+    /** a page of the site with a broken link, another site's host, or null: not known */
+    sources: { key: string | null; count: number }[];
+}
+
+/** GET /api/analytics/live: visitors with a page view in the last `minutes`. */
+export interface VisitLive {
+    minutes: number;
+    visitors: number;
+    /** each visitor on the last page they opened */
+    pages: { key: string; count: number; page?: { id: number; title: string } }[];
 }

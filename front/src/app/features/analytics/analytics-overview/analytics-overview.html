@@ -27,12 +27,15 @@
 <section class="card">
     <header class="card__header">
         <div class="card__heading">
-            <h2 class="card__title">{{ t('analytics.perDay') }}</h2>
-            <p class="card__desc">{{ t('analytics.perDayDesc') }}</p>
+            <h2 class="card__title">{{ texts().title }}</h2>
+            <p class="card__desc">{{ texts().desc }}</p>
         </div>
     </header>
     <div class="card__body">
-        <app-visits-chart [days]="s.days"></app-visits-chart>
+        <app-visits-chart [days]="s.days"
+                          [hourly]="hourly()"
+                          [units]="units()"
+                          [(unit)]="unit"></app-visits-chart>
 
         <details class="stats-details">
             <summary class="stats-details__summary">
@@ -40,28 +43,24 @@
                      aria-hidden="true">
                     <use href="icons.svg#i-chevron-down" />
                 </svg>
-                {{ t('analytics.dailyTable') }}
+                {{ texts().table }}
             </summary>
             <div class="stats-table__scroll">
                 <table class="stats-table">
                     <thead>
                         <tr>
-                            <th scope="col">{{ t('analytics.day') }}</th>
-                            <th scope="col">{{ t('analytics.kpi.entries') }}</th>
-                            <th scope="col">{{ t('analytics.kpi.unique') }}</th>
-                            <th scope="col">{{ t('analytics.kpi.loads') }}</th>
-                            <th scope="col">{{ t('analytics.kpi.nav') }}</th>
+                            <th scope="col">{{ texts().column }}</th>
+                            <th scope="col">{{ t('analytics.metric.visitors') }}</th>
+                            <th scope="col">{{ t('analytics.metric.visits') }}</th>
                             <th scope="col">{{ t('analytics.metric.views') }}</th>
                         </tr>
                     </thead>
                     <tbody>
-                        @for (row of dailyRows(); track row.day) {
+                        @for (row of tableRows(); track row.key) {
                         <tr>
                             <th scope="row">{{ row.label }}</th>
-                            <td>{{ number(row.entries) }}</td>
-                            <td>{{ number(row.unique) }}</td>
-                            <td>{{ number(row.loads) }}</td>
-                            <td>{{ number(row.nav) }}</td>
+                            <td>{{ number(row.visitors) }}</td>
+                            <td>{{ number(row.visits) }}</td>
                             <td>{{ number(row.views) }}</td>
                         </tr>
                         }
@@ -72,6 +71,66 @@
     </div>
 </section>
 
+@let e = engagement();
+<section class="card">
+    <header class="card__header">
+        <div class="card__heading">
+            <h2 class="card__title">{{ t('analytics.engagement') }}</h2>
+            <p class="card__desc">{{ t('analytics.engagementDesc') }}</p>
+        </div>
+    </header>
+    <div class="card__body engagement">
+        <dl class="engagement__stats">
+            <div class="engagement__stat">
+                <dt class="engagement__label">{{ t('analytics.visitsPerVisitor') }}</dt>
+                <dd class="engagement__value">{{ e.perVisitor }}</dd>
+                <dd class="engagement__hint">{{ t('analytics.visitsPerVisitorHint') }}</dd>
+            </div>
+            <div class="engagement__stat">
+                <dt class="engagement__label">{{ t('analytics.timeOnPage') }}</dt>
+                <dd class="engagement__value">{{ e.timeOnPage ?? '–' }}</dd>
+                <dd class="engagement__hint">{{ e.timeOnPage ? t('analytics.timeOnPageHint') : t('analytics.timeOnPageNone') }}</dd>
+            </div>
+        </dl>
+        @for (group of [{ key: 'depth', rows: e.depth }, { key: 'lengths', rows: e.lengths }]; track group.key) {
+        <div class="engagement__split">
+            <h3 class="engagement__title">{{ group.key === 'depth' ? t('analytics.depth') : t('analytics.lengths') }}</h3>
+            <p class="engagement__desc">{{ group.key === 'depth' ? t('analytics.depthDesc') : t('analytics.lengthsDesc') }}</p>
+            <table class="stats-table stats-table--top">
+                <colgroup>
+                    <col />
+                    <col class="stats-table__num" />
+                    <col class="stats-table__num" />
+                </colgroup>
+                <thead class="visually-hidden">
+                    <tr>
+                        <th scope="col">{{ group.key === 'depth' ? t('analytics.depth') : t('analytics.lengths') }}</th>
+                        <th scope="col">{{ t('analytics.metric.visits') }}</th>
+                        <th scope="col">{{ t('analytics.column.share') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (row of group.rows; track row.key) {
+                    <tr class="series-visits">
+                        <th scope="row">
+                            {{ row.label }}
+                            <span class="share"
+                                  aria-hidden="true"><span class="share__bar"
+                                      [style.width.%]="row.share"></span></span>
+                        </th>
+                        <td>{{ row.count }}</td>
+                        <td class="stats-table__share">{{ number(row.share, 1) }}%</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        }
+    </div>
+</section>
+
+<!-- one day: the chart above is already by the hour -->
+@if (!hourly()) {
 <section class="card">
     <header class="card__header">
         <div class="card__heading">
@@ -83,3 +142,4 @@
         <app-visits-heatmap [hours]="s.hours"></app-visits-heatmap>
     </div>
 </section>
+}

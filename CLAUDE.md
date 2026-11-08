@@ -123,18 +123,30 @@ filters are loaded by the listing itself (under `LoadingService`, which shows th
 
 **Visit statistics** (the Analytics tab: `/analytics`, `/analytics/pages`, `/analytics/visitors`,
 one component with tabs; the preset period is kept in localStorage only, a period of one's
-own in `?from&to`) come from the `visits` collection,
-which the public site (geosilesia, its `visits.js`) writes on its server without cookies –
-Frodo only reads it. `GET /api/analytics/visits?days=7|30|90` or `?from&to` (whole days in
-Polish time, at most 366) returns the days of the period, its totals and those of the
-period of the same length before it (the tiles show the change), every page opened with
-all its counts (the tab lists them by any metric), views by weekday and hour, and top
-referrers, devices and browser languages of the entries. The hits of both periods are also
-split into visits in Node (`summarizeVisits`: an entry starts a visit), which gives the
-single-page visits, overall and per landing page, and the most frequent moves between
-pages. `server/visit-stats.js` holds the range rules and the aggregations. Paths are matched to CMS pages by the normalised
-`pageUrl`. Unique visitors exist per day only (the visitor id uses a daily salt), so their
-total is a sum of daily uniques.
+own in `?from&to`) come from the `visits` collection, which the public site (geosilesia, its
+`visits.js`) writes on its server without cookies, one raw document per page view – Frodo only
+reads it. Three numbers, counted as GA4 and Plausible do: visitors (anyone with a hit that
+day), visits (one visitor's hits with no gap of 30 minutes or more, a full load or a page
+opened inside the site alike) and views (all hits). `GET /api/analytics/visits?period=today|7|30|90|ytd`
+(ytd: from 1 January) or `?from&to` (whole days in Polish time, at most 366) returns the days
+of the period, its totals with the average visit and those of the period of the same length
+before it (the tiles show the change), every page opened with its views, visitors and the
+visits that started on it, views by weekday and hour, and top referrers, devices and browser
+languages of the visits. Visits are split in Node (`summarizeVisits`, from the timestamps;
+the old `entry` flag of geosilesia, kept per process, is ignored), which also gives the
+single-page visits, overall and per landing page, the visit lengths and the most frequent
+moves between pages. `server/visit-stats.js` holds the range rules and the aggregations.
+Paths are matched to CMS pages by the normalised `pageUrl`. Visitors exist per day only (the
+visitor id uses a daily salt), so their total is a sum of daily visitors. geosilesia's
+`scripts/stats.js` counts the same way. The same split gives the exit pages, the visits by
+depth and length, and their browsers and systems (recorded by geosilesia on each hit since
+it keeps them). A period of one day also gets `hourly`; longer ones are grouped
+into weeks or months in the browser (`visit-groups.ts`). The `visit_events` collection
+(geosilesia's events: `notFound`, `engagement` – the visible time of a page sent by
+`sendBeacon` – `outbound`, `download`) gives the 404 addresses with their sources, the time
+on a page and the clicked links. `GET /api/analytics/live` counts the visitors of the last
+five minutes. Nothing of it needs consent: no cookie or storage in the browser, no id that
+outlives the day, and the IP is never stored.
 
 ### Frontend (`front/src/app/`)
 
