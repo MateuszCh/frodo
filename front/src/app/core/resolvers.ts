@@ -8,9 +8,10 @@ import { ComponentsService } from './components.service';
 import { FilesService } from './files.service';
 import { UserService } from './user.service';
 import { SettingsService } from './settings.service';
+import { AnalyticsService, visitRangeFromParams } from './analytics.service';
 import { ListingFamily, ListingPage, ListingService } from './listing.service';
 import { listingKey, readPageSize, readSort } from '../features/listing/listing-filter';
-import { ComponentEntity, FileItem, Page, Post, PostType, Settings, User } from '../models/models';
+import { ComponentEntity, FileItem, Page, Post, PostType, Settings, User, VisitStats } from '../models/models';
 
 // Port of constants/promises.states.constant.js (statePromises).
 
@@ -73,3 +74,12 @@ export const pageSettingsResolver: ResolveFn<Settings> = () =>
     inject(SettingsService)
         .get()
         .pipe(catchError(() => of({ pageTypes: [] })));
+
+/**
+ * Visit statistics of the period in the URL (`?days` or `?from&to`). A failed load gives
+ * null: the page still opens, with its period switch, and says the statistics are missing.
+ */
+export const analyticsResolver: ResolveFn<VisitStats | null> = (route: ActivatedRouteSnapshot) =>
+    inject(AnalyticsService)
+        .visits(visitRangeFromParams(route.queryParamMap))
+        .pipe(catchError(() => of(null)));

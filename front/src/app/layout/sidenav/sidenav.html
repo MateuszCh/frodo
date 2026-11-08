@@ -98,6 +98,39 @@
             </svg>
             <span class="nav__label">{{ t('nav.settings') }}</span>
         </a>
+
+        <p class="nav__group">{{ t('nav.reports') }}</p>
+        <button type="button"
+                class="nav__item nav__toggle"
+                aria-controls="nav-analytics"
+                [attr.aria-expanded]="analyticsOpen()"
+                [class.nav__toggle--active]="!analyticsOpen() && analyticsActive()"
+                (click)="toggleAnalytics()">
+            <svg class="icon"
+                 aria-hidden="true">
+                <use href="icons.svg#i-chart" />
+            </svg>
+            <span class="nav__label">{{ t('nav.analytics') }}</span>
+            <svg class="icon nav__chevron"
+                 aria-hidden="true">
+                <use href="icons.svg#i-chevron-down" />
+            </svg>
+        </button>
+        <div class="nav__sub"
+             id="nav-analytics"
+             [hidden]="!analyticsOpen()">
+            @for (item of analyticsItems(); track item.link) {
+            <a class="nav__item"
+               [routerLink]="item.link"
+               [attr.aria-current]="analyticsSection() === item.section ? 'page' : null">
+                <svg class="icon"
+                     aria-hidden="true">
+                    <use [attr.href]="'icons.svg#' + item.icon" />
+                </svg>
+                <span class="nav__label">{{ item.label }}</span>
+            </a>
+            }
+        </div>
     </nav>
 
     <div class="sidebar__theme">

@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import {
+    analyticsResolver,
     componentResolver,
     componentsResolver,
     existResolver,
@@ -141,6 +142,18 @@ export const routes: Routes = [
         resolve: { settings: settingsResolver },
         loadComponent: () => import('./features/settings/settings/settings').then((m) => m.SettingsComponent),
     },
+
+    // Analytics (visit statistics of the public site): three subpages with tabs, one
+    // component. A new period is a new query, or a reload of the same URL for a preset
+    // (kept in localStorage only).
+    ...(['overview', 'pages', 'visitors'] as const).map((section) => ({
+        path: section === 'overview' ? 'analytics' : `analytics/${section}`,
+        canActivate: [authGuard],
+        data: { family: 'analytics', section },
+        runGuardsAndResolvers: 'always' as const,
+        resolve: { stats: analyticsResolver },
+        loadComponent: () => import('./features/analytics/analytics/analytics').then((m) => m.AnalyticsComponent),
+    })),
 
     // Auth / misc
     {

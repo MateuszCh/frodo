@@ -1,7 +1,8 @@
 import { TestBed } from '@angular/core/testing';
 import { provideHttpClient } from '@angular/common/http';
 import { HttpTestingController, provideHttpClientTesting } from '@angular/common/http/testing';
-import { provideRouter } from '@angular/router';
+import { Component } from '@angular/core';
+import { Router, provideRouter } from '@angular/router';
 import { SidenavComponent } from './sidenav';
 import { makePost, makePostType } from '../../testing/test-helpers';
 
@@ -62,5 +63,79 @@ describe('SidenavComponent posts group', () => {
         fixture.detectChanges();
         expect(sub.hidden).toBe(true);
         expect(localStorage.getItem(KEY)).toBe('0');
+    });
+});
+
+describe('SidenavComponent analytics group', () => {
+    const KEY_ANALYTICS = 'frodo.nav.analyticsOpen';
+
+    @Component({ template: '' })
+    class BlankComponent {}
+
+    beforeEach(() => {
+        localStorage.removeItem(KEY_ANALYTICS);
+        TestBed.configureTestingModule({
+            imports: [SidenavComponent],
+            providers: [
+                provideRouter([
+                    { path: 'analytics/pages', component: BlankComponent, data: { family: 'analytics' } },
+                    { path: '**', component: BlankComponent },
+                ]),
+                provideHttpClient(),
+                provideHttpClientTesting(),
+            ],
+        });
+    });
+
+    afterEach(() => localStorage.removeItem(KEY_ANALYTICS));
+
+    function render() {
+        const fixture = TestBed.createComponent(SidenavComponent);
+        fixture.detectChanges();
+        TestBed.inject(HttpTestingController).expectOne('/api/postType').flush([]);
+        fixture.detectChanges();
+        const el: HTMLElement = fixture.nativeElement;
+        return {
+            fixture,
+            toggle: el.querySelector<HTMLButtonElement>('[aria-controls="nav-analytics"]')!,
+            sub: el.querySelector<HTMLElement>('#nav-analytics')!,
+            links: () =>
+                [...el.querySelectorAll<HTMLAnchorElement>('#nav-analytics a')].map((a) => [
+                    a.textContent?.trim(),
+                    a.getAttribute('href'),
+                    a.getAttribute('aria-current'),
+                ]),
+        };
+    }
+
+    it('groups the subpages of Analytics under Reports, collapsed at first', () => {
+        const { toggle, sub, links } = render();
+        expect(toggle.textContent?.trim()).toBe('Analityka');
+        expect(toggle.previousElementSibling?.textContent?.trim()).toBe('Raporty');
+        expect(toggle.getAttribute('aria-expanded')).toBe('false');
+        expect(sub.hidden).toBe(true);
+        expect(links()).toEqual([
+            ['Przegląd', '/analytics', null],
+            ['Strony', '/analytics/pages', null],
+            ['Odwiedzający', '/analytics/visitors', null],
+        ]);
+    });
+
+    it('remembers opening the group', () => {
+        const { fixture, toggle, sub } = render();
+        toggle.click();
+        fixture.detectChanges();
+        expect(sub.hidden).toBe(false);
+        expect(localStorage.getItem(KEY_ANALYTICS)).toBe('1');
+    });
+
+    it('opens the group on a subpage and marks it', async () => {
+        const { fixture, sub, links } = render();
+        await TestBed.inject(Router).navigateByUrl('/analytics/pages?from=2026-11-01&to=2026-11-03');
+        fixture.detectChanges();
+        expect(sub.hidden).toBe(false);
+        expect(links().map((l) => l[2])).toEqual([null, 'page', null]);
+        // opened for this visit only
+        expect(localStorage.getItem(KEY_ANALYTICS)).toBeNull();
     });
 });

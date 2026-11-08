@@ -99,6 +99,11 @@
         transition: transform var(--duration-instant) var(--ease-standard);
     }
 
+    // a group without a count (Analytics): the chevron still sits at the right edge
+    > .nav__label + .nav__chevron {
+        margin-left: auto;
+    }
+
     &[aria-expanded='false'] > .nav__chevron {
         transform: rotate(-90deg);
     }

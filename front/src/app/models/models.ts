@@ -134,3 +134,92 @@ export interface User {
     logged?: number;
     loaded?: number;
 }
+
+/** The period of the visit statistics: a preset length in days, or two whole days. */
+export type VisitRange = { days: number } | { from: string; to: string };
+
+export interface VisitDay {
+    /** "YYYY-MM-DD", Polish time */
+    day: string;
+    /** visits that started with a full page load (after 30 minutes without a hit) */
+    entries: number;
+    /** different visitors of the day (full page loads only) */
+    unique: number;
+    /** full page loads: loads, reloads, new tabs */
+    loads: number;
+    /** pages opened inside the app, without reloading */
+    nav: number;
+}
+
+export interface VisitTopRow {
+    /** a referring host, a device or a language code; null: not known (no external referrer) */
+    key: string | null;
+    count: number;
+}
+
+export interface VisitPageRow {
+    /** the page's path, as geosilesia stores it */
+    key: string;
+    /** the CMS page the path belongs to, when there is one */
+    page?: { id: number; title: string };
+    entries: number;
+    /** visitors of the page, counted once a day */
+    unique: number;
+    loads: number;
+    nav: number;
+    /** loads and transitions together */
+    views: number;
+    /** visits that started on the page and stayed on it */
+    single: number;
+}
+
+/** Visits, and those that stayed on one page. */
+export interface VisitSinglePage {
+    visits: number;
+    single: number;
+}
+
+/** A page of a move between pages: its path, and the CMS page when there is one. */
+export interface VisitPathRef {
+    path: string;
+    page?: { id: number; title: string };
+}
+
+export interface VisitTransition {
+    from: VisitPathRef;
+    to: VisitPathRef;
+    count: number;
+}
+
+/** Views in one hour of one weekday (1 = Monday … 7 = Sunday), Polish time. */
+export interface VisitHour {
+    weekday: number;
+    hour: number;
+    count: number;
+}
+
+/** GET /api/analytics/visits: the statistics geosilesia collects in its `visits` collection. */
+export interface VisitStats {
+    from: string;
+    to: string;
+    days: VisitDay[];
+    /** sums of the period; `unique` is the sum of daily uniques, not different people */
+    totals: Omit<VisitDay, 'day'>;
+    singlePage: VisitSinglePage;
+    /** the period of the same length just before, to compare with */
+    previous: {
+        from: string;
+        to: string;
+        totals: Omit<VisitDay, 'day'>;
+        singlePage: VisitSinglePage;
+    };
+    /** every page opened in the period, with all its counts */
+    pages: VisitPageRow[];
+    /** the most frequent moves from one page to another inside visits */
+    transitions: VisitTransition[];
+    hours: VisitHour[];
+    referrers: VisitTopRow[];
+    devices: VisitTopRow[];
+    /** the browsers' first language codes of the entries; null: not known */
+    languages: VisitTopRow[];
+}

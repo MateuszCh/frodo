@@ -1,0 +1,82 @@
+<div class="analytics__tables">
+    @for (table of tables(); track table.key) {
+    <section class="card"
+             [class]="'analytics__table--' + table.key">
+        <header class="card__header">
+            <div class="card__heading">
+                <h2 class="card__title">{{ table.title }}</h2>
+                <p class="card__desc">{{ table.desc }}</p>
+            </div>
+        </header>
+        <div class="card__body">
+            @if (table.key === 'devices' && deviceRing(); as ring) {
+            <div class="donut">
+                <svg class="donut__svg"
+                     viewBox="0 0 100 100"
+                     aria-hidden="true">
+                    <circle class="donut__track"
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            stroke-width="14" />
+                    @for (segment of ring.segments; track segment.key) {
+                    <circle class="donut__segment"
+                            [class]="'series-' + segment.key"
+                            cx="50"
+                            cy="50"
+                            r="40"
+                            stroke-width="14"
+                            [attr.stroke-dasharray]="segment.dash"
+                            [attr.stroke-dashoffset]="segment.offset" />
+                    }
+                </svg>
+                <p class="donut__center"
+                   aria-hidden="true">
+                    <span class="donut__value">{{ ring.total }}</span>
+                    <span class="donut__label">{{ t('analytics.donutLabel', { count: ring.count }) }}</span>
+                </p>
+            </div>
+            }
+            @if (!table.rows.length) {
+            <p class="analytics__none">{{ t('analytics.none') }}</p>
+            } @else {
+            <table class="stats-table stats-table--top">
+                <colgroup>
+                    <col />
+                    <col class="stats-table__num" />
+                    <col class="stats-table__num" />
+                </colgroup>
+                <thead class="visually-hidden">
+                    <tr>
+                        <th scope="col">{{ table.column }}</th>
+                        <th scope="col">{{ t('analytics.column.count') }}</th>
+                        <th scope="col">{{ t('analytics.column.share') }}</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @for (row of table.rows; track row.key) {
+                    @let pct = share(row.count, table.total);
+                    <tr [class]="table.key === 'devices' ? 'series-' + row.key : ''">
+                        <th scope="row">
+                            <span class="stats-table__name">
+                                @if (table.key === 'devices') {
+                                <span class="stats-table__key"
+                                      aria-hidden="true"></span>
+                                }
+                                {{ rowLabel(table.key, row) }}
+                            </span>
+                            <span class="share"
+                                  aria-hidden="true"><span class="share__bar"
+                                      [style.width.%]="pct"></span></span>
+                        </th>
+                        <td>{{ number(row.count) }}</td>
+                        <td class="stats-table__share">{{ number(pct, 1) }}%</td>
+                    </tr>
+                    }
+                </tbody>
+            </table>
+            }
+        </div>
+    </section>
+    }
+</div>

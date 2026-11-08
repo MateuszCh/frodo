@@ -1,0 +1,42 @@
+@if (peak()) {
+<p class="heatmap__peak">{{ peak() }}</p>
+}
+<div class="heatmap__scroll">
+    <table class="heatmap">
+        <caption class="visually-hidden">{{ t('analytics.heatmapCaption') }}</caption>
+        <thead>
+            <tr>
+                <td></td>
+                @for (column of columns(); track column.hour) {
+                <th scope="col"
+                    class="heatmap__hour">
+                    <span [class.visually-hidden]="!column.shown">{{ column.label }}</span>
+                </th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @for (row of rows(); track row.weekday) {
+            <tr>
+                <th scope="row"
+                    class="heatmap__day"
+                    [attr.title]="row.name">{{ row.label }}</th>
+                @for (cell of row.cells; track cell.hour) {
+                <td class="heatmap__cell"
+                    [class.heatmap__cell--empty]="!cell.count"
+                    [style.--level]="cell.level + '%'"
+                    [attr.title]="cell.title">
+                    <span class="visually-hidden">{{ cell.text }}</span>
+                </td>
+                }
+            </tr>
+            }
+        </tbody>
+    </table>
+</div>
+<div class="heatmap__legend"
+     aria-hidden="true">
+    <span>{{ t('analytics.heatmapLess') }}</span>
+    <span class="heatmap__ramp"></span>
+    <span>{{ t('analytics.heatmapMore') }}</span>
+</div>

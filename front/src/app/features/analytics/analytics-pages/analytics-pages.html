@@ -1,0 +1,145 @@
+@if (pageList(); as list) {
+<section class="card">
+    <header class="card__header">
+        <div class="card__heading">
+            <h2 class="card__title">{{ t('analytics.pages') }}</h2>
+            <p class="card__desc">{{ list.desc }}</p>
+        </div>
+        @if (list.count) {
+        <span class="badge badge--neutral">{{ list.count }}<span class="visually-hidden"> {{ t('analytics.pagesCount', { count: list.count }) }}</span></span>
+        }
+    </header>
+    <div class="card__body">
+        <div class="chart-toolbar__metrics analytics__page-metrics">
+            <mat-radio-group class="segmented"
+                             [attr.aria-label]="t('analytics.pagesMetricLabel')"
+                             [ngModel]="pageMetric()"
+                             (ngModelChange)="setPageMetric($event)">
+                @for (m of pageMetrics(); track m.value) {
+                <mat-radio-button class="segmented__option"
+                                  [value]="m.value">{{ m.label }}</mat-radio-button>
+                }
+            </mat-radio-group>
+        </div>
+
+        @if (!list.rows.length) {
+        <p class="analytics__none">{{ t('analytics.none') }}</p>
+        } @else {
+        <table class="stats-table stats-table--top stats-table--pages">
+            <colgroup>
+                <col />
+                <col class="stats-table__num" />
+                <col class="stats-table__num" />
+                @if (list.showSingle) {
+                <col class="stats-table__num stats-table__num--wide" />
+                }
+            </colgroup>
+            <thead>
+                <tr>
+                    <th scope="col">{{ t('analytics.column.page') }}</th>
+                    <th scope="col">{{ t('analytics.column.count') }}</th>
+                    <th scope="col">{{ t('analytics.column.share') }}</th>
+                    @if (list.showSingle) {
+                    <th scope="col"
+                        [attr.title]="t('analytics.column.singleHint')">{{ t('analytics.column.single') }}</th>
+                    }
+                </tr>
+            </thead>
+            <tbody>
+                @for (item of list.rows; track item.row.key) {
+                <tr>
+                    <th scope="row">
+                        <span class="stats-table__name">
+                            @if (item.row.page) {
+                            <a class="stats-table__link"
+                               [routerLink]="['/pages/edit', item.row.page.id]">{{ pageLabel(item.row) }}</a>
+                            } @else {
+                            {{ pageLabel(item.row) }}
+                            }
+                            <span class="stats-table__path">{{ item.row.key }}</span>
+                        </span>
+                        <span class="share"
+                              aria-hidden="true"><span class="share__bar"
+                                  [class]="'series-' + pageMetric()"
+                                  [style.width.%]="item.share"></span></span>
+                    </th>
+                    <td>{{ number(item.value) }}</td>
+                    <td class="stats-table__share">{{ number(item.share, 1) }}%</td>
+                    @if (list.showSingle) {
+                    <td class="stats-table__share">{{ item.single === null ? '–' : number(item.single, 0) + '%' }}</td>
+                    }
+                </tr>
+                }
+            </tbody>
+        </table>
+        }
+
+        @if (list.more) {
+        <button mat-button
+                type="button"
+                class="card__action"
+                [attr.aria-expanded]="pagesUnfolded()"
+                (click)="pagesUnfolded.set(!pagesUnfolded())">
+            {{ pagesUnfolded() ? t('analytics.showLess') : t('analytics.showAll', { count: list.count }) }}
+        </button>
+        }
+    </div>
+</section>
+}
+
+<section class="card">
+    <header class="card__header">
+        <div class="card__heading">
+            <h2 class="card__title">{{ t('analytics.transitions') }}</h2>
+            <p class="card__desc">{{ t('analytics.transitionsDesc') }}</p>
+        </div>
+    </header>
+    <div class="card__body">
+        @if (!transitionList().length) {
+        <p class="analytics__none">{{ t('analytics.none') }}</p>
+        } @else {
+        <table class="stats-table stats-table--top">
+            <colgroup>
+                <col />
+                <col class="stats-table__num" />
+            </colgroup>
+            <thead class="visually-hidden">
+                <tr>
+                    <th scope="col">{{ t('analytics.column.transition') }}</th>
+                    <th scope="col">{{ t('analytics.column.count') }}</th>
+                </tr>
+            </thead>
+            <tbody>
+                @for (move of transitionList(); track move.from.path + '>' + move.to.path) {
+                <tr>
+                    <th scope="row">
+                        <span class="stats-table__name stats-table__move">
+                            @for (ref of [move.from, move.to]; track $index; let last = $last) {
+                            @if (ref.page) {
+                            <a class="stats-table__link"
+                               [routerLink]="['/pages/edit', ref.page.id]"
+                               [attr.title]="ref.path">{{ refLabel(ref) }}</a>
+                            } @else {
+                            <span class="stats-table__path">{{ ref.path }}</span>
+                            }
+                            @if (!last) {
+                            <svg class="icon stats-table__arrow"
+                                 role="img"
+                                 [attr.aria-label]="t('analytics.to')">
+                                <use href="icons.svg#i-chevron-right" />
+                            </svg>
+                            }
+                            }
+                        </span>
+                        <span class="share"
+                              aria-hidden="true"><span class="share__bar"
+                                  [style.width.%]="move.bar"></span></span>
+                    </th>
+                    <td>{{ number(move.count) }}</td>
+                </tr>
+                }
+            </tbody>
+        </table>
+        }
+    </div>
+</section>

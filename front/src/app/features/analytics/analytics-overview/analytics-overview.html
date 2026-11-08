@@ -1,0 +1,85 @@
+@let s = stats();
+<dl class="kpis">
+    @for (kpi of kpis(); track kpi.key) {
+    <div class="kpi">
+        <dt class="kpi__label">{{ kpi.label }}</dt>
+        <dd class="kpi__value">{{ kpi.value }}</dd>
+        @if (kpi.delta; as delta) {
+        <dd class="kpi__delta"
+            [class]="'kpi__delta--' + delta.dir">
+            @if (delta.dir !== 'same') {
+            <svg class="icon kpi__arrow"
+                 aria-hidden="true">
+                <use href="icons.svg#i-arrow-up" />
+            </svg>
+            }
+            {{ delta.text }}<span class="visually-hidden"> {{ t('analytics.vsPrevious') }}</span>
+        </dd>
+        }
+        <dd class="kpi__hint">{{ kpi.hint }}</dd>
+    </div>
+    }
+</dl>
+@if (previousText()) {
+<p class="analytics__compare">{{ t('analytics.compareWith', { period: previousText() }) }}</p>
+}
+
+<section class="card">
+    <header class="card__header">
+        <div class="card__heading">
+            <h2 class="card__title">{{ t('analytics.perDay') }}</h2>
+            <p class="card__desc">{{ t('analytics.perDayDesc') }}</p>
+        </div>
+    </header>
+    <div class="card__body">
+        <app-visits-chart [days]="s.days"></app-visits-chart>
+
+        <details class="stats-details">
+            <summary class="stats-details__summary">
+                <svg class="icon stats-details__chevron"
+                     aria-hidden="true">
+                    <use href="icons.svg#i-chevron-down" />
+                </svg>
+                {{ t('analytics.dailyTable') }}
+            </summary>
+            <div class="stats-table__scroll">
+                <table class="stats-table">
+                    <thead>
+                        <tr>
+                            <th scope="col">{{ t('analytics.day') }}</th>
+                            <th scope="col">{{ t('analytics.kpi.entries') }}</th>
+                            <th scope="col">{{ t('analytics.kpi.unique') }}</th>
+                            <th scope="col">{{ t('analytics.kpi.loads') }}</th>
+                            <th scope="col">{{ t('analytics.kpi.nav') }}</th>
+                            <th scope="col">{{ t('analytics.metric.views') }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @for (row of dailyRows(); track row.day) {
+                        <tr>
+                            <th scope="row">{{ row.label }}</th>
+                            <td>{{ number(row.entries) }}</td>
+                            <td>{{ number(row.unique) }}</td>
+                            <td>{{ number(row.loads) }}</td>
+                            <td>{{ number(row.nav) }}</td>
+                            <td>{{ number(row.views) }}</td>
+                        </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </details>
+    </div>
+</section>
+
+<section class="card">
+    <header class="card__header">
+        <div class="card__heading">
+            <h2 class="card__title">{{ t('analytics.heatmap') }}</h2>
+            <p class="card__desc">{{ t('analytics.heatmapDesc') }}</p>
+        </div>
+    </header>
+    <div class="card__body">
+        <app-visits-heatmap [hours]="s.hours"></app-visits-heatmap>
+    </div>
+</section>

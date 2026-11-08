@@ -119,12 +119,27 @@ the URL (`?page=N`), the page size (10/20/50/100, default 20) in localStorage pe
 `listingResolver` loads the page in the URL on entering a listing; later pages, searches and
 filters are loaded by the listing itself (under `LoadingService`, which shows the route loader).
 
+**Visit statistics** (the Analytics tab: `/analytics`, `/analytics/pages`, `/analytics/visitors`,
+one component with tabs; the preset period is kept in localStorage only, a period of one's
+own in `?from&to`) come from the `visits` collection,
+which the public site (geosilesia, its `visits.js`) writes on its server without cookies –
+Frodo only reads it. `GET /api/analytics/visits?days=7|30|90` or `?from&to` (whole days in
+Polish time, at most 366) returns the days of the period, its totals and those of the
+period of the same length before it (the tiles show the change), every page opened with
+all its counts (the tab lists them by any metric), views by weekday and hour, and top
+referrers, devices and browser languages of the entries. The hits of both periods are also
+split into visits in Node (`summarizeVisits`: an entry starts a visit), which gives the
+single-page visits, overall and per landing page, and the most frequent moves between
+pages. `server/visit-stats.js` holds the range rules and the aggregations. Paths are matched to CMS pages by the normalised
+`pageUrl`. Unique visitors exist per day only (the visitor id uses a daily salt), so their
+total is a sum of daily uniques.
+
 ### Frontend (`front/src/app/`)
 
 | Directory | Purpose |
 |-----------|---------|
 | `core/` | Singleton services (HTTP wrappers), auth guard, credentials interceptor, route resolvers |
-| `features/` | Feature modules: `auth`, `posts`, `post-types`, `pages`, `fields`, `files`, `listing`, `settings`, `error` |
+| `features/` | Feature modules: `auth`, `posts`, `post-types`, `pages`, `fields`, `files`, `listing`, `settings`, `analytics`, `error` |
 | `shared/` | Directives (`infinite-scroll`, `img-loaded`), pipes (`bytes`), small helpers |
 | `layout/` | Header + Sidenav shell (Material Design) |
 

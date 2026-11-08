@@ -1,0 +1,133 @@
+@let s = stats();
+<div class="page analytics">
+    <header class="page-header">
+        <div class="page-header__top">
+            <div class="page-heading analytics__heading">
+                <h1 class="page-title">{{ t('analytics.title') }}</h1>
+                @if (periodText()) {
+                <p class="analytics__period">{{ periodText() }}</p>
+                }
+            </div>
+        </div>
+    </header>
+
+    <nav mat-tab-nav-bar
+         mat-stretch-tabs="false"
+         class="analytics__tabs"
+         [tabPanel]="tabPanel"
+         [attr.aria-label]="t('analytics.sections')">
+        @for (tab of tabs(); track tab.section) {
+        <a mat-tab-link
+           [routerLink]="tab.link"
+           queryParamsHandling="preserve"
+           [active]="section() === tab.section">{{ tab.label }}</a>
+        }
+    </nav>
+
+    <section class="card analytics__controls"
+             [attr.aria-label]="t('analytics.period')">
+        <div class="card__body">
+            <mat-radio-group class="segmented"
+                             [attr.aria-label]="t('analytics.period')"
+                             [ngModel]="period()"
+                             (ngModelChange)="choosePeriod($event)">
+                @for (preset of presets; track preset) {
+                <mat-radio-button class="segmented__option"
+                                  [value]="'' + preset">{{ t('analytics.presetDays', { count: preset }) }}</mat-radio-button>
+                }
+                <mat-radio-button class="segmented__option"
+                                  value="custom">{{ t('analytics.custom') }}</mat-radio-button>
+            </mat-radio-group>
+
+            @if (period() === 'custom') {
+            <form class="analytics__custom"
+                  (ngSubmit)="showCustom()">
+                <div class="field">
+                    <label class="field__label"
+                           for="analytics-from">{{ t('analytics.customRange') }}</label>
+                    <mat-form-field appearance="outline"
+                                    subscriptSizing="dynamic">
+                        <mat-date-range-input [rangePicker]="rangePicker"
+                                              [max]="today">
+                            <input matStartDate
+                                   id="analytics-from"
+                                   name="from"
+                                   [attr.aria-label]="t('analytics.customFrom')"
+                                   [ngModel]="customStart()"
+                                   (ngModelChange)="customStart.set($event)" />
+                            <input matEndDate
+                                   name="to"
+                                   [attr.aria-label]="t('analytics.customTo')"
+                                   [ngModel]="customEnd()"
+                                   (ngModelChange)="customEnd.set($event)" />
+                        </mat-date-range-input>
+                        <mat-datepicker-toggle matIconSuffix
+                                               [for]="rangePicker">
+                            <svg matDatepickerToggleIcon
+                                 class="icon"
+                                 aria-hidden="true">
+                                <use href="icons.svg#i-calendar" />
+                            </svg>
+                        </mat-datepicker-toggle>
+                        <mat-date-range-picker #rangePicker></mat-date-range-picker>
+                    </mat-form-field>
+                </div>
+                <button mat-flat-button
+                        type="submit"
+                        [disabled]="!canShowCustom()">{{ t('analytics.show') }}</button>
+            </form>
+            }
+        </div>
+    </section>
+
+    <mat-tab-nav-panel #tabPanel
+                       class="analytics__panel">
+    @if (!s) {
+    <section class="card">
+        <div class="empty">
+            <span class="empty__icon">
+                <svg class="icon icon--lg"
+                     aria-hidden="true">
+                    <use href="icons.svg#i-alert" />
+                </svg>
+            </span>
+            <p class="empty__title">{{ t('analytics.error') }}</p>
+            <p class="empty__text">{{ t('analytics.errorText') }}</p>
+        </div>
+    </section>
+    } @else if (isEmpty()) {
+    <section class="card">
+        <div class="empty">
+            <span class="empty__icon">
+                <svg class="icon icon--lg"
+                     aria-hidden="true">
+                    <use href="icons.svg#i-chart" />
+                </svg>
+            </span>
+            <p class="empty__title">{{ t('analytics.empty') }}</p>
+            <p class="empty__text">{{ t('analytics.emptyText') }}</p>
+        </div>
+    </section>
+    } @else {
+    @switch (section()) {
+    @case ('pages') {
+    <app-analytics-pages [stats]="s"></app-analytics-pages>
+    }
+    @case ('visitors') {
+    <app-analytics-visitors [stats]="s"></app-analytics-visitors>
+    }
+    @default {
+    <app-analytics-overview [stats]="s"></app-analytics-overview>
+    }
+    }
+
+    <p class="message message--info analytics__note">
+        <svg class="icon"
+             aria-hidden="true">
+            <use href="icons.svg#i-info" />
+        </svg>
+        <span>{{ t('analytics.note') }}</span>
+    </p>
+    }
+    </mat-tab-nav-panel>
+</div>

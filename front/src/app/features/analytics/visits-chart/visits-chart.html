@@ -1,0 +1,134 @@
+<div class="chart-toolbar">
+    <div class="chart-toolbar__metrics">
+        @if (kind() === 'bar') {
+        <mat-radio-group class="segmented"
+                         [attr.aria-label]="t('analytics.metricLabel')"
+                         [ngModel]="metric()"
+                         (ngModelChange)="setMetric($event)">
+            @for (m of metrics(); track m.value) {
+            <mat-radio-button class="segmented__option"
+                              [value]="m.value">{{ m.label }}</mat-radio-button>
+            }
+        </mat-radio-group>
+        } @else {
+        <div class="metric-chips"
+             role="group"
+             [attr.aria-label]="t('analytics.linesLabel')">
+            @for (m of metrics(); track m.value) {
+            @let on = lines().includes(m.value);
+            <button type="button"
+                    class="metric-chip"
+                    [class]="'series-' + m.value"
+                    [class.metric-chip--on]="on"
+                    [attr.aria-pressed]="on"
+                    (click)="toggleLine(m.value)">
+                <span class="metric-chip__key"
+                      aria-hidden="true"></span>
+                {{ m.label }}
+            </button>
+            }
+        </div>
+        }
+    </div>
+    <mat-radio-group class="segmented chart-toolbar__kind"
+                     [attr.aria-label]="t('analytics.kindLabel')"
+                     [ngModel]="kind()"
+                     (ngModelChange)="setKind($event)">
+        @for (k of kinds(); track k.value) {
+        <mat-radio-button class="segmented__option"
+                          [value]="k.value">{{ k.label }}</mat-radio-button>
+        }
+    </mat-radio-group>
+</div>
+
+<div class="chart">
+    <div class="chart__y"
+         aria-hidden="true">
+        @for (tick of ticks(); track tick.label) {
+        <span class="chart__tick"
+              [style.top.%]="tick.y">{{ tick.label }}</span>
+        }
+    </div>
+    <div class="chart__plot">
+        <div class="chart__area"
+             role="img"
+             [attr.aria-label]="summary()"
+             (mouseleave)="hovered.set(null)">
+            @for (tick of ticks(); track tick.label) {
+            <div class="chart__grid"
+                 [style.top.%]="tick.y"></div>
+            }
+
+            @if (kind() === 'bar') {
+            @for (bar of bars(); track bar.day; let i = $index) {
+            @if (bar.height > 0) {
+            <div class="chart__bar"
+                 [class]="'series-' + metric()"
+                 [class.chart__bar--dim]="hovered() !== null && hovered() !== i"
+                 [style.left.%]="bar.left"
+                 [style.width]="barWidth()"
+                 [style.height.%]="bar.height"></div>
+            }
+            }
+            } @else {
+            <svg class="chart__lines"
+                 aria-hidden="true"
+                 preserveAspectRatio="none"
+                 [attr.viewBox]="'0 0 ' + width() + ' 100'">
+                @for (s of series(); track s.metric) {
+                @if (s.area) {
+                <path class="chart__fill"
+                      [class]="'series-' + s.metric"
+                      [attr.d]="s.area" />
+                }
+                <polyline class="chart__line"
+                          [class]="'series-' + s.metric"
+                          vector-effect="non-scaling-stroke"
+                          [attr.points]="s.points" />
+                }
+            </svg>
+            }
+
+            @if (tip(); as tip) {
+            @if (kind() === 'line') {
+            @for (row of tip.rows; track row.metric) {
+            <span class="chart__marker"
+                  aria-hidden="true"
+                  [class]="'series-' + row.metric"
+                  [style.left.%]="tip.left"
+                  [style.top.%]="row.y"></span>
+            }
+            }
+            <div class="chart-tip"
+                 aria-hidden="true"
+                 [class]="'chart-tip--' + tip.align"
+                 [style.left.%]="tip.left">
+                <p class="chart-tip__day">{{ tip.label }}</p>
+                @for (row of tip.rows; track row.metric) {
+                <p class="chart-tip__row"
+                   [class]="'series-' + row.metric">
+                    <span class="chart-tip__key"></span>
+                    <span class="chart-tip__label">{{ row.label }}</span>
+                    <span class="chart-tip__value">{{ row.value }}</span>
+                </p>
+                }
+            </div>
+            }
+
+            @for (bar of bars(); track bar.day; let i = $index) {
+            <div class="chart__hit"
+                 [style.left.%]="i * slot()"
+                 [style.width.%]="slot()"
+                 (mouseenter)="hovered.set(i)"></div>
+            }
+        </div>
+        <div class="chart__x"
+             aria-hidden="true">
+            @for (label of labels(); track label.left) {
+            <span class="chart__label"
+                  [class.chart__label--minor]="label.minor"
+                  [style.left.%]="label.left">{{ label.label }}</span>
+            }
+        </div>
+    </div>
+</div>

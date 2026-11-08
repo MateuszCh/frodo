@@ -1,0 +1,818 @@
+// Analytics: visit statistics of the public site (features/analytics). Period switch,
+// KPI tiles, the daily bar chart and the top tables with share bars.
+
+.analytics {
+    display: grid;
+    gap: var(--space-5);
+
+    > .page-header {
+        margin-bottom: 0;
+    }
+}
+
+// the title with its period under it
+.analytics__heading {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+}
+
+// the subpages: the tabs under the title, then the content of the chosen one
+.analytics__tabs {
+    margin-top: calc(var(--space-2) * -1);
+}
+
+.analytics__panel,
+app-analytics-overview,
+app-analytics-pages,
+app-analytics-visitors {
+    display: grid;
+    gap: var(--space-5);
+    min-width: 0;
+}
+
+.analytics__period {
+    font-size: var(--text-sm);
+    line-height: var(--leading-sm);
+    color: var(--color-text-muted);
+}
+
+.analytics__controls > .card__body {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-4);
+    padding-top: var(--space-5);
+}
+
+.analytics__custom {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    gap: var(--space-3);
+
+    > .field {
+        min-width: min(280px, 100%);
+    }
+}
+
+.analytics__tables {
+    display: grid;
+    gap: var(--space-5);
+    align-items: start;
+}
+
+// two columns: sources and languages on the left, the taller devices card on the right;
+// wide screens: all three in a row
+@media (min-width: 600px) {
+    .analytics__tables {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-auto-flow: dense;
+    }
+
+    .analytics__table--devices {
+        grid-column: 2;
+        grid-row: span 2;
+    }
+}
+
+@media (min-width: 1200px) {
+    .analytics__tables {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .analytics__table--devices {
+        grid-column: auto;
+        grid-row: auto;
+    }
+}
+
+.analytics__compare {
+    margin-top: calc(var(--space-2) * -1);
+    font-size: var(--text-xs);
+    line-height: var(--leading-xs);
+    color: var(--color-text-subtle);
+}
+
+.analytics__none {
+    font-size: var(--text-sm);
+    line-height: var(--leading-sm);
+    color: var(--color-text-muted);
+}
+
+.analytics__note {
+    font-weight: var(--weight-regular);
+}
+
+// ---- KPI tiles ---------------------------------------------------------------
+
+// six tiles: two, three or six in a row, never one left alone
+.kpis {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-3);
+    margin: 0;
+}
+
+.kpi {
+    display: grid;
+    align-content: start;
+    gap: var(--space-1);
+    padding: var(--space-4);
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-lg);
+
+    > dd {
+        margin: 0;
+    }
+}
+
+.kpi__label {
+    font-size: var(--text-sm);
+    line-height: var(--leading-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-muted);
+}
+
+.kpi__value {
+    font-size: var(--text-2xl);
+    line-height: var(--leading-2xl);
+    font-weight: var(--weight-semibold);
+    letter-spacing: var(--tracking-tight);
+    font-variant-numeric: tabular-nums;
+}
+
+// the change against the previous period: an arrow and the number, in text ink
+.kpi__delta {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    font-size: var(--text-sm);
+    line-height: var(--leading-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-muted);
+    font-variant-numeric: tabular-nums;
+}
+
+.kpi__arrow {
+    width: var(--icon-sm);
+    height: var(--icon-sm);
+}
+
+.kpi__delta--down .kpi__arrow {
+    transform: rotate(180deg);
+}
+
+.kpi__hint {
+    font-size: var(--text-xs);
+    line-height: var(--leading-xs);
+    color: var(--color-text-subtle);
+}
+
+@media (min-width: 600px) {
+    .kpis {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+}
+
+@media (min-width: 1200px) {
+    .kpis {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+}
+
+// ---- chart ------------------------------------------------------------------
+
+// Series colours: one per metric, the same in bars, lines, the tooltip and the device
+// donut (validated as a categorical set on both surfaces: CVD and normal-vision distance
+// pass; three light steps sit under 3:1, so the legend, tooltip and daily table carry the
+// values). Text never wears them.
+:root {
+    --series-1: #2a78d6;
+    --series-2: #eb6834;
+    --series-3: #1baf7a;
+    --series-4: #eda100;
+    --series-5: #e87ba4;
+}
+
+@media (prefers-color-scheme: dark) {
+    :root:not([data-theme='light']) {
+        --series-1: #3987e5;
+        --series-2: #d95926;
+        --series-3: #199e70;
+        --series-4: #c98500;
+        --series-5: #d55181;
+    }
+}
+
+:root[data-theme='dark'] {
+    --series-1: #3987e5;
+    --series-2: #d95926;
+    --series-3: #199e70;
+    --series-4: #c98500;
+    --series-5: #d55181;
+}
+
+.series-entries,
+.series-desktop {
+    --series: var(--series-1);
+}
+
+.series-unique,
+.series-mobile {
+    --series: var(--series-2);
+}
+
+.series-loads,
+.series-tablet {
+    --series: var(--series-3);
+}
+
+.series-nav {
+    --series: var(--series-4);
+}
+
+.series-views {
+    --series: var(--series-5);
+}
+
+// a grid item of the card body: without this the row of line toggles widens the card
+app-visits-chart {
+    display: block;
+    min-width: 0;
+}
+
+.chart-toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+}
+
+// five metrics do not fit a phone: the switch scrolls instead of squeezing its labels
+.chart-toolbar__metrics {
+    display: flex;
+    min-width: 0;
+    max-width: 100%;
+    overflow-x: auto;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar {
+        display: none;
+    }
+
+    > .segmented {
+        flex: none;
+        max-width: none;
+    }
+}
+
+.chart-toolbar__kind {
+    flex: none;
+}
+
+// the lines' metrics: toggles that are also the legend
+.metric-chips {
+    display: flex;
+    gap: var(--space-2);
+}
+
+.metric-chip {
+    display: inline-flex;
+    flex: none;
+    align-items: center;
+    gap: var(--space-2);
+    height: calc(var(--control-h) - 4px);
+    padding: 0 var(--space-3);
+    border: 1px solid var(--color-border-control);
+    border-radius: var(--radius-full);
+    background: var(--color-surface);
+    font: inherit;
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-muted);
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+        background-color var(--duration-instant) var(--ease-standard),
+        color var(--duration-instant) var(--ease-standard);
+
+    &:hover {
+        background: var(--color-fill-hover);
+        color: var(--color-text);
+    }
+
+    &:focus-visible {
+        outline: 2px solid var(--color-focus-ring);
+        outline-offset: 1px;
+    }
+}
+
+.metric-chip--on {
+    border-color: var(--color-border-strong);
+    background: var(--color-surface-selected);
+    color: var(--color-text);
+}
+
+// a short line in the series colour; hollow while the metric is off
+.metric-chip__key {
+    width: 14px;
+    height: 4px;
+    border-radius: var(--radius-full);
+    border: 1.5px solid var(--series);
+    background: transparent;
+
+    .metric-chip--on > & {
+        background: var(--series);
+    }
+}
+
+.chart {
+    --chart-h: 200px;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: var(--space-2);
+}
+
+.chart__y {
+    position: relative;
+    height: var(--chart-h);
+    min-width: 2.5ch;
+}
+
+.chart__tick {
+    position: absolute;
+    right: 0;
+    transform: translateY(-50%);
+    font-size: var(--text-xs);
+    line-height: 1;
+    color: var(--color-text-subtle);
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.chart__plot {
+    min-width: 0;
+}
+
+.chart__area {
+    position: relative;
+    height: var(--chart-h);
+}
+
+.chart__grid {
+    position: absolute;
+    left: 0;
+    right: 0;
+    border-top: 1px solid var(--color-border);
+    pointer-events: none;
+}
+
+// grows from the baseline; 4 px rounded data end, square at the base
+.chart__bar {
+    position: absolute;
+    bottom: 0;
+    transform: translateX(-50%);
+    border-radius: 4px 4px 0 0;
+    background: var(--series);
+    pointer-events: none;
+    transition: opacity var(--duration-instant) var(--ease-standard);
+}
+
+.chart__bar--dim {
+    opacity: 0.45;
+}
+
+.chart__lines {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+    pointer-events: none;
+}
+
+.chart__line {
+    fill: none;
+    stroke: var(--series);
+    stroke-width: 2;
+    stroke-linejoin: round;
+    stroke-linecap: round;
+}
+
+.chart__fill {
+    fill: var(--series);
+    opacity: 0.12;
+}
+
+// 8 px dot with a 2 px ring in the surface colour
+.chart__marker {
+    position: absolute;
+    width: 12px;
+    height: 12px;
+    transform: translate(-50%, -50%);
+    border: 2px solid var(--color-surface);
+    border-radius: var(--radius-full);
+    background: var(--series);
+    pointer-events: none;
+}
+
+.chart__hit {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+}
+
+.chart-tip {
+    position: absolute;
+    top: 0;
+    z-index: 1;
+    display: grid;
+    gap: var(--space-1);
+    min-width: 150px;
+    padding: var(--space-2) var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface-overlay, var(--color-surface));
+    box-shadow: var(--shadow-md);
+    font-size: var(--text-xs);
+    line-height: var(--leading-xs);
+    pointer-events: none;
+    white-space: nowrap;
+}
+
+// beside the hovered day, never over its marks, and never out of the plot
+.chart-tip--center {
+    transform: translateX(12px);
+}
+
+.chart-tip--start {
+    transform: translateX(12px);
+}
+
+.chart-tip--end {
+    transform: translateX(calc(-100% - 12px));
+}
+
+.chart-tip__day {
+    font-weight: var(--weight-semibold);
+    color: var(--color-text);
+}
+
+.chart-tip__row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-text-muted);
+}
+
+.chart-tip__key {
+    width: 8px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: var(--series);
+}
+
+.chart-tip__label {
+    margin-right: auto;
+}
+
+.chart-tip__value {
+    font-weight: var(--weight-semibold);
+    color: var(--color-text);
+    font-variant-numeric: tabular-nums;
+}
+
+.chart__x {
+    position: relative;
+    height: calc(var(--leading-xs) + var(--space-2));
+}
+
+.chart__label {
+    position: absolute;
+    top: var(--space-2);
+    transform: translateX(-50%);
+    font-size: var(--text-xs);
+    line-height: var(--leading-xs);
+    color: var(--color-text-subtle);
+    white-space: nowrap;
+}
+
+@media (max-width: 599px) {
+    .chart__label--minor {
+        display: none;
+    }
+}
+
+// ---- device donut ------------------------------------------------------------
+
+.donut {
+    position: relative;
+    width: 132px;
+    height: 132px;
+    margin: 0 auto var(--space-4);
+}
+
+.donut__svg {
+    display: block;
+    width: 100%;
+    height: 100%;
+    transform: rotate(-90deg);
+}
+
+.donut__track {
+    fill: none;
+    stroke: var(--color-surface-sunken);
+}
+
+.donut__segment {
+    fill: none;
+    stroke: var(--series);
+}
+
+.donut__center {
+    position: absolute;
+    inset: 0;
+    display: grid;
+    place-content: center;
+    text-align: center;
+}
+
+.donut__value {
+    font-size: var(--text-xl);
+    line-height: var(--leading-xl);
+    font-weight: var(--weight-semibold);
+    font-variant-numeric: tabular-nums;
+}
+
+.donut__label {
+    font-size: var(--text-xs);
+    line-height: var(--leading-xs);
+    color: var(--color-text-muted);
+}
+
+// the legend of the donut: a dot in the device's colour before its name
+.stats-table__key {
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    margin-right: var(--space-2);
+    border-radius: var(--radius-full);
+    background: var(--series);
+}
+
+// ---- tables ------------------------------------------------------------------
+
+.stats-details {
+    margin-top: var(--space-5);
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--space-3);
+
+    &[open] .stats-details__chevron {
+        transform: rotate(180deg);
+    }
+}
+
+.stats-details__summary {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    min-height: var(--control-h-sm);
+    padding: 0 var(--space-2);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
+    font-weight: var(--weight-medium);
+    cursor: pointer;
+    list-style: none;
+
+    &::-webkit-details-marker {
+        display: none;
+    }
+
+    &:hover {
+        background: var(--color-fill-hover);
+    }
+
+    &:focus-visible {
+        outline: none;
+        box-shadow: var(--shadow-focus);
+    }
+}
+
+.stats-details__chevron {
+    width: var(--icon-sm);
+    height: var(--icon-sm);
+    color: var(--color-text-subtle);
+    transition: transform var(--duration-instant) var(--ease-standard);
+}
+
+.stats-table__scroll {
+    max-height: 420px;
+    overflow: auto;
+    margin-top: var(--space-3);
+}
+
+.stats-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: var(--text-sm);
+    line-height: var(--leading-sm);
+
+    th,
+    td {
+        padding: var(--space-2) var(--space-3);
+        border-bottom: 1px solid var(--color-border);
+        text-align: right;
+        font-variant-numeric: tabular-nums;
+        white-space: nowrap;
+    }
+
+    th:first-child {
+        text-align: left;
+        font-weight: var(--weight-regular);
+    }
+
+    thead th {
+        position: sticky;
+        top: 0;
+        background: var(--color-surface);
+        font-weight: var(--weight-medium);
+        color: var(--color-text-muted);
+    }
+
+    tbody tr:last-child > * {
+        border-bottom: 0;
+    }
+}
+
+// fixed layout: the name column takes what the two number columns leave
+.stats-table--top {
+    table-layout: fixed;
+
+    th:first-child {
+        white-space: normal;
+    }
+
+    th,
+    td {
+        padding-inline: var(--space-2);
+    }
+
+    th:first-child {
+        padding-left: 0;
+    }
+
+    td:last-child {
+        padding-right: 0;
+    }
+}
+
+.stats-table__num {
+    width: 4.5rem;
+}
+
+.stats-table__name {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    column-gap: var(--space-2);
+    min-width: 0;
+    overflow-wrap: anywhere;
+}
+
+.stats-table__link {
+    color: var(--color-text-link);
+    text-decoration: none;
+
+    &:hover {
+        text-decoration: underline;
+    }
+}
+
+.stats-table__path {
+    font-family: var(--font-mono);
+    font-size: var(--text-xs);
+    color: var(--color-text-subtle);
+}
+
+.stats-table__share {
+    color: var(--color-text-muted);
+}
+
+// share of a row in the period: a thin bar under its name
+.share {
+    display: block;
+    height: 4px;
+    margin-top: var(--space-1-5);
+    border-radius: var(--radius-full);
+    background: var(--color-surface-sunken);
+    overflow: hidden;
+}
+
+// devices take their ring colour; the other tables the accent
+.share__bar {
+    display: block;
+    height: 100%;
+    border-radius: inherit;
+    background: var(--series, var(--color-accent));
+}
+
+// the pages card: its metric switch above the list
+.analytics__page-metrics {
+    margin-bottom: var(--space-4);
+}
+
+// the pages list shows its column heads: the single-page column needs one
+.stats-table--pages thead th {
+    font-size: var(--text-xs);
+    line-height: var(--leading-xs);
+}
+
+.stats-table__num--wide {
+    width: 7.5rem;
+}
+
+// a move between pages: "from > to"
+.stats-table__move {
+    align-items: center;
+}
+
+.stats-table__arrow {
+    width: var(--icon-sm);
+    height: var(--icon-sm);
+    color: var(--color-text-subtle);
+}
+
+// ---- heat map -----------------------------------------------------------------
+
+.heatmap__peak {
+    margin-bottom: var(--space-3);
+    font-size: var(--text-sm);
+    line-height: var(--leading-sm);
+    color: var(--color-text-muted);
+}
+
+.heatmap__scroll {
+    overflow-x: auto;
+}
+
+.heatmap {
+    width: 100%;
+    min-width: 520px;
+    border-collapse: separate;
+    border-spacing: 2px;
+    table-layout: fixed;
+}
+
+.heatmap__hour {
+    height: var(--leading-xs);
+    font-size: var(--text-xs);
+    line-height: var(--leading-xs);
+    font-weight: var(--weight-regular);
+    color: var(--color-text-subtle);
+    text-align: left;
+    white-space: nowrap;
+}
+
+.heatmap__day {
+    width: 3.5rem;
+    padding-right: var(--space-2);
+    font-size: var(--text-xs);
+    line-height: var(--leading-xs);
+    font-weight: var(--weight-medium);
+    color: var(--color-text-muted);
+    text-align: left;
+    white-space: nowrap;
+}
+
+// one hue, from the sunken surface (none) to the full series colour (the busiest hour)
+.heatmap__cell {
+    height: 22px;
+    border-radius: 3px;
+    background: color-mix(in oklab, var(--series-1) var(--level, 0%), var(--color-surface-sunken));
+}
+
+.heatmap__cell--empty {
+    background: var(--color-surface-sunken);
+}
+
+.heatmap__legend {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+    font-size: var(--text-xs);
+    line-height: var(--leading-xs);
+    color: var(--color-text-subtle);
+}
+
+.heatmap__ramp {
+    width: 96px;
+    height: 8px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(to right, var(--color-surface-sunken), var(--series-1));
+}
