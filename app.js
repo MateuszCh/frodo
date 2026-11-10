@@ -2,13 +2,12 @@ const express = require('express'),
     path = require('path'),
     bodyParser = require('body-parser'),
     cookieParser = require('cookie-parser'),
-    expressValidator = require('express-validator'),
     session = require('express-session'),
     passport = require('passport'),
     mongoose = require('mongoose'),
     config = require('./config'),
     UserController = require('./server/controllers/user.controller'),
-    MongoStore = require('connect-mongo')(session),
+    MongoStore = require('connect-mongo'),
     Counter = require('./server/models/counter'),
     { exportsRouter } = require('./server/exports'),
     routes = require('./server/routes');
@@ -66,7 +65,9 @@ app.use(cookieParser());
 app.use(
     session({
         cookie: { maxAge: 3600000 },
-        store: new MongoStore({ mongooseConnection: mongoose.connection }),
+        // its own connection (driver 4, mongoose 5 has 3); the same "sessions" collection and
+        // document shape as connect-mongo 2, so nobody is logged out by the upgrade
+        store: MongoStore.create({ mongoUrl: config.mongoUrl }),
         name: 'frodo',
         secret: config.sessionSecret,
         saveUninitialized: true,
@@ -76,23 +77,6 @@ app.use(
 
 app.use(passport.initialize());
 app.use(passport.session());
-
-// app.use(expressValidator({
-//     errorFormatter: function(param, msg, value) {
-//         var namespace = param.split('.')
-//             , root    = namespace.shift()
-//             , formParam = root;
-//
-//         while(namespace.length) {
-//             formParam += '[' + namespace.shift() + ']';
-//         }
-//         return {
-//             param : formParam,
-//             msg   : msg,
-//             value : value
-//         };
-//     }
-// }));
 
 routes(app);
 

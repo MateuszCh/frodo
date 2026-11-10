@@ -40,6 +40,9 @@ module.exports = {
             checkFile(file, cb);
         },
         limits: { fileSize: 10000000 },
+        // browsers send file names as UTF-8; multer 2 reads them as latin1 by default, which
+        // would turn "Zażółć.png" into "ZaÅ¼Ã³Å.png" (multer 1.4.4 read UTF-8)
+        defParamCharset: 'utf8',
     }),
     setFilenames(req, res, next) {
         filenames = [];
