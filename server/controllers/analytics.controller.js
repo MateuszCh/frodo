@@ -6,6 +6,8 @@ const mongoose = require('mongoose'),
         LIVE_MS,
         dayOf,
         hourOf,
+        legacyPeopleQueries,
+        peopleMatch,
         parseRange,
         parseTop,
         fillDays,
@@ -37,6 +39,19 @@ function linkPath(byPath, path) {
 }
 
 /**
+ * The match of the hits and events of people in a period (visit-stats.js: confirmed ones,
+ * and older ones of visitors who ran the page's script that day).
+ */
+async function peopleIn(db, range) {
+    const queries = legacyPeopleQueries(range);
+    const [navigated, scripted] = await Promise.all([
+        db.collection(COLLECTION).distinct('visitor', queries.hits),
+        db.collection(EVENTS).distinct('visitor', queries.events),
+    ]);
+    return peopleMatch([...navigated, ...scripted]);
+}
+
+/**
  * The days, totals (with the average visit and the average visible time of a page, in
  * seconds; the latter null before the site sends it) and single-page visits of a period.
  */
@@ -55,6 +70,7 @@ module.exports = {
      * (the length of the referrer, device, language and transition lists; the pages are
      * all listed). A period of one day also gets `hourly`: its hours, up to the current
      * one today. An empty or missing `visits` collection gives zeros, not an error.
+     * Bots are left out of every number (peopleIn).
      */
     async visits(req, res, next) {
         try {
@@ -68,23 +84,24 @@ module.exports = {
             const events = mongoose.connection.db.collection(EVENTS);
             const aggregate = (pipeline) => visits.aggregate(pipeline, { allowDiskUse: true }).toArray();
             const aggregateEvents = (pipeline) => events.aggregate(pipeline, { allowDiskUse: true }).toArray();
+            const people = await peopleIn(mongoose.connection.db, { from: previous.from, to: range.to });
 
             // the hits of both periods at once are split into visits here; a visitor id
             // lives one day, so no visit crosses the start of the period
             const oneDay = range.from === range.to;
             const [perDay, previousDays, pageRows, hours, hits, pages, perHour, engagement, previousEngagement, outbound, downloads, notFound] = await Promise.all([
-                aggregate(perDayPipeline(range)),
-                aggregate(perDayPipeline(previous)),
-                aggregate(pagesPipeline(range)),
-                aggregate(hoursPipeline(range)),
-                aggregate(hitsPipeline({ from: previous.from, to: range.to })),
+                aggregate(perDayPipeline(range, people)),
+                aggregate(perDayPipeline(previous, people)),
+                aggregate(pagesPipeline(range, people)),
+                aggregate(hoursPipeline(range, people)),
+                aggregate(hitsPipeline({ from: previous.from, to: range.to }, people)),
                 Page.find({}, 'id title pageUrl').lean(),
-                oneDay ? aggregate(hourlyPipeline(range.from)) : null,
-                aggregateEvents(engagementPipeline(range)),
-                aggregateEvents(engagementPipeline(previous)),
-                aggregateEvents(clicksPipeline(range, 'outbound', top)),
-                aggregateEvents(clicksPipeline(range, 'download', top)),
-                aggregateEvents(notFoundPipeline(range, top)),
+                oneDay ? aggregate(hourlyPipeline(range.from, people)) : null,
+                aggregateEvents(engagementPipeline(range, people)),
+                aggregateEvents(engagementPipeline(previous, people)),
+                aggregateEvents(clicksPipeline(range, 'outbound', top, people)),
+                aggregateEvents(clicksPipeline(range, 'download', top, people)),
+                aggregateEvents(notFoundPipeline(range, top, people)),
             ]);
             const engagementByPath = new Map(engagement.map((row) => [row.key, row]));
             const current = summarizeVisits(hits.filter((hit) => hit.day >= range.from));
@@ -142,13 +159,18 @@ module.exports = {
 
     /**
      * "Now on the site": GET /api/analytics/live – the visitors with a page view in the
-     * last five minutes and the pages they are on (each on the last one they opened).
+     * last five minutes and the pages they are on (each on the last one they opened). Only
+     * people (peopleIn); a visitor of the old, unconfirmed hits shows once they ran the
+     * page's script.
      */
     async live(req, res, next) {
         try {
             const visits = mongoose.connection.db.collection(COLLECTION);
+            const now = new Date();
+            const since = new Date(now.getTime() - LIVE_MS);
+            const people = await peopleIn(mongoose.connection.db, { from: dayOf(since), to: dayOf(now) });
             const [[result], pages] = await Promise.all([
-                visits.aggregate(livePipeline(new Date(Date.now() - LIVE_MS), parseTop(req.query.top))).toArray(),
+                visits.aggregate(livePipeline(since, parseTop(req.query.top), people)).toArray(),
                 Page.find({}, 'id title pageUrl').lean(),
             ]);
             res.send({

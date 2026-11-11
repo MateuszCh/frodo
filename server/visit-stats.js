@@ -4,6 +4,7 @@
 //     referrer, device, lang }
 // (older hits also carry `entry`, no longer used; `lang` only in hits since geosilesia keeps it.)
 // - "ssr": a full page load; only these carry the external referrer.
+// Hits and events since geosilesia counts only what its script reports carry `confirmed: true`.
 // Hits since geosilesia keeps them also carry the browser and system family.
 // - "nav": a page opened inside the site, without reloading.
 // Three numbers, as GA4 and Plausible count them: visitors (anyone with a hit that day),
@@ -11,10 +12,19 @@
 // views (all hits). The visitor id is built with a salt that changes every day, so
 // visitors exist per day only: their total over a period is the sum of daily visitors,
 // not different people.
+//
+// Only people are counted (peopleMatch): scrapers and scanners fetch pages with a browser's
+// user agent but run no JavaScript. Since geosilesia counts only what its own script
+// reports, every hit and event it writes carries `confirmed: true`. Older ones were written
+// on the document request, bots included: of those only the visitors who ran the page's
+// script that day count – a page opened inside the site ("nav") or an event only the script
+// sends (SCRIPT_EVENTS). Every pipeline below takes that match as `people`.
 
 const COLLECTION = 'visits';
 /** What a page view alone does not say: 404s, visible time, link clicks (geosilesia's visits.js). */
 const EVENTS = 'visit_events';
+/** Events only the page's own script sends: the visitor of that day ran it, so was a browser. */
+const SCRIPT_EVENTS = ['engagement', 'outbound', 'download'];
 /** Visits by the different pages they opened, and by their length in seconds. */
 const DEPTHS = ['1', '2', '3-5', '6+'];
 const LENGTHS = ['0-10', '10-30', '30-180', '180+'];
@@ -144,10 +154,28 @@ function summarize(days) {
     );
 }
 
+/**
+ * The queries of the visitors of a period who ran the page's script, among the hits and
+ * events written before geosilesia confirmed them: `distinct('visitor', …)` of `hits` on
+ * the visits and of `events` on the events. Visitor ids live one day, so the ids suffice.
+ */
+function legacyPeopleQueries({ from, to }) {
+    const legacy = { day: { $gte: from, $lte: to }, confirmed: { $exists: false } };
+    return {
+        hits: { ...legacy, source: 'nav' },
+        events: { ...legacy, type: { $in: SCRIPT_EVENTS } },
+    };
+}
+
+/** The match of the hits and events of people: confirmed ones and those of `visitors` (legacyPeopleQueries). */
+function peopleMatch(visitors) {
+    return { $or: [{ confirmed: true }, { visitor: { $in: [...new Set(visitors)] } }] };
+}
+
 /** Visitors (anyone with a hit) and views (all hits) per day. */
-function perDayPipeline({ from, to }) {
+function perDayPipeline({ from, to }, people = {}) {
     return [
-        { $match: { day: { $gte: from, $lte: to } } },
+        { $match: { day: { $gte: from, $lte: to }, ...people } },
         { $group: { _id: '$day', visitors: { $addToSet: '$visitor' }, views: { $sum: 1 } } },
         { $project: { _id: 0, day: '$_id', visitors: { $size: '$visitors' }, views: 1 } },
     ];
@@ -158,9 +186,9 @@ function perDayPipeline({ from, to }) {
  * site's total: one visitor and one day count once). The visits that started on it come
  * from summarizeVisits.
  */
-function pagesPipeline({ from, to }) {
+function pagesPipeline({ from, to }, people = {}) {
     return [
-        { $match: { day: { $gte: from, $lte: to } } },
+        { $match: { day: { $gte: from, $lte: to }, ...people } },
         { $group: { _id: { path: '$path', day: '$day', visitor: '$visitor' }, views: { $sum: 1 } } },
         { $group: { _id: '$_id.path', visitors: { $sum: 1 }, views: { $sum: '$views' } } },
         { $project: { _id: 0, key: '$_id', visitors: 1, views: 1 } },
@@ -175,10 +203,10 @@ function previousRange({ from, to }) {
 }
 
 /** Views (all hits) per weekday (1 = Monday … 7 = Sunday) and hour, in Polish time. */
-function hoursPipeline({ from, to }) {
+function hoursPipeline({ from, to }, people = {}) {
     const at = { date: '$ts', timezone: 'Europe/Warsaw' };
     return [
-        { $match: { day: { $gte: from, $lte: to } } },
+        { $match: { day: { $gte: from, $lte: to }, ...people } },
         { $group: { _id: { weekday: { $isoDayOfWeek: at }, hour: { $hour: at } }, count: { $sum: 1 } } },
         { $project: { _id: 0, weekday: '$_id.weekday', hour: '$_id.hour', count: 1 } },
         { $sort: { weekday: 1, hour: 1 } },
@@ -186,9 +214,9 @@ function hoursPipeline({ from, to }) {
 }
 
 /** Visitors (anyone with a hit) and views per hour of one day, in Polish time. */
-function hourlyPipeline(day) {
+function hourlyPipeline(day, people = {}) {
     return [
-        { $match: { day } },
+        { $match: { day, ...people } },
         {
             $group: {
                 _id: { $hour: { date: '$ts', timezone: 'Europe/Warsaw' } },
@@ -216,9 +244,9 @@ function fillHours(rows, visits, last = 23) {
 }
 
 /** Every hit from `from` on, in the order each visitor made them: the input of summarizeVisits. */
-function hitsPipeline({ from, to }) {
+function hitsPipeline({ from, to }, people = {}) {
     return [
-        { $match: { day: { $gte: from, $lte: to } } },
+        { $match: { day: { $gte: from, $lte: to }, ...people } },
         {
             $project: {
                 _id: 0,
@@ -258,9 +286,9 @@ function bucketsOf(map) {
  * Visible time per page (engagement events): its milliseconds and how many visitors of a
  * day sent any, so the average is per page view of a visitor, whatever the beacons.
  */
-function engagementPipeline({ from, to }) {
+function engagementPipeline({ from, to }, people = {}) {
     return [
-        { $match: { day: { $gte: from, $lte: to }, type: 'engagement' } },
+        { $match: { day: { $gte: from, $lte: to }, type: 'engagement', ...people } },
         { $group: { _id: { path: '$path', day: '$day', visitor: '$visitor' }, ms: { $sum: '$ms' } } },
         { $group: { _id: '$_id.path', ms: { $sum: '$ms' }, count: { $sum: 1 } } },
         { $project: { _id: 0, key: '$_id', ms: 1, count: 1 } },
@@ -268,9 +296,9 @@ function engagementPipeline({ from, to }) {
 }
 
 /** The most clicked targets of one kind of click event ("outbound", "download"). */
-function clicksPipeline({ from, to }, type, limit) {
+function clicksPipeline({ from, to }, type, limit, people = {}) {
     return [
-        { $match: { day: { $gte: from, $lte: to }, type } },
+        { $match: { day: { $gte: from, $lte: to }, type, ...people } },
         { $group: { _id: '$target', count: { $sum: 1 } } },
         { $sort: { count: -1, _id: 1 } },
         { $limit: limit },
@@ -279,9 +307,9 @@ function clicksPipeline({ from, to }, type, limit) {
 }
 
 /** Addresses that do not exist, most opened first, each with where the visitors came from. */
-function notFoundPipeline({ from, to }, limit) {
+function notFoundPipeline({ from, to }, limit, people = {}) {
     return [
-        { $match: { day: { $gte: from, $lte: to }, type: 'notFound' } },
+        { $match: { day: { $gte: from, $lte: to }, type: 'notFound', ...people } },
         { $group: { _id: { path: '$path', from: '$from' }, count: { $sum: 1 } } },
         { $sort: { count: -1 } },
         {
@@ -298,9 +326,9 @@ function notFoundPipeline({ from, to }, limit) {
 }
 
 /** Visitors with a page view since `since`, and the pages they are on. */
-function livePipeline(since, limit) {
+function livePipeline(since, limit, people = {}) {
     return [
-        { $match: { ts: { $gte: since } } },
+        { $match: { ts: { $gte: since }, ...people } },
         { $sort: { ts: 1 } },
         // each visitor on the last page they opened
         { $group: { _id: '$visitor', path: { $last: '$path' } } },
@@ -462,6 +490,8 @@ module.exports = {
     normalizePath,
     fillDays,
     summarize,
+    legacyPeopleQueries,
+    peopleMatch,
     perDayPipeline,
     pagesPipeline,
     hoursPipeline,
