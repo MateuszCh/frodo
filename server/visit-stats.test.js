@@ -8,9 +8,12 @@ const {
     normalizePath,
     fillDays,
     summarize,
+    legacyPeopleQueries,
+    peopleMatch,
     perDayPipeline,
     pagesPipeline,
     hoursPipeline,
+    hitsPipeline,
     previousRange,
     summarizeVisits,
     hourOf,
@@ -394,5 +397,45 @@ describe('topTransitions', () => {
             { from: '/maps', to: '/', count: 5 },
             { from: '/', to: '/glossary', count: 2 },
         ]);
+    });
+});
+
+describe('people', () => {
+    const range = { from: '2026-11-01', to: '2026-11-08' };
+    const days = { $gte: '2026-11-01', $lte: '2026-11-08' };
+
+    it('looks for the visitors who ran the page script among the unconfirmed hits and events', () => {
+        const queries = legacyPeopleQueries(range);
+        assert.deepEqual(queries.hits, { day: days, confirmed: { $exists: false }, source: 'nav' });
+        assert.deepEqual(queries.events, {
+            day: days,
+            confirmed: { $exists: false },
+            type: { $in: ['engagement', 'outbound', 'download'] },
+        });
+    });
+
+    it('keeps the confirmed documents and those of the visitors found, each id once', () => {
+        assert.deepEqual(peopleMatch(['a', 'b', 'a']), {
+            $or: [{ confirmed: true }, { visitor: { $in: ['a', 'b'] } }],
+        });
+    });
+
+    it('filters every pipeline by it, and nothing without it', () => {
+        const people = peopleMatch(['a']);
+        const since = new Date('2026-11-08T09:55:00Z');
+        const matches = [
+            perDayPipeline(range, people),
+            pagesPipeline(range, people),
+            hoursPipeline(range, people),
+            hitsPipeline(range, people),
+            hourlyPipeline('2026-11-08', people),
+            engagementPipeline(range, people),
+            clicksPipeline(range, 'outbound', 5, people),
+            notFoundPipeline(range, 5, people),
+            livePipeline(since, 5, people),
+        ].map((pipeline) => pipeline[0].$match);
+        matches.forEach((match) => assert.deepEqual(match.$or, people.$or));
+        assert.deepEqual(notFoundPipeline(range, 5, people)[0].$match.type, 'notFound');
+        assert.equal(perDayPipeline(range)[0].$match.$or, undefined);
     });
 });

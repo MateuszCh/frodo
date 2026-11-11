@@ -153,6 +153,12 @@ into weeks or months in the browser (`visit-groups.ts`). The `visit_events` coll
 on a page and the clicked links. `GET /api/analytics/live` counts the visitors of the last
 five minutes. Nothing of it needs consent: no cookie or storage in the browser, no id that
 outlives the day, and the IP is never stored.
+Every number counts people only (`peopleMatch`, applied to every pipeline): scrapers and
+scanners fetch pages with a browser's user agent but run no JavaScript. geosilesia now
+records only what its own script reports (a `view` beacon for a full load, `X-Page-View`
+for a page opened inside the site) and marks it `confirmed: true`; of the older,
+unconfirmed hits and events only those of visitors who ran the page's script that day count
+(a `nav` hit or an `engagement`/`outbound`/`download` event, `legacyPeopleQueries`).
 
 ### Frontend (`front/src/app/`)
 
