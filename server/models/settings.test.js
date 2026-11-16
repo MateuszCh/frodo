@@ -62,6 +62,17 @@ describe('Settings model', () => {
             pageTypes: [{ title: 'Mapa', type: 'map', fields: [field] }],
         });
     });
+    it('keeps the palette of a color field', () => {
+        const field = { title: 'Tło', type: 'color', id: 'bg', colorOptions: '#1a73e8; #e8710a', repeaterFields: [] };
+        const settings = Settings.hydrate({
+            _id: 'settings',
+            pageTypes: [{ title: 'Mapa', type: 'map', fields: [field] }],
+        });
+
+        assert.deepEqual(settings.toExport(), {
+            pageTypes: [{ title: 'Mapa', type: 'map', fields: [field] }],
+        });
+    });
 });
 
 describe('Page model', () => {

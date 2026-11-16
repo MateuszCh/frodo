@@ -119,6 +119,11 @@ refuses to rename or remove a post type that a post field of another schema uses
 posts keeps each post's exported `id` when no post has it (`saveImport` with `keepIds`), so
 the ids still point to the same posts on another site.
 
+A **color** field type stores `"#rrggbb"` (lower case) or `null`: the browser's colour picker
+beside the hex text, which is normalised on blur (`#ABC` → `#aabbcc`, `shared/color.ts`) and
+blocks saving when it is not a colour. The field may keep a palette in `colorOptions` (hex
+colours separated by semicolons, like `selectOptions`), shown as quick swatches.
+
 **Listings** (pages, post types, components, posts of a type) are paginated on the server:
 `GET /api/listing/:family?page&limit&sort&q&filters` (posts also `postType`) returns
 `{ items, page, limit, matched, total, ranges? }`. Search, post filters and sort run in MongoDB

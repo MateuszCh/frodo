@@ -1,8 +1,8 @@
 // The fields of a schema in the editors (.fields > app-field.fields__item): post, page type
 // fields, page component, repeater row, nested component. A short field (number, date,
-// select, catalogue, True/False) shares a line with the short field next to it, two at most,
-// while each gets 280 px; alone, or next to a longer field, it takes the whole line, as the
-// longer fields always do. Each container keeps its own row gap.
+// select, catalogue, True/False, color) shares a line with the short field next to it, two
+// at most, while each gets 280 px; alone, or next to a longer field, it takes the whole
+// line, as the longer fields always do. Each container keeps its own row gap.
 
 .fields {
     display: flex;

@@ -22,6 +22,10 @@ const FieldSchema = new Schema(
         multiselectOptions: {
             type: String,
         },
+        // "color" field: optional palette, hex colours separated by semicolons
+        colorOptions: {
+            type: String,
+        },
         // "post" field: key of the post type its posts are chosen from
         postType: {
             type: String,

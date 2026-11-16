@@ -127,6 +127,58 @@
             </div>
         </div>
     }
+    @case ('color') {
+        @let color = data[f.id];
+        <div class="field">
+            <label class="field__label" [for]="id">{{ f.title }}</label>
+            <div class="field-row">
+                <input
+                    type="color"
+                    class="color-field__swatch"
+                    [value]="isColor(color) ? color : '#000000'"
+                    [attr.aria-label]="t('field.pickColor', { name: f.title })"
+                    (input)="setColor($any($event.target).value)"
+                />
+                <mat-form-field appearance="outline" subscriptSizing="dynamic">
+                    <input
+                        matInput
+                        type="text"
+                        spellcheck="false"
+                        autocomplete="off"
+                        placeholder="#rrggbb"
+                        [id]="id"
+                        [name]="ctrl"
+                        [pattern]="colorPattern"
+                        [(ngModel)]="data[f.id]"
+                        (blur)="setColor(data[f.id])"
+                    />
+                    <mat-error>
+                        <svg class="icon" aria-hidden="true"><use href="icons.svg#i-alert" /></svg>
+                        {{ t('field.colorInvalid') }}
+                    </mat-error>
+                </mat-form-field>
+                <button mat-button type="button" (click)="clear()">
+                    <svg matButtonIcon class="icon" aria-hidden="true"><use href="icons.svg#i-x" /></svg>
+                    {{ t('common.clear') }}
+                </button>
+            </div>
+            @if (palette.length) {
+                <div class="color-field__palette">
+                    @for (c of palette; track c) {
+                        <button
+                            type="button"
+                            class="color-field__chip"
+                            [style.background-color]="c"
+                            [attr.aria-label]="t('field.paletteColor', { color: c })"
+                            [attr.aria-pressed]="color === c"
+                            [title]="c"
+                            (click)="setColor(c)"
+                        ></button>
+                    }
+                </div>
+            }
+        </div>
+    }
     @case ('repeater') {
         <app-repeater
             class="repeater"

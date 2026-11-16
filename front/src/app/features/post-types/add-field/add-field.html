@@ -134,6 +134,23 @@
         </div>
         }
 
+        @if (f.type === 'color') {
+        <div class="field">
+            <label class="field__label"
+                   [for]="uid + '_colorOptions'">{{ t('schema.palette') }}</label>
+            <mat-form-field appearance="outline"
+                            subscriptSizing="dynamic">
+                <input matInput
+                       type="text"
+                       [id]="uid + '_colorOptions'"
+                       spellcheck="false"
+                       [name]="uid + '_colorOptions'"
+                       [(ngModel)]="f.colorOptions" />
+            </mat-form-field>
+            <span class="field__hint">{{ t('schema.paletteHint') }}</span>
+        </div>
+        }
+
         @if (f.type === 'multiselect') {
         <div class="field">
             <label class="field__label"
