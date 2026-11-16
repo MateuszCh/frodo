@@ -19,6 +19,7 @@ export const FIELDS: Record<FieldType, FieldTypeDef> = {
     catalogue: { name: 'Catalogue', type: 'catalogue' },
     component: { name: 'Component', type: 'component' },
     post: { name: 'Post', type: 'post' },
+    color: { name: 'Color', type: 'color' },
 };
 
 export const FIELD_LIST: FieldTypeDef[] = Object.values(FIELDS);
@@ -31,6 +32,7 @@ export function blankField(): Field {
         id: '',
         selectOptions: undefined,
         multiselectOptions: undefined,
+        colorOptions: undefined,
         repeaterFields: [],
     };
 }

@@ -18,6 +18,7 @@ import { MatDialog } from '@angular/material/dialog';
 import { Field, FieldType } from '../../../models/models';
 import { FilesService } from '../../../core/files.service';
 import { parseOptions } from '../../../shared/parse-options';
+import { COLOR_PATTERN, normalizeColor, parsePalette } from '../../../shared/color';
 import { FilePickerDialogComponent } from '../../files/file-picker-dialog/file-picker-dialog';
 import { RepeaterComponent } from '../repeater/repeater';
 import { ComponentFieldComponent } from '../component-field/component-field';
@@ -32,6 +33,7 @@ const SHORT_TYPES: ReadonlySet<FieldType> = new Set([
     'select',
     'catalogue',
     'checkbox',
+    'color',
 ]);
 
 /**
@@ -86,6 +88,9 @@ export class FieldInputComponent implements OnInit {
 
     protected options: string[] = [];
     protected multiOptions: string[] = [];
+    /** "color" field: the quick swatches of its definition */
+    protected palette: string[] = [];
+    protected readonly colorPattern = COLOR_PATTERN;
     protected readonly catalogues = this.filesService.catalogues;
     /**
      * The file shown: follows the bound model (a row moved up, a model swapped in after a
@@ -102,6 +107,7 @@ export class FieldInputComponent implements OnInit {
 
         this.options = field.options ?? parseOptions(field.selectOptions);
         this.multiOptions = field.multiOptions ?? parseOptions(field.multiselectOptions);
+        this.palette = field.type === 'color' ? parsePalette(field.colorOptions) : [];
 
         if (field.type === 'checkbox' && model[field.id] == null) {
             model[field.id] = false;
@@ -116,6 +122,16 @@ export class FieldInputComponent implements OnInit {
             const date = new Date(model[field.id] as string | number);
             model[field.id] = isNaN(date.getTime()) ? null : date;
         }
+    }
+
+    /** Whether a value is a colour the field can show ("#rrggbb"). */
+    protected isColor(value: unknown): value is string {
+        return typeof value === 'string' && COLOR_PATTERN.test(value);
+    }
+
+    /** Stores a colour from the picker, a swatch or the typed text, as "#rrggbb" when it is one. */
+    setColor(value: unknown): void {
+        this.model()[this.field().id] = normalizeColor(value);
     }
 
     clear(): void {

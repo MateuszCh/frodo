@@ -265,3 +265,53 @@ describe('PostTypeComponent — "post" field', () => {
         expect(cardBody('Related').textContent).toContain('There are no post types yet.');
     });
 });
+
+describe('PostTypeComponent — "color" field', () => {
+    const paletteInput = (body: HTMLElement) =>
+        body.querySelector<HTMLInputElement>('input[name$="_colorOptions"]');
+
+    it('offers a palette for a "color" field only, and saves it', async () => {
+        const schema = marker();
+        schema.fields = [
+            { title: 'Background', type: 'color', id: 'bg' },
+            { title: 'Gallery', type: 'text', id: 'gallery' },
+        ];
+        const { cardBody, edit, save, type } = await setup(schema);
+
+        expect(paletteInput(cardBody('Gallery'))).toBeNull();
+        const input = paletteInput(cardBody('Background'))!;
+        expect(cardBody('Background').textContent).toContain('Hex colors separated by semicolons');
+
+        await type(input, '#1a73e8; #e8710a');
+        await save();
+
+        expect(edit.mock.calls[0][0].fields[0].colorOptions).toBe('#1a73e8; #e8710a');
+    });
+
+    it('saves a "color" field without a palette', async () => {
+        const schema = marker();
+        schema.fields = [{ title: 'Background', type: 'color', id: 'bg' }];
+        const { edit, save } = await setup(schema);
+
+        await save();
+
+        expect(edit).toHaveBeenCalled();
+    });
+
+    it('drops the palette of a field that stops being a "color" field', async () => {
+        const schema = marker();
+        schema.fields = [{ title: 'Background', type: 'color', id: 'bg', colorOptions: '#ffffff' }];
+        const { fixture, cardBody, edit, save } = await setup(schema);
+
+        cardBody('Background').querySelector<HTMLElement>('mat-select')!.click();
+        fixture.detectChanges();
+        Array.from(document.querySelectorAll<HTMLElement>('mat-option'))
+            .find((o) => o.textContent?.trim() === 'Text')!
+            .click();
+        fixture.detectChanges();
+        await save();
+
+        expect(edit.mock.calls[0][0].fields[0]).not.toHaveProperty('colorOptions');
+        expect(edit.mock.calls[0][0].fields[0].type).toBe('text');
+    });
+});

@@ -7,6 +7,8 @@ export interface Field {
     id: string;
     selectOptions?: string;
     multiselectOptions?: string;
+    /** "color" field: optional palette, hex colours separated by semicolons */
+    colorOptions?: string;
     repeaterFields?: Field[];
     /** "post" field: key of the post type its posts are chosen from */
     postType?: string;
@@ -29,7 +31,9 @@ export type FieldType =
     // a nested component; its value has the shape of a page row (PageComponent)
     | 'component'
     // chosen posts of the post type in `postType` (PostFieldValue)
-    | 'post';
+    | 'post'
+    // a hex colour "#rrggbb" or null; `colorOptions` may offer a palette
+    | 'color';
 
 /** Base shape shared by PostType and Component (postTypeAbstractSchema). */
 export interface SchemaEntity {
