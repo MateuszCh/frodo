@@ -77,6 +77,9 @@ export class AddFieldComponent {
         if (type !== 'post') {
             delete f.postType;
         }
+        if (type !== 'color') {
+            delete f.colorOptions;
+        }
     }
 
     /** The sidenav loads the post types; a select opened before it answers asks itself. */

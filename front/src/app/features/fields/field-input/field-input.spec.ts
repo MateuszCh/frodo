@@ -445,3 +445,114 @@ describe('FieldInputComponent — file preview', () => {
         ).toBe('/uploads/b.jpg');
     });
 });
+
+// ---------------------------------------------------------------------------
+// "color" field
+// ---------------------------------------------------------------------------
+
+describe('FieldInputComponent — color field', () => {
+    const colorField = (colorOptions?: string) =>
+        makeField('color', 'bg', 'Background', colorOptions ? { colorOptions } : {});
+
+    async function settle(fixture: ComponentFixture<HostComponent>) {
+        fixture.detectChanges();
+        await fixture.whenStable();
+        fixture.detectChanges();
+    }
+
+    const hexInput = (fixture: ComponentFixture<HostComponent>): HTMLInputElement =>
+        fixture.nativeElement.querySelector('input[name="bg"]');
+    const picker = (fixture: ComponentFixture<HostComponent>): HTMLInputElement =>
+        fixture.nativeElement.querySelector('input[type="color"]');
+    const chips = (fixture: ComponentFixture<HostComponent>): HTMLButtonElement[] =>
+        Array.from(fixture.nativeElement.querySelectorAll('.color-field__chip'));
+
+    it('renders the picker and the hex text, labelled with the title', async () => {
+        const { fixture } = setup(colorField(), { bg: '#1a73e8' });
+        await settle(fixture);
+
+        const label: HTMLLabelElement = fixture.nativeElement.querySelector('label.field__label');
+        expect(label.textContent?.trim()).toBe('Background');
+        expect(label.htmlFor).toBe(hexInput(fixture).id);
+        expect(hexInput(fixture).value).toBe('#1a73e8');
+        expect(picker(fixture).value).toBe('#1a73e8');
+        expect(picker(fixture).getAttribute('aria-label')).toBe('Pick a color: Background');
+    });
+
+    it('shows black in the picker when there is no colour', () => {
+        const { fixture } = setup(colorField(), {});
+        expect(picker(fixture).value).toBe('#000000');
+    });
+
+    it('stores the colour chosen in the picker', async () => {
+        const { fixture, model } = setup(colorField(), {});
+        picker(fixture).value = '#e8710a';
+        picker(fixture).dispatchEvent(new Event('input'));
+        await settle(fixture);
+
+        expect(model['bg']).toBe('#e8710a');
+        expect(hexInput(fixture).value).toBe('#e8710a');
+    });
+
+    it('normalises the typed colour when the text loses focus', async () => {
+        const { fixture, model } = setup(colorField(), {});
+        // the form registers ngModel controls asynchronously
+        await settle(fixture);
+        hexInput(fixture).value = ' ABC ';
+        hexInput(fixture).dispatchEvent(new Event('input'));
+        hexInput(fixture).dispatchEvent(new Event('blur'));
+        await settle(fixture);
+
+        expect(model['bg']).toBe('#aabbcc');
+        expect(fixture.nativeElement.querySelector('mat-error')).toBeNull();
+    });
+
+    it('marks text that is not a colour as an error', async () => {
+        const { fixture, model } = setup(colorField(), {});
+        // the form registers ngModel controls asynchronously
+        await settle(fixture);
+        hexInput(fixture).value = 'red';
+        hexInput(fixture).dispatchEvent(new Event('input'));
+        hexInput(fixture).dispatchEvent(new Event('blur'));
+        await settle(fixture);
+
+        expect(model['bg']).toBe('red');
+        expect(fixture.debugElement.query(By.css('input[name="bg"]')).injector.get(NgModel).invalid).toBe(true);
+        expect(fixture.nativeElement.querySelector('mat-error')?.textContent).toContain('Enter a color as #rrggbb');
+    });
+
+    it('clears the colour', async () => {
+        const { fixture, model } = setup(colorField(), { bg: '#1a73e8' });
+        const clear = Array.from<HTMLButtonElement>(fixture.nativeElement.querySelectorAll('button')).find(
+            (b) => b.textContent?.trim() === 'Clear',
+        )!;
+        clear.click();
+        await settle(fixture);
+
+        expect(model['bg']).toBeNull();
+        expect(hexInput(fixture).value).toBe('');
+    });
+
+    it('has no palette without colorOptions', () => {
+        const { fixture } = setup(colorField(), {});
+        expect(fixture.nativeElement.querySelector('.color-field__palette')).toBeNull();
+    });
+
+    it('offers the valid colours of the palette and stores the one clicked', async () => {
+        const { fixture, model } = setup(colorField('#1A73E8; e8710a; red'), { bg: '#e8710a' });
+        await settle(fixture);
+
+        expect(chips(fixture).map((c) => c.getAttribute('aria-label'))).toEqual([
+            'Use color #1a73e8',
+            'Use color #e8710a',
+        ]);
+        expect(chips(fixture).map((c) => c.getAttribute('aria-pressed'))).toEqual(['false', 'true']);
+
+        chips(fixture)[0].click();
+        await settle(fixture);
+
+        expect(model['bg']).toBe('#1a73e8');
+        expect(chips(fixture)[0].getAttribute('aria-pressed')).toBe('true');
+        expect(hexInput(fixture).value).toBe('#1a73e8');
+    });
+});
